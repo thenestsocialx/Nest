@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\Nest\\\\source_code\\\\user_manickavasagam\\\\node_modules\\\\next\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(npx tsc *)",
+      "PowerShell(New-Item *)",
+      "Bash(not exist *)",
+      "PowerShell(app *)"
+    ]
+  }
+}

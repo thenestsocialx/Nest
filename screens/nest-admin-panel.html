@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nest · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F8F4ED;
+  --cream-2:#F2EBE0;
+  --cream-3:#E8DDD0;
+  --forest:#2F4C3A;
+  --forest-2:#3D6150;
+  --forest-3:#507A66;
+  --forest-light:#EBF2EE;
+  --gold:#C49A5A;
+  --gold-light:#F0E2C8;
+  --gold-mid:#E8C8A0;
+  --ink:#1A2B22;
+  --ink-2:#3A4F42;
+  --ink-3:#627A6E;
+  --ink-4:#94A89E;
+  --border:#DDD5C8;
+  --border-soft:#EDE8E0;
+  --red:#C44B3A;
+  --red-light:#FAF0EE;
+  --amber:#C47A2A;
+  --amber-light:#FBF3E8;
+  --teal:#2A7A6A;
+  --teal-light:#E8F5F2;
+  --font-serif:'DM Serif Display',Georgia,serif;
+  --font-sans:'DM Sans',system-ui,sans-serif;
+  --sidebar-w:220px;
+  --topbar-h:60px;
+  --radius:10px;
+  --radius-sm:6px;
+  --shadow:0 1px 3px rgba(47,76,58,0.08),0 4px 16px rgba(47,76,58,0.04);
+}
+html,body{height:100%;background:var(--cream);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit}
+ul{list-style:none}
+
+/* ── LAYOUT ── */
+.admin-shell{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.ns-sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--forest);
+  display:flex;flex-direction:column;
+  overflow:hidden;position:relative;
+}
+.ns-sidebar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:180px;
+  background:linear-gradient(to top,rgba(0,0,0,0.15),transparent);
+  pointer-events:none;
+}
+.ns-sidebar__brand{
+  padding:22px 20px 16px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.ns-sidebar__logo{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--gold-mid);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.ns-sidebar__brand-text{display:flex;flex-direction:column;gap:1px}
+.ns-sidebar__name{font-family:var(--font-serif);font-size:17px;color:var(--cream);line-height:1}
+.ns-sidebar__label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;text-transform:uppercase}
+
+.ns-sidebar__nav{flex:1;padding:12px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.ns-sidebar__section-label{
+  font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.08em;text-transform:uppercase;
+  padding:10px 10px 4px;
+}
+.ns-nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:400;color:rgba(255,255,255,0.6);
+  cursor:pointer;transition:background 0.15s,color 0.15s;
+  position:relative;
+}
+.ns-nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9)}
+.ns-nav-item.active{background:rgba(255,255,255,0.12);color:#fff;font-weight:500}
+.ns-nav-item.active::before{
+  content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:3px;height:18px;background:var(--gold-mid);border-radius:0 2px 2px 0;
+}
+.ns-nav-icon{width:16px;height:16px;opacity:0.7;flex-shrink:0}
+.ns-nav-item.active .ns-nav-icon,.ns-nav-item:hover .ns-nav-icon{opacity:1}
+.ns-nav-badge{
+  margin-left:auto;font-size:10px;font-weight:600;
+  background:var(--red);color:#fff;
+  padding:1px 6px;border-radius:10px;
+}
+
+.ns-sidebar__footer{
+  padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;gap:10px;position:relative;z-index:1;
+}
+.ns-sidebar__avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--gold-mid);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:var(--forest);flex-shrink:0;
+}
+.ns-sidebar__user{flex:1;min-width:0}
+.ns-sidebar__user-name{font-size:12px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ns-sidebar__user-role{font-size:10px;color:rgba(255,255,255,0.35)}
+
+/* ── MAIN AREA ── */
+.ns-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+
+/* ── TOP BAR ── */
+.ns-topbar{
+  height:var(--topbar-h);flex-shrink:0;
+  background:var(--cream);border-bottom:1px solid var(--border-soft);
+  display:flex;align-items:center;gap:16px;
+  padding:0 28px;position:sticky;top:0;z-index:50;
+}
+.ns-topbar__page{flex:1}
+.ns-topbar__page-title{font-family:var(--font-serif);font-size:20px;color:var(--ink);line-height:1}
+.ns-topbar__page-sub{font-size:12px;color:var(--ink-4);margin-top:1px}
+.ns-topbar__actions{display:flex;align-items:center;gap:8px}
+.ns-topbar__btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:500;
+  background:var(--forest);color:#fff;
+  transition:background 0.15s;
+}
+.ns-topbar__btn:hover{background:var(--forest-2)}
+.ns-topbar__icon-btn{
+  width:34px;height:34px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);border:1px solid var(--border);
+  transition:background 0.15s;
+}
+.ns-topbar__icon-btn:hover{background:var(--cream-2)}
+.ns-bell-wrap{position:relative}
+.ns-bell-dot{
+  position:absolute;top:6px;right:6px;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--red);border:1.5px solid var(--cream);
+}
+.ns-env-status{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:var(--radius-sm);
+  background:var(--teal-light);
+  font-size:11px;font-weight:500;color:var(--teal);
+  border:1px solid rgba(42,122,106,0.15);
+}
+.ns-env-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+
+/* ── CONTENT SCROLL ── */
+.ns-content{flex:1;overflow-y:auto;padding:28px;display:flex;flex-direction:column;gap:24px}
+
+/* ── SECTION HEADER ── */
+.ns-section-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+.ns-section-hd h2{font-family:var(--font-serif);font-size:22px;color:var(--ink)}
+.ns-section-hd__note{font-size:12px;color:var(--ink-4)}
+
+/* ── CARDS ── */
+.ns-card{
+  background:#fff;border:1px solid var(--border-soft);
+  border-radius:var(--radius);padding:20px;
+  box-shadow:var(--shadow);
+}
+.ns-card--flat{box-shadow:none;background:var(--cream-2)}
+.ns-card__label{font-size:11px;font-weight:500;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.ns-card__title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px}
+
+/* ── METRIC CARDS ── */
+.ns-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.ns-metric{
+  background:#fff;border:1px solid var(--border-soft);
+  border-radius:var(--radius);padding:18px 20px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.ns-metric::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--gold-mid);
+}
+.ns-metric.green::before{background:var(--forest-3)}
+.ns-metric.red::before{background:var(--red)}
+.ns-metric.amber::before{background:var(--gold)}
+.ns-metric.teal::before{background:var(--teal)}
+.ns-metric__label{font-size:11px;color:var(--ink-4);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
+.ns-metric__val{font-family:var(--font-serif);font-size:28px;color:var(--ink);line-height:1}
+.ns-metric__sub{font-size:11px;color:var(--ink-4);margin-top:4px}
+.ns-metric__delta{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:500;margin-top:4px;
+}
+.ns-metric__delta.up{color:var(--teal)}
+.ns-metric__delta.dn{color:var(--red)}
+
+/* ── GRID LAYOUTS ── */
+.ns-two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ns-three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.ns-60-40{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+
+/* ── TABLE ── */
+.ns-table-wrap{overflow-x:auto}
+.ns-table{width:100%;border-collapse:collapse;font-size:13px}
+.ns-table thead th{
+  text-align:left;padding:8px 12px;
+  font-size:11px;font-weight:500;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.05em;
+  border-bottom:1px solid var(--border-soft);white-space:nowrap;
+}
+.ns-table tbody tr{border-bottom:1px solid var(--border-soft);transition:background 0.1s}
+.ns-table tbody tr:last-child{border-bottom:none}
+.ns-table tbody tr:hover{background:var(--cream)}
+.ns-table td{padding:11px 12px;color:var(--ink-2);vertical-align:middle}
+.ns-table .muted{color:var(--ink-4)}
+
+/* ── BADGES / TAGS ── */
+.ns-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;
+}
+.ns-badge.green{background:var(--teal-light);color:var(--teal)}
+.ns-badge.red{background:var(--red-light);color:var(--red)}
+.ns-badge.amber{background:var(--amber-light);color:var(--amber)}
+.ns-badge.forest{background:var(--forest-light);color:var(--forest)}
+.ns-badge.gray{background:var(--cream-2);color:var(--ink-3)}
+.ns-badge__dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── FORM ELEMENTS ── */
+.ns-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.ns-label{font-size:12px;font-weight:500;color:var(--ink-2)}
+.ns-hint{font-size:11px;color:var(--ink-4);margin-top:2px}
+.ns-input{
+  padding:8px 12px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:#fff;
+  font-size:13px;color:var(--ink);
+  transition:border-color 0.15s,box-shadow 0.15s;width:100%;
+}
+.ns-input:focus{outline:none;border-color:var(--forest-3);box-shadow:0 0 0 3px rgba(47,76,58,0.08)}
+.ns-input:disabled{background:var(--cream);color:var(--ink-4)}
+.ns-select{
+  padding:8px 32px 8px 12px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:#fff;
+  font-size:13px;color:var(--ink);width:100%;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A89E' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.ns-select:focus{outline:none;border-color:var(--forest-3)}
+.ns-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+.ns-toggle-row:last-child{border-bottom:none}
+.ns-toggle-row__info{flex:1;min-width:0;padding-right:16px}
+.ns-toggle-row__title{font-size:13px;font-weight:500;color:var(--ink)}
+.ns-toggle-row__desc{font-size:12px;color:var(--ink-4);margin-top:2px}
+.ns-toggle{position:relative;width:38px;height:22px;flex-shrink:0}
+.ns-toggle input{opacity:0;width:0;height:0;position:absolute}
+.ns-toggle__track{
+  position:absolute;inset:0;border-radius:11px;
+  background:var(--border);cursor:pointer;transition:background 0.2s;
+}
+.ns-toggle input:checked + .ns-toggle__track{background:var(--forest)}
+.ns-toggle__thumb{
+  position:absolute;top:3px;left:3px;
+  width:16px;height:16px;border-radius:50%;
+  background:#fff;pointer-events:none;
+  transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+.ns-toggle input:checked ~ .ns-toggle__thumb{transform:translateX(16px)}
+
+/* ── BUTTON ── */
+.ns-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;cursor:pointer;
+  transition:background 0.15s,color 0.15s,border-color 0.15s;
+}
+.ns-btn--primary{background:var(--forest);color:#fff;border:1px solid var(--forest)}
+.ns-btn--primary:hover{background:var(--forest-2)}
+.ns-btn--secondary{background:transparent;color:var(--forest);border:1px solid var(--border)}
+.ns-btn--secondary:hover{background:var(--cream-2)}
+.ns-btn--danger{background:var(--red);color:#fff;border:1px solid var(--red)}
+.ns-btn--sm{padding:5px 12px;font-size:12px}
+.ns-btn--ghost{background:transparent;color:var(--ink-3);border:1px solid var(--border-soft)}
+.ns-btn--ghost:hover{background:var(--cream-2)}
+
+/* ── CONNECT CARD (integrations) ── */
+.ns-connect{
+  display:flex;align-items:center;gap:14px;
+  padding:16px;border-radius:var(--radius);
+  border:1px solid var(--border-soft);background:#fff;
+  margin-bottom:10px;transition:box-shadow 0.15s;
+}
+.ns-connect:hover{box-shadow:var(--shadow)}
+.ns-connect__icon{
+  width:40px;height:40px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:var(--cream-2);
+}
+.ns-connect__body{flex:1;min-width:0}
+.ns-connect__name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.ns-connect__desc{font-size:12px;color:var(--ink-4)}
+.ns-connect__actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* ── STATUS DOT ── */
+.ns-status{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-3)}
+.ns-status__dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ns-status__dot.live{background:var(--teal);box-shadow:0 0 0 2px rgba(42,122,106,0.2)}
+.ns-status__dot.warn{background:var(--amber);box-shadow:0 0 0 2px rgba(196,122,42,0.2)}
+.ns-status__dot.off{background:var(--ink-4)}
+.ns-status__dot.err{background:var(--red);box-shadow:0 0 0 2px rgba(196,75,58,0.2)}
+
+/* ── LIMIT SLIDER ── */
+.ns-limit-card{
+  background:#fff;border:1px solid var(--border-soft);
+  border-radius:var(--radius);padding:18px 20px;
+  box-shadow:var(--shadow);
+}
+.ns-limit-row{display:flex;align-items:center;gap:16px;margin-bottom:10px}
+.ns-limit-plan{font-size:12px;font-weight:600;width:68px;flex-shrink:0}
+.ns-limit-val{font-size:13px;font-weight:600;color:var(--forest);width:44px;text-align:right;flex-shrink:0}
+.ns-limit-bar{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--cream-3);outline:none;cursor:pointer}
+.ns-limit-bar::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--forest);cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1px var(--forest),0 2px 4px rgba(0,0,0,0.15)}
+.ns-limit-bar::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--forest);cursor:pointer;border:2px solid #fff}
+
+/* ── PLAN CARDS ── */
+.ns-plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ns-plan{
+  border-radius:var(--radius);padding:16px;
+  border:1px solid var(--border-soft);background:#fff;
+  position:relative;
+}
+.ns-plan.ns-plan--featured{border-color:var(--forest);border-width:1.5px}
+.ns-plan__tier{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-4);margin-bottom:6px}
+.ns-plan__price{font-family:var(--font-serif);font-size:24px;color:var(--ink);margin-bottom:2px}
+.ns-plan__price span{font-family:var(--font-sans);font-size:12px;color:var(--ink-4)}
+.ns-plan__features{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.ns-plan__feat{font-size:12px;color:var(--ink-2);display:flex;align-items:flex-start;gap:6px}
+.ns-plan__feat::before{content:'·';color:var(--gold);font-size:16px;line-height:1.1;flex-shrink:0}
+.ns-plan__badge{
+  position:absolute;top:-1px;right:12px;
+  background:var(--forest);color:#fff;
+  font-size:9px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  padding:3px 8px;border-radius:0 0 6px 6px;
+}
+
+/* ── AUDIT LOG ── */
+.ns-audit{display:flex;flex-direction:column;gap:0}
+.ns-audit-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border-soft);
+}
+.ns-audit-item:last-child{border-bottom:none}
+.ns-audit__icon{
+  width:28px;height:28px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1px;
+}
+.ns-audit__icon.green{background:var(--teal-light)}
+.ns-audit__icon.red{background:var(--red-light)}
+.ns-audit__icon.amber{background:var(--amber-light)}
+.ns-audit__icon.forest{background:var(--forest-light)}
+.ns-audit__body{flex:1;min-width:0}
+.ns-audit__title{font-size:12px;font-weight:500;color:var(--ink)}
+.ns-audit__sub{font-size:11px;color:var(--ink-4);margin-top:1px}
+.ns-audit__time{font-size:11px;color:var(--ink-4);white-space:nowrap;flex-shrink:0;margin-top:2px}
+
+/* ── MINI CHART (CSS bars) ── */
+.ns-bar-chart{display:flex;align-items:flex-end;gap:6px;height:60px}
+.ns-bar-chart__col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.ns-bar-chart__bar{width:100%;border-radius:3px 3px 0 0;min-height:4px;background:var(--forest-light);transition:height 0.3s}
+.ns-bar-chart__bar.hi{background:var(--forest)}
+.ns-bar-chart__day{font-size:10px;color:var(--ink-4)}
+
+/* ── EVENT CHIP ── */
+.ns-event-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-soft)}
+.ns-event-row:last-child{border-bottom:none}
+.ns-event-row__date{
+  width:40px;height:44px;border-radius:6px;
+  background:var(--forest-light);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.ns-event-row__month{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--forest)}
+.ns-event-row__day{font-size:18px;font-weight:600;color:var(--forest);line-height:1}
+.ns-event-row__body{flex:1;min-width:0}
+.ns-event-row__name{font-size:13px;font-weight:500;color:var(--ink)}
+.ns-event-row__meta{font-size:11px;color:var(--ink-4);margin-top:1px}
+.ns-event-row__cap{font-size:12px;font-weight:500;color:var(--ink-3);white-space:nowrap}
+
+/* ── RESOURCE ROW ── */
+.ns-resource-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft)}
+.ns-resource-row:last-child{border-bottom:none}
+.ns-resource-row__type{
+  width:32px;height:32px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  background:var(--cream-2);
+}
+.ns-resource-row__body{flex:1;min-width:0}
+.ns-resource-row__title{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ns-resource-row__tags{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+.ns-tag{
+  font-size:10px;padding:1px 6px;border-radius:3px;
+  background:var(--gold-light);color:var(--amber);font-weight:500;
+}
+.ns-tag.forest{background:var(--forest-light);color:var(--forest)}
+.ns-tag.teal{background:var(--teal-light);color:var(--teal)}
+
+/* ── ALLY CARD ── */
+.ns-ally-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+.ns-ally-row:last-child{border-bottom:none}
+.ns-ally-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:var(--gold-mid);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:var(--forest);
+}
+.ns-ally-avatar.v2{background:var(--forest-light);color:var(--forest)}
+.ns-ally-avatar.v3{background:var(--cream-3);color:var(--ink-2)}
+.ns-ally__body{flex:1;min-width:0}
+.ns-ally__name{font-size:13px;font-weight:500;color:var(--ink)}
+.ns-ally__meta{font-size:11px;color:var(--ink-4);margin-top:1px}
+.ns-ally__stars{display:flex;gap:2px;align-items:center}
+.ns-star{width:10px;height:10px;fill:var(--gold);color:var(--gold)}
+.ns-star.empty{fill:var(--cream-3);color:var(--cream-3)}
+.ns-ally__sessions{font-size:11px;color:var(--ink-4);margin-top:2px}
+
+/* ── ZOHO CONNECT BOX ── */
+.ns-oauth-box{
+  border:1.5px dashed var(--border);border-radius:var(--radius);
+  padding:28px;text-align:center;background:var(--cream);
+}
+.ns-oauth-box.connected{
+  border-style:solid;border-color:var(--forest-3);
+  background:var(--forest-light);text-align:left;
+}
+.ns-oauth-box__title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.ns-oauth-box__sub{font-size:13px;color:var(--ink-4);margin-bottom:16px}
+.ns-oauth-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ns-oauth-meta__item{background:#fff;border-radius:6px;padding:10px 12px;border:1px solid var(--border-soft)}
+.ns-oauth-meta__label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-4);margin-bottom:3px}
+.ns-oauth-meta__val{font-size:12px;font-weight:500;color:var(--ink)}
+
+/* ── ENV VAR LIST ── */
+.ns-env-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:12px}
+.ns-env-row:last-child{border-bottom:none}
+.ns-env-key{font-family:'DM Mono','Courier New',monospace;font-size:11px;color:var(--ink-2);flex:1}
+.ns-env-present{color:var(--teal);font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.ns-env-missing{color:var(--red);font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+
+/* ── USER SEARCH ── */
+.ns-search-row{display:flex;gap:10px;margin-bottom:16px}
+.ns-search-input-wrap{position:relative;flex:1}
+.ns-search-input-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-4)}
+.ns-search-input{padding:8px 12px 8px 34px;border-radius:var(--radius-sm);border:1px solid var(--border);background:#fff;font-size:13px;color:var(--ink);width:100%}
+.ns-search-input:focus{outline:none;border-color:var(--forest-3)}
+
+/* ── FLAGGED ALERT ── */
+.ns-flagged{
+  background:var(--red-light);border:1px solid rgba(196,75,58,0.2);
+  border-radius:var(--radius);padding:14px 16px;
+  display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;
+}
+.ns-flagged__icon{color:var(--red);flex-shrink:0;margin-top:1px}
+.ns-flagged__body{flex:1}
+.ns-flagged__title{font-size:13px;font-weight:600;color:var(--red);margin-bottom:3px}
+.ns-flagged__desc{font-size:12px;color:var(--red);opacity:0.8}
+
+/* ── NOTICE ── */
+.ns-notice{
+  background:var(--forest-light);border:1px solid rgba(47,76,58,0.15);
+  border-radius:var(--radius-sm);padding:10px 14px;
+  font-size:12px;color:var(--forest);display:flex;align-items:flex-start;gap:8px;
+}
+
+/* ── SECTION TABS ── */
+.ns-tabs{display:flex;gap:2px;background:var(--cream-2);border-radius:var(--radius-sm);padding:3px;width:fit-content;margin-bottom:20px}
+.ns-tab{
+  padding:6px 16px;border-radius:5px;font-size:13px;font-weight:400;color:var(--ink-3);
+  cursor:pointer;transition:background 0.15s,color 0.15s;
+}
+.ns-tab.active{background:#fff;color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+
+/* ── PROGRESS BAR ── */
+.ns-progress{height:4px;border-radius:2px;background:var(--cream-3);overflow:hidden}
+.ns-progress__fill{height:100%;border-radius:2px;background:var(--forest);transition:width 0.4s}
+.ns-progress__fill.amber{background:var(--gold)}
+.ns-progress__fill.red{background:var(--red)}
+
+/* ── PAGE SECTIONS (hidden/shown) ── */
+.ns-page{display:none;animation:fadeIn 0.2s ease}
+.ns-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--cream-3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ── divider ── */
+.ns-divider{height:1px;background:var(--border-soft);margin:18px 0}
+
+/* ── credit ── */
+.ns-credit-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
+.ns-credit-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+  <nav class="ns-sidebar" role="navigation" aria-label="Admin navigation">
+    <div class="ns-sidebar__brand">
+      <div class="ns-sidebar__logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M8 2 Q12 3 13 7 Q13 11 9 13 Q8 13.5 8 13.5 Q8 13.5 7 13 Q3 11 3 7 Q4 3 8 2Z" stroke="#2F4C3A" stroke-width="1.2" fill="none"/>
+          <circle cx="8" cy="7.5" r="1.8" fill="#2F4C3A"/>
+        </svg>
+      </div>
+      <div class="ns-sidebar__brand-text">
+        <div class="ns-sidebar__name">Nest</div>
+        <div class="ns-sidebar__label">Admin console</div>
+      </div>
+    </div>
+
+    <div class="ns-sidebar__nav">
+      <div class="ns-sidebar__section-label">Overview</div>
+      <div class="ns-nav-item active" onclick="navigate('dashboard',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <rect x="2" y="2" width="5" height="5" rx="1.5"/><rect x="9" y="2" width="5" height="5" rx="1.5"/>
+          <rect x="2" y="9" width="5" height="5" rx="1.5"/><rect x="9" y="9" width="5" height="5" rx="1.5"/>
+        </svg>
+        Dashboard
+      </div>
+
+      <div class="ns-sidebar__section-label">Configure</div>
+      <div class="ns-nav-item" onclick="navigate('pricing',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <path d="M2 8A6 6 0 1 0 14 8A6 6 0 0 0 2 8Z"/><path d="M8 5v1.5M8 9.5V11M6.5 7.5C6.5 6.7 7.2 6 8 6c.8 0 1.5.7 1.5 1.5 0 1-1.5 1.5-1.5 1.5"/>
+        </svg>
+        Pricing & limits
+      </div>
+      <div class="ns-nav-item" onclick="navigate('integrations',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <path d="M10 3l3 3-3 3M6 13l-3-3 3-3M9 6H6M10 10H7"/>
+        </svg>
+        Integrations
+        <span class="ns-nav-badge">1</span>
+      </div>
+
+      <div class="ns-sidebar__section-label">Content</div>
+      <div class="ns-nav-item" onclick="navigate('resources',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <path d="M3 4h10M3 8h10M3 12h6"/>
+        </svg>
+        Resources
+      </div>
+      <div class="ns-nav-item" onclick="navigate('events',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <rect x="2" y="3" width="12" height="11" rx="2"/><path d="M5 2v2M11 2v2M2 7h12"/>
+        </svg>
+        Events
+      </div>
+
+      <div class="ns-sidebar__section-label">People</div>
+      <div class="ns-nav-item" onclick="navigate('allies',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
+          <circle cx="12" cy="5" r="2"/><path d="M11 13c0-1.4.5-2.6 1.3-3.5"/>
+        </svg>
+        Allies
+      </div>
+      <div class="ns-nav-item" onclick="navigate('users',this)">
+        <svg class="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+        </svg>
+        Users
+      </div>
+    </div>
+
+    <div class="ns-sidebar__footer">
+      <div class="ns-sidebar__avatar">SK</div>
+      <div class="ns-sidebar__user">
+        <div class="ns-sidebar__user-name">Sanjay Karthick</div>
+        <div class="ns-sidebar__user-role">Super admin</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════ MAIN ═══════════════════ -->
+  <div class="ns-main">
+
+    <!-- TOP BAR -->
+    <header class="ns-topbar" id="topbar">
+      <div class="ns-topbar__page">
+        <div class="ns-topbar__page-title" id="page-title">Dashboard</div>
+        <div class="ns-topbar__page-sub" id="page-sub">Platform overview · May 2026</div>
+      </div>
+      <div class="ns-topbar__actions">
+        <div class="ns-env-status">
+          <div class="ns-env-dot"></div>
+          All systems live
+        </div>
+        <button class="ns-topbar__icon-btn ns-bell-wrap" aria-label="Notifications">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+            <path d="M8 2a4 4 0 0 1 4 4v3l1.5 2H2.5L4 9V6a4 4 0 0 1 4-4z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/>
+          </svg>
+          <span class="ns-bell-dot"></span>
+        </button>
+        <button class="ns-topbar__icon-btn" aria-label="Settings">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+            <circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="ns-content" id="ns-content">
+
+      <!-- ══════════ PAGE: DASHBOARD ══════════ -->
+      <div class="ns-page active" id="page-dashboard">
+
+        <!-- Metric row -->
+        <div class="ns-metrics">
+          <div class="ns-metric green">
+            <div class="ns-metric__label">Total users</div>
+            <div class="ns-metric__val">4,821</div>
+            <div class="ns-metric__delta up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7L5 3L8 7"/></svg>
+              +14% this month
+            </div>
+          </div>
+          <div class="ns-metric teal">
+            <div class="ns-metric__label">Active subscriptions</div>
+            <div class="ns-metric__val">1,204</div>
+            <div class="ns-metric__delta up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7L5 3L8 7"/></svg>
+              +8% vs last month
+            </div>
+          </div>
+          <div class="ns-metric amber">
+            <div class="ns-metric__label">MRR</div>
+            <div class="ns-metric__val">₹2.4L</div>
+            <div class="ns-metric__delta up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7L5 3L8 7"/></svg>
+              +₹28k this month
+            </div>
+          </div>
+          <div class="ns-metric">
+            <div class="ns-metric__label">Nila messages today</div>
+            <div class="ns-metric__val">9,341</div>
+            <div class="ns-metric__sub">Avg 14ms response · 0.3% error</div>
+          </div>
+          <div class="ns-metric">
+            <div class="ns-metric__label">Ally sessions this week</div>
+            <div class="ns-metric__val">183</div>
+            <div class="ns-metric__delta dn">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3L5 7L8 3"/></svg>
+              −5 vs last week
+            </div>
+          </div>
+          <div class="ns-metric red">
+            <div class="ns-metric__label">Payment failures</div>
+            <div class="ns-metric__val">12</div>
+            <div class="ns-metric__sub">3 in grace period · 9 dunning</div>
+          </div>
+        </div>
+
+        <!-- Two-col: chart + audit log -->
+        <div class="ns-60-40">
+          <div class="ns-card">
+            <div class="ns-section-hd" style="margin-bottom:12px">
+              <div class="ns-card__label">Weekly Nila activity</div>
+              <div style="display:flex;gap:6px">
+                <span class="ns-badge forest">Messages</span>
+                <span class="ns-badge gray">Sessions</span>
+              </div>
+            </div>
+            <div class="ns-bar-chart" style="height:80px;gap:8px">
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar" style="height:58%"></div><div class="ns-bar-chart__day">M</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar hi" style="height:72%"></div><div class="ns-bar-chart__day">T</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar" style="height:49%"></div><div class="ns-bar-chart__day">W</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar hi" style="height:88%"></div><div class="ns-bar-chart__day">T</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar hi" style="height:95%"></div><div class="ns-bar-chart__day">F</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar" style="height:64%"></div><div class="ns-bar-chart__day">S</div></div>
+              <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar" style="height:38%"></div><div class="ns-bar-chart__day">S</div></div>
+            </div>
+            <div class="ns-divider"></div>
+            <div class="ns-three-col" style="gap:12px;margin-top:0">
+              <div>
+                <div class="ns-card__label">Credit burn rate</div>
+                <div style="font-size:18px;font-weight:600;color:var(--ink);margin:4px 0">₹1,840<span style="font-size:12px;font-weight:400;color:var(--ink-4)">/day</span></div>
+                <div class="ns-progress"><div class="ns-progress__fill amber" style="width:62%"></div></div>
+              </div>
+              <div>
+                <div class="ns-card__label">Churn rate</div>
+                <div style="font-size:18px;font-weight:600;color:var(--ink);margin:4px 0">3.2%</div>
+                <div class="ns-progress"><div class="ns-progress__fill" style="width:32%"></div></div>
+              </div>
+              <div>
+                <div class="ns-card__label">Avg session mood</div>
+                <div style="font-size:18px;font-weight:600;color:var(--ink);margin:4px 0">2.8<span style="font-size:12px;font-weight:400;color:var(--ink-4)">/5</span></div>
+                <div class="ns-progress"><div class="ns-progress__fill" style="width:56%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ns-card">
+            <div class="ns-card__label" style="margin-bottom:12px">Audit log · live</div>
+            <div class="ns-audit">
+              <div class="ns-audit-item">
+                <div class="ns-audit__icon green">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round"><path d="M2 6l3 3 5-5"/></svg>
+                </div>
+                <div class="ns-audit__body">
+                  <div class="ns-audit__title">Subscription upgraded</div>
+                  <div class="ns-audit__sub">user:aryan@gmail.com · Free → Core</div>
+                </div>
+                <div class="ns-audit__time">2m ago</div>
+              </div>
+              <div class="ns-audit-item">
+                <div class="ns-audit__icon amber">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round"><path d="M6 3v3M6 8.5V9"/><circle cx="6" cy="6" r="4.5"/></svg>
+                </div>
+                <div class="ns-audit__body">
+                  <div class="ns-audit__title">Nila safety flag triggered</div>
+                  <div class="ns-audit__sub">user:anon_7821 · assigned to Priya N.</div>
+                </div>
+                <div class="ns-audit__time">14m ago</div>
+              </div>
+              <div class="ns-audit-item">
+                <div class="ns-audit__icon forest">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--forest)" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="8" height="8" rx="1.5"/><path d="M4 6h4M6 4v4"/></svg>
+                </div>
+                <div class="ns-audit__body">
+                  <div class="ns-audit__title">Ally profile activated</div>
+                  <div class="ns-audit__sub">ally:riya_menon · now visible to users</div>
+                </div>
+                <div class="ns-audit__time">32m ago</div>
+              </div>
+              <div class="ns-audit-item">
+                <div class="ns-audit__icon red">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+                </div>
+                <div class="ns-audit__body">
+                  <div class="ns-audit__title">Payment failed</div>
+                  <div class="ns-audit__sub">user:kavitha@mail.com · retry 2 of 3</div>
+                </div>
+                <div class="ns-audit__time">1h ago</div>
+              </div>
+              <div class="ns-audit-item">
+                <div class="ns-audit__icon green">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round"><path d="M2 6l3 3 5-5"/></svg>
+                </div>
+                <div class="ns-audit__body">
+                  <div class="ns-audit__title">Zoho sync completed</div>
+                  <div class="ns-audit__sub">8 Ally profiles synced successfully</div>
+                </div>
+                <div class="ns-audit__time">2h ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ally snapshot -->
+        <div class="ns-card">
+          <div class="ns-section-hd">
+            <div class="ns-card__label">Ally snapshot</div>
+            <button class="ns-btn ns-btn--ghost ns-btn--sm" onclick="navigate('allies',document.querySelector('[onclick*=allies]'))">View all allies</button>
+          </div>
+          <div class="ns-table-wrap">
+            <table class="ns-table">
+              <thead>
+                <tr>
+                  <th>Ally</th><th>Specialties</th><th>Sessions this month</th><th>Rating</th><th>Status</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar" style="width:28px;height:28px;font-size:10px">PN</div><span>Priya Nair</span></div></td>
+                  <td class="muted">Anxiety · Relationships</td>
+                  <td>34</td>
+                  <td><span style="font-weight:500;color:var(--gold)">★ 4.9</span></td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar v2" style="width:28px;height:28px;font-size:10px">RM</div><span>Riya Menon</span></div></td>
+                  <td class="muted">Loneliness · Grief</td>
+                  <td>21</td>
+                  <td><span style="font-weight:500;color:var(--gold)">★ 4.7</span></td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar v3" style="width:28px;height:28px;font-size:10px">KV</div><span>Kiran V.</span></div></td>
+                  <td class="muted">Breakups · Trust</td>
+                  <td>9</td>
+                  <td><span style="font-weight:500;color:var(--ink-4)">★ 4.3</span></td>
+                  <td><span class="ns-badge amber"><span class="ns-badge__dot"></span>Pending</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /dashboard -->
+
+      <!-- ══════════ PAGE: PRICING & LIMITS ══════════ -->
+      <div class="ns-page" id="page-pricing">
+
+        <div class="ns-notice" style="margin-bottom:20px">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--forest)" stroke-width="1.3" stroke-linecap="round" flex-shrink="0"><circle cx="7" cy="7" r="5.5"/><path d="M7 5v3.2M7 9.8v.2"/></svg>
+          Changes here update the <code style="font-size:11px;background:rgba(47,76,58,0.1);padding:1px 5px;border-radius:3px">platform_config</code> table in Supabase and take effect immediately — no redeploy needed.
+        </div>
+
+        <!-- Plan cards -->
+        <div class="ns-card">
+          <div class="ns-card__label" style="margin-bottom:14px">Plan tiers</div>
+          <div class="ns-plan-grid">
+            <div class="ns-plan">
+              <div class="ns-plan__tier">Free</div>
+              <div class="ns-plan__price">₹0 <span>/month</span></div>
+              <div class="ns-plan__features">
+                <div class="ns-plan__feat">Limited Nila messages/day</div>
+                <div class="ns-plan__feat">No Ally access</div>
+                <div class="ns-plan__feat">Public resources only</div>
+                <div class="ns-plan__feat">No event access</div>
+              </div>
+            </div>
+            <div class="ns-plan ns-plan--featured">
+              <div class="ns-plan__badge">Most popular</div>
+              <div class="ns-plan__tier">Core</div>
+              <div class="ns-plan__price">₹499 <span>/month</span></div>
+              <div class="ns-plan__features">
+                <div class="ns-plan__feat">Unlimited Nila messages</div>
+                <div class="ns-plan__feat">1 Ally session / month</div>
+                <div class="ns-plan__feat">Full resources library</div>
+                <div class="ns-plan__feat">Weekend events access</div>
+              </div>
+            </div>
+            <div class="ns-plan">
+              <div class="ns-plan__tier">Premium</div>
+              <div class="ns-plan__price">₹999 <span>/month</span></div>
+              <div class="ns-plan__features">
+                <div class="ns-plan__feat">Unlimited everything</div>
+                <div class="ns-plan__feat">Priority Ally matching</div>
+                <div class="ns-plan__feat">Voice notes with Nila</div>
+                <div class="ns-plan__feat">Exclusive events + drops</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ns-two-col">
+          <!-- Nila message limits -->
+          <div class="ns-limit-card">
+            <div class="ns-card__label" style="margin-bottom:16px">Nila message limits <span class="ns-badge gray" style="margin-left:6px">Per day · per user</span></div>
+            <div class="ns-limit-row">
+              <div class="ns-limit-plan"><span class="ns-badge gray">Free</span></div>
+              <input type="range" class="ns-limit-bar" min="1" max="30" value="5" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=this.value"/>
+              <div class="ns-limit-val">5</div>
+            </div>
+            <div class="ns-limit-row">
+              <div class="ns-limit-plan"><span class="ns-badge forest">Core</span></div>
+              <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
+              <div class="ns-limit-val">∞</div>
+            </div>
+            <div class="ns-limit-row">
+              <div class="ns-limit-plan"><span class="ns-badge amber">Premium</span></div>
+              <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
+              <div class="ns-limit-val">∞</div>
+            </div>
+            <div class="ns-divider"></div>
+            <div class="ns-card__label" style="margin-bottom:10px">Voice note transcription</div>
+            <div class="ns-toggle-row">
+              <div class="ns-toggle-row__info">
+                <div class="ns-toggle-row__title">Allow voice on Free plan</div>
+                <div class="ns-toggle-row__desc">Consumes credits when used</div>
+              </div>
+              <label class="ns-toggle"><input type="checkbox"/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+            </div>
+            <div class="ns-toggle-row">
+              <div class="ns-toggle-row__info">
+                <div class="ns-toggle-row__title">Allow voice on Core plan</div>
+                <div class="ns-toggle-row__desc">Included in plan allowance</div>
+              </div>
+              <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+            </div>
+          </div>
+
+          <!-- Credit wallet config -->
+          <div class="ns-card">
+            <div class="ns-card__label" style="margin-bottom:14px">Credit wallet config</div>
+            <div class="ns-field">
+              <label class="ns-label">Credits granted on signup</label>
+              <input type="number" class="ns-input" value="50"/>
+              <div class="ns-hint">Free credits for every new user</div>
+            </div>
+            <div class="ns-field">
+              <label class="ns-label">Credits per Nila message (Free plan)</label>
+              <input type="number" class="ns-input" value="1"/>
+            </div>
+            <div class="ns-field">
+              <label class="ns-label">Credit expiry window (days)</label>
+              <input type="number" class="ns-input" value="90"/>
+            </div>
+            <div class="ns-divider"></div>
+            <div class="ns-card__label" style="margin-bottom:10px">Top-up packs</div>
+            <div class="ns-credit-row">
+              <span style="font-weight:500">100 credits</span>
+              <span class="muted" style="font-size:13px">₹49</span>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+            </div>
+            <div class="ns-credit-row">
+              <span style="font-weight:500">300 credits</span>
+              <span class="muted" style="font-size:13px">₹129</span>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+            </div>
+            <div class="ns-credit-row">
+              <span style="font-weight:500">1000 credits</span>
+              <span class="muted" style="font-size:13px">₹349</span>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grace & dunning -->
+        <div class="ns-card">
+          <div class="ns-card__label" style="margin-bottom:14px">Grace period & dunning</div>
+          <div class="ns-two-col">
+            <div>
+              <div class="ns-field">
+                <label class="ns-label">Grace period after payment failure (days)</label>
+                <input type="number" class="ns-input" value="7"/>
+              </div>
+              <div class="ns-field">
+                <label class="ns-label">Max retry attempts before downgrade</label>
+                <input type="number" class="ns-input" value="3"/>
+              </div>
+            </div>
+            <div>
+              <div class="ns-field">
+                <label class="ns-label">Downgrade to</label>
+                <select class="ns-select"><option>Free plan</option><option>Pause account</option></select>
+              </div>
+              <div class="ns-field">
+                <label class="ns-label">Re-activation rule</label>
+                <select class="ns-select"><option>Any successful payment</option><option>Manual admin unlock</option></select>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+            <button class="ns-btn ns-btn--secondary">Reset</button>
+            <button class="ns-btn ns-btn--primary">Save changes</button>
+          </div>
+        </div>
+
+      </div><!-- /pricing -->
+
+      <!-- ══════════ PAGE: INTEGRATIONS ══════════ -->
+      <div class="ns-page" id="page-integrations">
+
+        <div class="ns-notice" style="margin-bottom:20px">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--forest)" stroke-width="1.3" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 5v3.2M7 9.8v.2"/></svg>
+          Client IDs and secrets are loaded from environment variables. This panel shows connection status only — credentials are never stored or displayed here.
+        </div>
+
+        <!-- ZOHO BOOKING -->
+        <div class="ns-card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div>
+              <div class="ns-card__label">Zoho Booking</div>
+              <div class="ns-card__title">Ally scheduling integration</div>
+            </div>
+            <div class="ns-status">
+              <div class="ns-status__dot live"></div>
+              Connected
+            </div>
+          </div>
+          <div class="ns-oauth-box connected">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--forest)" stroke-width="1.4" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 2"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--forest)">OAuth2 connection active</div>
+                <div style="font-size:11px;color:var(--forest-3)">Last token refresh: 12 minutes ago</div>
+              </div>
+            </div>
+            <div class="ns-oauth-meta">
+              <div class="ns-oauth-meta__item">
+                <div class="ns-oauth-meta__label">Client ID source</div>
+                <div class="ns-oauth-meta__val" style="font-family:monospace;font-size:11px">ZOHO_CLIENT_ID <span class="ns-badge green" style="margin-left:4px">env ✓</span></div>
+              </div>
+              <div class="ns-oauth-meta__item">
+                <div class="ns-oauth-meta__label">Client Secret source</div>
+                <div class="ns-oauth-meta__val" style="font-family:monospace;font-size:11px">ZOHO_CLIENT_SECRET <span class="ns-badge green" style="margin-left:4px">env ✓</span></div>
+              </div>
+              <div class="ns-oauth-meta__item">
+                <div class="ns-oauth-meta__label">Last Ally sync</div>
+                <div class="ns-oauth-meta__val">2h ago · 8 profiles synced</div>
+              </div>
+              <div class="ns-oauth-meta__item">
+                <div class="ns-oauth-meta__label">Webhook endpoint</div>
+                <div class="ns-oauth-meta__val" style="font-size:11px;font-family:monospace">/api/v1/webhooks/zoho</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="ns-btn ns-btn--secondary ns-btn--sm">Sync now</button>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">View sync log</button>
+              <button class="ns-btn ns-btn--danger ns-btn--sm" style="margin-left:auto">Disconnect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- OTHER INTEGRATIONS -->
+        <div class="ns-card" style="margin-bottom:20px">
+          <div class="ns-card__label" style="margin-bottom:14px">Other integrations</div>
+
+          <div class="ns-connect">
+            <div class="ns-connect__icon">💳</div>
+            <div class="ns-connect__body">
+              <div class="ns-connect__name">Stripe</div>
+              <div class="ns-connect__desc">Subscriptions, one-time payments, webhooks · last event 4 min ago</div>
+            </div>
+            <div class="ns-connect__actions">
+              <div class="ns-status"><div class="ns-status__dot live"></div>Live</div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Webhook log</button>
+            </div>
+          </div>
+
+          <div class="ns-connect">
+            <div class="ns-connect__icon">🤖</div>
+            <div class="ns-connect__body">
+              <div class="ns-connect__name">Anthropic API</div>
+              <div class="ns-connect__desc">claude-sonnet-4-20250514 · 14ms avg latency · 0.3% error rate this hour</div>
+            </div>
+            <div class="ns-connect__actions">
+              <div class="ns-status"><div class="ns-status__dot live"></div>Live</div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Usage</button>
+            </div>
+          </div>
+
+          <div class="ns-connect">
+            <div class="ns-connect__icon">📬</div>
+            <div class="ns-connect__body">
+              <div class="ns-connect__name">Resend</div>
+              <div class="ns-connect__desc">Transactional email · 98.4% delivery rate · last sent 22 min ago</div>
+            </div>
+            <div class="ns-connect__actions">
+              <div class="ns-status"><div class="ns-status__dot live"></div>Live</div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Stats</button>
+            </div>
+          </div>
+
+          <div class="ns-connect">
+            <div class="ns-connect__icon">📊</div>
+            <div class="ns-connect__body">
+              <div class="ns-connect__name">PostHog</div>
+              <div class="ns-connect__desc">Product analytics · Note: no message content or PII is tracked</div>
+            </div>
+            <div class="ns-connect__actions">
+              <div class="ns-status"><div class="ns-status__dot live"></div>Live</div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Open</button>
+            </div>
+          </div>
+
+          <div class="ns-connect">
+            <div class="ns-connect__icon">🔴</div>
+            <div class="ns-connect__body">
+              <div class="ns-connect__name">Sentry</div>
+              <div class="ns-connect__desc">Error monitoring · 2 open issues · 0 critical</div>
+            </div>
+            <div class="ns-connect__actions">
+              <div class="ns-status"><div class="ns-status__dot warn"></div>2 issues</div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">View</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENV VAR VAULT -->
+        <div class="ns-card">
+          <div class="ns-card__label" style="margin-bottom:14px">Environment variable vault <span class="ns-badge gray" style="margin-left:6px">Read-only · values never shown</span></div>
+          <div>
+            <div class="ns-env-row"><span class="ns-env-key">ZOHO_CLIENT_ID</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">ZOHO_CLIENT_SECRET</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">STRIPE_SECRET_KEY</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">STRIPE_WEBHOOK_SECRET</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">ANTHROPIC_API_KEY</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">RESEND_API_KEY</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">SUPABASE_SERVICE_KEY</span><span class="ns-env-present"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5l2.5 2.5L8 2"/></svg>Present</span></div>
+            <div class="ns-env-row"><span class="ns-env-key">DEEPGRAM_API_KEY</span><span class="ns-env-missing"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>Missing</span></div>
+          </div>
+        </div>
+
+      </div><!-- /integrations -->
+
+      <!-- ══════════ PAGE: RESOURCES ══════════ -->
+      <div class="ns-page" id="page-resources">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px">
+          <div class="ns-search-input-wrap" style="flex:1">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
+            <input type="text" class="ns-search-input" placeholder="Search resources…"/>
+          </div>
+          <select class="ns-select" style="width:140px">
+            <option>All types</option>
+            <option>Music</option><option>Film</option><option>Article</option><option>Sound</option>
+          </select>
+          <select class="ns-select" style="width:140px">
+            <option>All moods</option>
+            <option>Loneliness</option><option>Anxiety</option><option>Heartbreak</option><option>Healing</option>
+          </select>
+          <button class="ns-btn ns-btn--primary">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+            Add resource
+          </button>
+        </div>
+
+        <div class="ns-two-col">
+          <div class="ns-card">
+            <div class="ns-card__label" style="margin-bottom:12px">Published <span class="ns-badge green" style="margin-left:6px">24 resources</span></div>
+            <div>
+              <div class="ns-resource-row">
+                <div class="ns-resource-row__type">🎵</div>
+                <div class="ns-resource-row__body">
+                  <div class="ns-resource-row__title">For nights when quiet feels too loud</div>
+                  <div class="ns-resource-row__tags"><span class="ns-tag">Loneliness</span><span class="ns-tag teal">Healing</span></div>
+                </div>
+                <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+              </div>
+              <div class="ns-resource-row">
+                <div class="ns-resource-row__type">📄</div>
+                <div class="ns-resource-row__body">
+                  <div class="ns-resource-row__title">Why feeling lonely in a crowd is real</div>
+                  <div class="ns-resource-row__tags"><span class="ns-tag">Loneliness</span><span class="ns-tag">Anxiety</span></div>
+                </div>
+                <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+              </div>
+              <div class="ns-resource-row">
+                <div class="ns-resource-row__type">🎬</div>
+                <div class="ns-resource-row__body">
+                  <div class="ns-resource-row__title">Past Lives — a film about letting go</div>
+                  <div class="ns-resource-row__tags"><span class="ns-tag">Heartbreak</span><span class="ns-tag teal">Healing</span></div>
+                </div>
+                <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+              </div>
+              <div class="ns-resource-row">
+                <div class="ns-resource-row__type">🎧</div>
+                <div class="ns-resource-row__body">
+                  <div class="ns-resource-row__title">Rain on leaves · ambient sound</div>
+                  <div class="ns-resource-row__tags"><span class="ns-tag">Anxiety</span><span class="ns-tag teal">Calm</span></div>
+                </div>
+                <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+              </div>
+              <div class="ns-resource-row">
+                <div class="ns-resource-row__type">📄</div>
+                <div class="ns-resource-row__body">
+                  <div class="ns-resource-row__title">Talking to someone you trust — how to start</div>
+                  <div class="ns-resource-row__tags"><span class="ns-tag forest">Relationships</span></div>
+                </div>
+                <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <!-- Drafts -->
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:12px">Drafts <span class="ns-badge amber" style="margin-left:6px">3 unpublished</span></div>
+              <div>
+                <div class="ns-resource-row">
+                  <div class="ns-resource-row__type">🎵</div>
+                  <div class="ns-resource-row__body">
+                    <div class="ns-resource-row__title">Morning stillness playlist</div>
+                    <div class="ns-resource-row__tags"><span class="ns-tag teal">Calm</span></div>
+                  </div>
+                  <button class="ns-btn ns-btn--primary ns-btn--sm">Publish</button>
+                </div>
+                <div class="ns-resource-row">
+                  <div class="ns-resource-row__type">📄</div>
+                  <div class="ns-resource-row__body">
+                    <div class="ns-resource-row__title">On trust after betrayal</div>
+                    <div class="ns-resource-row__tags"><span class="ns-tag">Heartbreak</span></div>
+                  </div>
+                  <button class="ns-btn ns-btn--primary ns-btn--sm">Publish</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mood tag manager -->
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:12px">Mood tags <span class="ns-badge gray" style="margin-left:6px">Used by Nila</span></div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span class="ns-tag" style="cursor:pointer;padding:4px 10px">Loneliness · 9</span>
+                <span class="ns-tag teal" style="cursor:pointer;padding:4px 10px">Healing · 7</span>
+                <span class="ns-tag" style="cursor:pointer;padding:4px 10px">Anxiety · 6</span>
+                <span class="ns-tag forest" style="cursor:pointer;padding:4px 10px">Heartbreak · 5</span>
+                <span class="ns-tag teal" style="cursor:pointer;padding:4px 10px">Calm · 4</span>
+                <span class="ns-tag" style="cursor:pointer;padding:4px 10px">Grief · 3</span>
+                <span class="ns-tag forest" style="cursor:pointer;padding:4px 10px">Relationships · 3</span>
+                <span class="ns-tag" style="cursor:pointer;padding:4px 10px">Trust · 2</span>
+              </div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm" style="margin-top:12px">+ Add tag</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /resources -->
+
+      <!-- ══════════ PAGE: EVENTS ══════════ -->
+      <div class="ns-page" id="page-events">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div class="ns-tabs">
+            <div class="ns-tab active" onclick="tabSwitch(this,'upcoming')">Upcoming</div>
+            <div class="ns-tab" onclick="tabSwitch(this,'past')">Past</div>
+          </div>
+          <button class="ns-btn ns-btn--primary">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+            Create event
+          </button>
+        </div>
+
+        <div class="ns-two-col">
+          <div class="ns-card">
+            <div class="ns-card__label" style="margin-bottom:12px">Upcoming events</div>
+            <div class="ns-event-row">
+              <div class="ns-event-row__date"><div class="ns-event-row__month">Jul</div><div class="ns-event-row__day">26</div></div>
+              <div class="ns-event-row__body">
+                <div class="ns-event-row__name">Sunday Circle — Bangalore</div>
+                <div class="ns-event-row__meta">Indiranagar · 6:00 PM · 20 capacity</div>
+              </div>
+              <div>
+                <div class="ns-event-row__cap">12 / 20</div>
+                <span class="ns-badge green"><span class="ns-badge__dot"></span>Open</span>
+              </div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Manage</button>
+            </div>
+            <div class="ns-event-row">
+              <div class="ns-event-row__date"><div class="ns-event-row__month">Aug</div><div class="ns-event-row__day">2</div></div>
+              <div class="ns-event-row__body">
+                <div class="ns-event-row__name">Quiet Gathering — Chennai</div>
+                <div class="ns-event-row__meta">Nungambakkam · 5:30 PM · 15 capacity</div>
+              </div>
+              <div>
+                <div class="ns-event-row__cap">15 / 15</div>
+                <span class="ns-badge amber"><span class="ns-badge__dot"></span>Full</span>
+              </div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Manage</button>
+            </div>
+            <div class="ns-event-row">
+              <div class="ns-event-row__date"><div class="ns-event-row__month">Aug</div><div class="ns-event-row__day">9</div></div>
+              <div class="ns-event-row__body">
+                <div class="ns-event-row__name">Evening Walk — Pune</div>
+                <div class="ns-event-row__meta">Koregaon Park · 6:30 PM · 25 capacity</div>
+              </div>
+              <div>
+                <div class="ns-event-row__cap">4 / 25</div>
+                <span class="ns-badge green"><span class="ns-badge__dot"></span>Open</span>
+              </div>
+              <button class="ns-btn ns-btn--ghost ns-btn--sm">Manage</button>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:14px">Event registrations</div>
+              <div class="ns-metrics" style="grid-template-columns:1fr 1fr;gap:10px">
+                <div class="ns-metric" style="padding:14px">
+                  <div class="ns-metric__label">This month</div>
+                  <div class="ns-metric__val" style="font-size:22px">47</div>
+                  <div class="ns-metric__sub">registrations</div>
+                </div>
+                <div class="ns-metric amber" style="padding:14px">
+                  <div class="ns-metric__label">Waitlisted</div>
+                  <div class="ns-metric__val" style="font-size:22px">8</div>
+                  <div class="ns-metric__sub">Chennai event</div>
+                </div>
+              </div>
+            </div>
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:10px">Post-event flow</div>
+              <div class="ns-toggle-row">
+                <div class="ns-toggle-row__info">
+                  <div class="ns-toggle-row__title">Send reflection email after event</div>
+                  <div class="ns-toggle-row__desc">Triggered 2h after event ends</div>
+                </div>
+                <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+              </div>
+              <div class="ns-toggle-row">
+                <div class="ns-toggle-row__info">
+                  <div class="ns-toggle-row__title">Nila follow-up prompt</div>
+                  <div class="ns-toggle-row__desc">Nila checks in with attendees next day</div>
+                </div>
+                <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+              </div>
+              <div class="ns-toggle-row">
+                <div class="ns-toggle-row__info">
+                  <div class="ns-toggle-row__title">24h reminder to registrants</div>
+                  <div class="ns-toggle-row__desc">Sent via Resend</div>
+                </div>
+                <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /events -->
+
+      <!-- ══════════ PAGE: ALLIES ══════════ -->
+      <div class="ns-page" id="page-allies">
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <div class="ns-search-input-wrap" style="flex:1">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
+            <input type="text" class="ns-search-input" placeholder="Search allies…"/>
+          </div>
+          <select class="ns-select" style="width:140px">
+            <option>All statuses</option><option>Active</option><option>Pending</option><option>Paused</option>
+          </select>
+          <button class="ns-btn ns-btn--primary">+ Add Ally</button>
+        </div>
+
+        <div class="ns-60-40">
+          <div class="ns-card">
+            <div class="ns-card__label" style="margin-bottom:14px">All allies <span class="ns-badge gray" style="margin-left:6px">11 total</span></div>
+            <table class="ns-table">
+              <thead><tr><th>Name</th><th>Specialties</th><th>Sessions</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar" style="width:30px;height:30px;font-size:11px">PN</div>Priya Nair</div></td>
+                  <td class="muted" style="font-size:12px">Anxiety · Relationships</td><td>86</td>
+                  <td><span style="color:var(--gold);font-weight:600">★ 4.9</span></td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button><button class="ns-btn ns-btn--ghost ns-btn--sm">Pause</button></div></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar v2" style="width:30px;height:30px;font-size:11px">RM</div>Riya Menon</div></td>
+                  <td class="muted" style="font-size:12px">Loneliness · Grief</td><td>54</td>
+                  <td><span style="color:var(--gold);font-weight:600">★ 4.7</span></td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button><button class="ns-btn ns-btn--ghost ns-btn--sm">Pause</button></div></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar v3" style="width:30px;height:30px;font-size:11px">KV</div>Kiran V.</div></td>
+                  <td class="muted" style="font-size:12px">Breakups · Trust</td><td>9</td>
+                  <td><span style="color:var(--ink-4);font-weight:600">★ 4.3</span></td>
+                  <td><span class="ns-badge amber"><span class="ns-badge__dot"></span>Pending</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="ns-btn ns-btn--primary ns-btn--sm">Activate</button><button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button></div></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px"><div class="ns-ally-avatar" style="width:30px;height:30px;font-size:11px;background:var(--cream-3);color:var(--ink-2)">SA</div>Sneha A.</div></td>
+                  <td class="muted" style="font-size:12px">Depression · Self-worth</td><td>31</td>
+                  <td><span style="color:var(--gold);font-weight:600">★ 4.8</span></td>
+                  <td><span class="ns-badge gray"><span class="ns-badge__dot"></span>Paused</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="ns-btn ns-btn--primary ns-btn--sm">Reactivate</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:12px">This week's session stats</div>
+              <div class="ns-metrics" style="grid-template-columns:1fr 1fr;gap:10px">
+                <div class="ns-metric green" style="padding:14px"><div class="ns-metric__label">Completed</div><div class="ns-metric__val" style="font-size:22px">61</div></div>
+                <div class="ns-metric red" style="padding:14px"><div class="ns-metric__label">Cancelled</div><div class="ns-metric__val" style="font-size:22px">7</div></div>
+                <div class="ns-metric" style="padding:14px"><div class="ns-metric__label">Avg duration</div><div class="ns-metric__val" style="font-size:22px">48<span style="font-size:12px;color:var(--ink-4)">min</span></div></div>
+                <div class="ns-metric amber" style="padding:14px"><div class="ns-metric__label">Avg rating</div><div class="ns-metric__val" style="font-size:22px">4.7</div></div>
+              </div>
+            </div>
+
+            <div class="ns-card">
+              <div class="ns-card__label" style="margin-bottom:12px">Payout summary</div>
+              <div class="ns-ally-row">
+                <div class="ns-ally-avatar" style="width:30px;height:30px;font-size:11px">PN</div>
+                <div class="ns-ally__body"><div class="ns-ally__name">Priya Nair</div><div class="ns-ally__sessions">34 sessions · ₹8,500 owed</div></div>
+                <span class="ns-badge amber"><span class="ns-badge__dot"></span>Pending</span>
+              </div>
+              <div class="ns-ally-row">
+                <div class="ns-ally-avatar v2" style="width:30px;height:30px;font-size:11px">RM</div>
+                <div class="ns-ally__body"><div class="ns-ally__name">Riya Menon</div><div class="ns-ally__sessions">21 sessions · ₹5,250 owed</div></div>
+                <span class="ns-badge amber"><span class="ns-badge__dot"></span>Pending</span>
+              </div>
+              <div style="margin-top:12px;display:flex;justify-content:flex-end">
+                <button class="ns-btn ns-btn--secondary ns-btn--sm">Export CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /allies -->
+
+      <!-- ══════════ PAGE: USERS ══════════ -->
+      <div class="ns-page" id="page-users">
+
+        <div class="ns-flagged">
+          <svg class="ns-flagged__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5M8 10.5v.5"/></svg>
+          <div class="ns-flagged__body">
+            <div class="ns-flagged__title">2 users need attention</div>
+            <div class="ns-flagged__desc">Nila triggered a safety flag for these users. Assign to a human Ally or review. Visible to super-admin only.</div>
+          </div>
+          <button class="ns-btn ns-btn--danger ns-btn--sm" style="flex-shrink:0">Review flags</button>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <div class="ns-search-input-wrap" style="flex:1">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M10 10l2.5 2.5"/></svg>
+            <input type="text" class="ns-search-input" placeholder="Search by email or user ID…"/>
+          </div>
+          <select class="ns-select" style="width:140px">
+            <option>All plans</option><option>Free</option><option>Core</option><option>Premium</option>
+          </select>
+          <select class="ns-select" style="width:160px">
+            <option>All statuses</option><option>Active</option><option>Flagged</option><option>Suspended</option>
+          </select>
+        </div>
+
+        <div class="ns-card">
+          <div class="ns-table-wrap">
+            <table class="ns-table">
+              <thead>
+                <tr><th>User</th><th>Plan</th><th>Joined</th><th>Last active</th><th>Nila msgs</th><th>Credits</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div><div style="font-size:13px;font-weight:500">Aryan K.</div><div style="font-size:11px;color:var(--ink-4)">aryan@gmail.com</div></div></td>
+                  <td><span class="ns-badge forest">Core</span></td>
+                  <td class="muted">Jul 12, 2025</td>
+                  <td class="muted">2h ago</td>
+                  <td>841</td>
+                  <td>128</td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+                <tr>
+                  <td><div><div style="font-size:13px;font-weight:500">Kavitha S.</div><div style="font-size:11px;color:var(--ink-4)">kavitha@mail.com</div></div></td>
+                  <td><span class="ns-badge gray">Free</span></td>
+                  <td class="muted">Mar 3, 2026</td>
+                  <td class="muted">1d ago</td>
+                  <td>34</td>
+                  <td>50</td>
+                  <td><span class="ns-badge red"><span class="ns-badge__dot"></span>Payment failed</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+                <tr>
+                  <td><div><div style="font-size:13px;font-weight:500">anon_7821</div><div style="font-size:11px;color:var(--ink-4)">anonymous user</div></div></td>
+                  <td><span class="ns-badge gray">Free</span></td>
+                  <td class="muted">May 18, 2026</td>
+                  <td class="muted">14m ago</td>
+                  <td>7</td>
+                  <td>43</td>
+                  <td><span class="ns-badge red"><span class="ns-badge__dot"></span>Safety flag</span></td>
+                  <td><button class="ns-btn ns-btn--danger ns-btn--sm">Assign</button></td>
+                </tr>
+                <tr>
+                  <td><div><div style="font-size:13px;font-weight:500">Meera P.</div><div style="font-size:11px;color:var(--ink-4)">meera@icloud.com</div></div></td>
+                  <td><span class="ns-badge amber">Premium</span></td>
+                  <td class="muted">Jan 8, 2026</td>
+                  <td class="muted">3h ago</td>
+                  <td>2,140</td>
+                  <td>0</td>
+                  <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
+                  <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="ns-notice" style="margin-top:16px">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--forest)" stroke-width="1.3" stroke-linecap="round"><path d="M7 2a5 5 0 1 0 0 10A5 5 0 0 0 7 2z"/><path d="M7 5v3M7 9.5v.2"/></svg>
+          Nila conversation content is never visible here. Flagged users show only signal type and timestamp. Message content is stored encrypted and accessible only by the user.
+        </div>
+      </div><!-- /users -->
+
+    </div><!-- /ns-content -->
+  </div><!-- /ns-main -->
+</div><!-- /admin-shell -->
+
+<script>
+const pageMeta = {
+  dashboard:    { title: 'Dashboard',          sub: 'Platform overview · May 2026' },
+  pricing:      { title: 'Pricing & limits',   sub: 'Configure plans, message caps, credit wallet' },
+  integrations: { title: 'Integrations',       sub: 'Connect and monitor third-party services' },
+  resources:    { title: 'Resources',          sub: 'Manage content library and mood tags' },
+  events:       { title: 'Weekend events',     sub: 'Create events, manage registrations' },
+  allies:       { title: 'Allies',             sub: 'Human listener network and payout tracking' },
+  users:        { title: 'Users',              sub: 'User management · handle with care' },
+};
+
+function navigate(key, el) {
+  document.querySelectorAll('.ns-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ns-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + key).classList.add('active');
+  if (el) el.classList.add('active');
+  const meta = pageMeta[key] || {};
+  document.getElementById('page-title').textContent = meta.title || key;
+  document.getElementById('page-sub').textContent = meta.sub || '';
+  document.getElementById('ns-content').scrollTop = 0;
+}
+
+function tabSwitch(el, key) {
+  el.parentElement.querySelectorAll('.ns-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

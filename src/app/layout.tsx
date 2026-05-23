@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, Lora, Noto_Serif_Tamil } from 'next/font/google'
+import { DM_Sans, DM_Serif_Display, Lora, Noto_Serif_Tamil } from 'next/font/google'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -7,6 +7,14 @@ const dmSans = DM_Sans({
   weight: ['300', '400', '500'],
   style: ['normal', 'italic'],
   variable: '--font',
+  display: 'swap',
+})
+
+const dmSerifDisplay = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  variable: '--font-dm-serif',
   display: 'swap',
 })
 
@@ -36,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${lora.variable} ${notoSerifTamil.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable} ${lora.variable} ${notoSerifTamil.variable}`}>
       <body style={{ fontFamily: 'var(--font, DM Sans, sans-serif)' }}>
         {children}
       </body>

@@ -25,15 +25,24 @@ async function refreshAccessToken(
 
   if (!res.ok) throw new ZohoTokenError('REFRESH_FAILED');
 
-  const data = (await res.json()) as { access_token?: string; expires_in?: number };
+  const data = (await res.json()) as { access_token?: string; expires_in?: number; refresh_token?: string };
   if (!data.access_token || data.expires_in == null) throw new ZohoTokenError('REFRESH_FAILED');
 
   const newExpiresAt = new Date(Date.now() + data.expires_in * 1000).toISOString();
   const supabase = createAdminClient();
 
+  // Zoho can rotate the refresh_token on each refresh call (depends on account config).
+  // Include it in the update payload if the response provides a new one.
+  const updatePayload: Record<string, string> = {
+    access_token: data.access_token,
+    expires_at: newExpiresAt,
+    updated_at: new Date().toISOString(),
+  };
+  if (data.refresh_token) updatePayload.refresh_token = data.refresh_token;
+
   const { error } = await supabase
     .from('zoho_credentials')
-    .update({ access_token: data.access_token, expires_at: newExpiresAt, updated_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', 'singleton');
 
   if (error) throw new ZohoTokenError('REFRESH_FAILED');

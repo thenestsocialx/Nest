@@ -25,7 +25,7 @@ export default async function IntegrationsPage() {
   const adminClient = createAdminClient();
   const { data: zohoRow } = await adminClient
     .from('zoho_credentials')
-    .select('expires_at, updated_at, zoho_org_id')
+    .select('expires_at, updated_at, zoho_org_id, workspace_id, workspace_name')
     .eq('id', 'singleton')
     .maybeSingle();
 
@@ -57,6 +57,8 @@ export default async function IntegrationsPage() {
           expiresAt={zohoRow?.expires_at ?? null}
           lastUpdated={zohoRow?.updated_at ?? null}
           orgId={zohoRow?.zoho_org_id ?? null}
+          workspaceId={zohoRow?.workspace_id ?? null}
+          workspaceName={zohoRow?.workspace_name ?? null}
         />
       </div>
 

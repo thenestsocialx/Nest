@@ -6,7 +6,18 @@
       "Bash(npx tsc *)",
       "PowerShell(New-Item *)",
       "Bash(not exist *)",
-      "PowerShell(app *)"
+      "PowerShell(app *)",
+      "mcp__plugin_supabase_supabase__list_projects",
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "Bash(npm run *)",
+      "Bash(echo \"PID: $!\")",
+      "Read(//mnt/d/Nest/Deployment/source_code/**)",
+      "Bash(echo \"DEV_PID=$!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Start-Process \"http://localhost:3000/login\")",
+      "PowerShell(Start-Process \"http://localhost:3000/admin/dashboard\")",
+      "PowerShell(Start-Process \"http://localhost:3000/admin/allies/onboard\")"
     ]
   }
 }

@@ -4,7 +4,15 @@ export interface ZohoTokenRow {
   refresh_token: string;
   expires_at: string;
   zoho_org_id: string | null;
+  workspace_id: string | null;
+  workspace_name: string | null;
   updated_at: string;
+}
+
+/** A single Zoho Bookings workspace returned by /bookings/v1/json/workspaces */
+export interface ZohoWorkspace {
+  id: string;
+  name: string;
 }
 
 export interface ZohoStatusResponse {

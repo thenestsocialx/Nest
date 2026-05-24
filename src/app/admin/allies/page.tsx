@@ -192,8 +192,19 @@ export default function AlliesPage() {
             <button
               onClick={() => setSearch('')}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--ns-ink-4)', padding: '0 4px', fontSize: 14, lineHeight: 1,
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--ns-ink-4)',
+                padding: '2px 4px',
+                fontSize: 16,
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
               }}
               aria-label="Clear search"
             >

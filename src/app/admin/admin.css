@@ -650,14 +650,16 @@
 .ns-search-input-wrap { position: relative; flex: 1; }
 .ns-search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ns-ink-4); }
 .ns-search-input {
-  padding: 8px 12px 8px 34px;
+  padding: 8px 30px 8px 34px;
   border-radius: var(--ns-radius-sm);
   border: 1px solid var(--ns-border);
   background: #fff;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--ns-ink);
   width: 100%;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .ns-search-input:focus { outline: none; border-color: var(--ns-forest-3); }
 

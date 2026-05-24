@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -8,7 +8,7 @@ type NavItem = {
   href: string;
   label: string;
   icon: React.ReactElement;
-  badge?: string;
+  badgeKey?: 'applications';
 };
 
 type NavGroup = {
@@ -52,7 +52,6 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/integrations',
         label: 'Integrations',
-        badge: '1',
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <path d="M10 3l3 3-3 3M6 13l-3-3 3-3M9 6H6M10 10H7"/>
@@ -116,7 +115,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/allies/applications',
         label: 'Applications',
-        badge: '3',
+        badgeKey: 'applications',
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <path d="M3 4h10M3 8h10M3 12h6"/>
@@ -170,12 +169,27 @@ const NAV_GROUPS: NavGroup[] = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const [counts, setCounts] = useState<{ applications: number } | null>(null);
+
+  // Fetch live badge counts — fire-and-forget, never blocks render
+  useEffect(() => {
+    fetch('/api/v1/dashboard/counts')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setCounts(data); })
+      .catch(() => { /* silent — no badge is better than a broken UI */ });
+  }, []);
 
   const isActive = (href: string) => {
     if (href === '/admin/allies') {
       return pathname === '/admin/allies';
     }
     return pathname === href || pathname.startsWith(href + '/');
+  };
+
+  const getBadge = (key: NavItem['badgeKey']): string | null => {
+    if (!key || !counts) return null;
+    const val = counts[key];
+    return val > 0 ? String(val) : null;
   };
 
   return (
@@ -200,19 +214,22 @@ export default function AdminSidebar() {
           <div key={group.label}>
             {group.dividerBefore && <div className="ns-sidebar__divider" />}
             <div className="ns-sidebar__section-label">{group.label}</div>
-            {group.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`ns-nav-item${isActive(item.href) ? ' ns-nav-item--active' : ''}`}
-              >
-                {item.icon}
-                {item.label}
-                {item.badge && (
-                  <span className="ns-nav-badge">{item.badge}</span>
-                )}
-              </Link>
-            ))}
+            {group.items.map((item) => {
+              const badge = getBadge(item.badgeKey);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`ns-nav-item${isActive(item.href) ? ' ns-nav-item--active' : ''}`}
+                >
+                  {item.icon}
+                  {item.label}
+                  {badge && (
+                    <span className="ns-nav-badge">{badge}</span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         ))}
       </div>

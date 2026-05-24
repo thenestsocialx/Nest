@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
+// Routes whose subtitles are purely static
 const PAGE_META: Record<string, { title: string; sub: string }> = {
   '/admin/dashboard':           { title: 'Dashboard',           sub: 'Platform overview · May 2026' },
   '/admin/pricing':             { title: 'Pricing & limits',    sub: 'Configure plans, message caps, credit wallet' },
@@ -10,7 +12,7 @@ const PAGE_META: Record<string, { title: string; sub: string }> = {
   '/admin/events':              { title: 'Weekend events',      sub: 'Create events, manage registrations' },
   '/admin/allies':              { title: 'Allies',              sub: 'Human listener network and payout tracking' },
   '/admin/allies/onboard':      { title: 'Onboard Ally',        sub: 'Allies · New application' },
-  '/admin/allies/applications': { title: 'Applications',        sub: '3 pending applications to review' },
+  '/admin/allies/applications': { title: 'Applications',        sub: '' }, // subtitle is dynamic (see below)
   '/admin/users':               { title: 'Clients',             sub: 'User management · handle with care' },
   '/admin/matching':            { title: 'Matching Engine',     sub: 'Algorithm weights and configuration' },
   '/admin/audit':               { title: 'Audit Logs',          sub: 'System events and admin actions' },
@@ -20,11 +22,37 @@ export default function AdminTopbar() {
   const pathname = usePathname();
   const meta = PAGE_META[pathname] ?? { title: 'Admin', sub: '' };
 
+  // Dynamic count — only fetched on routes that need it
+  const [applicationCount, setApplicationCount] = useState<number | null>(null);
+  const needsCount = pathname === '/admin/allies/applications';
+
+  useEffect(() => {
+    if (!needsCount) return;
+    fetch('/api/v1/dashboard/counts')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { applications: number } | null) => {
+        if (data != null) setApplicationCount(data.applications);
+      })
+      .catch(() => { /* silent */ });
+  }, [needsCount]);
+
+  // Build the subtitle, filling in live count for the applications route
+  let subtitle = meta.sub;
+  if (pathname === '/admin/allies/applications') {
+    if (applicationCount === null) {
+      subtitle = 'Review pending applications';
+    } else if (applicationCount === 0) {
+      subtitle = 'No pending applications';
+    } else {
+      subtitle = `${applicationCount} pending application${applicationCount !== 1 ? 's' : ''} to review`;
+    }
+  }
+
   return (
     <header className="ns-admin-topbar">
       <div className="ns-topbar__page">
         <div className="ns-topbar__page-title">{meta.title}</div>
-        {meta.sub && <div className="ns-topbar__page-sub">{meta.sub}</div>}
+        {subtitle && <div className="ns-topbar__page-sub">{subtitle}</div>}
       </div>
       <div className="ns-topbar__actions">
         <div className="ns-env-status">

@@ -554,20 +554,22 @@
   font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
-  border: 1px solid transparent;
+  /* !important beats the .ns-admin-shell button { border: none; background: none } reset
+     which has higher specificity ([0,1,1]) than a single class ([0,1,0]) */
+  border: 1px solid transparent !important;
   text-decoration: none;
   font-family: inherit;
   /* Explicit colour so <a> tags with ns-btn class render correctly */
   color: var(--ns-ink-3);
 }
-.ns-btn--primary   { background: var(--ns-forest); color: #fff !important; border-color: var(--ns-forest); }
-.ns-btn--primary:hover { background: var(--ns-forest-2); }
-.ns-btn--secondary { background: transparent; color: var(--ns-forest) !important; border-color: var(--ns-border); }
-.ns-btn--secondary:hover { background: var(--ns-cream-2); }
-.ns-btn--danger    { background: var(--ns-red); color: #fff !important; border-color: var(--ns-red); }
-.ns-btn--danger:hover { background: #a33a2b; }
-.ns-btn--ghost     { background: transparent; color: var(--ns-ink-3) !important; border-color: var(--ns-border-soft); }
-.ns-btn--ghost:hover { background: var(--ns-cream-2); color: var(--ns-ink) !important; }
+.ns-btn--primary   { background: var(--ns-forest) !important; color: #fff !important; border-color: var(--ns-forest) !important; }
+.ns-btn--primary:hover { background: var(--ns-forest-2) !important; }
+.ns-btn--secondary { background: transparent !important; color: var(--ns-forest) !important; border-color: var(--ns-border) !important; }
+.ns-btn--secondary:hover { background: var(--ns-cream-2) !important; }
+.ns-btn--danger    { background: var(--ns-red) !important; color: #fff !important; border-color: var(--ns-red) !important; }
+.ns-btn--danger:hover { background: #a33a2b !important; }
+.ns-btn--ghost     { background: transparent !important; color: var(--ns-ink-3) !important; border-color: var(--ns-border-soft) !important; }
+.ns-btn--ghost:hover { background: var(--ns-cream-2) !important; color: var(--ns-ink) !important; }
 .ns-btn--sm        { padding: 5px 12px; font-size: 12px; }
 
 /* ── INTEGRATIONS CONNECT CARD ── */

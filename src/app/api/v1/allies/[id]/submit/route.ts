@@ -1,9 +1,11 @@
 // POST /api/v1/allies/[id]/submit
-// Final submission: validates all required fields, creates Zoho staff, saves zoho_staff_id
+// Final submission of the onboarding form.
+// Validates required fields and marks the ally as "submitted" for admin review.
+// NOTE: Zoho staff is NOT created here — it is created at the /approve step,
+//       so Zoho only ever contains allies who have been vetted and approved.
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { addZohoStaff, genderFromPronouns } from '@/lib/zoho/addStaff';
 
 export async function POST(
   _req: NextRequest,
@@ -33,24 +35,27 @@ export async function POST(
     return NextResponse.json({ error: 'Ally not found' }, { status: 404 });
   }
 
-  // Already submitted — skip Zoho call, just return existing ID
-  if (ally.zoho_staff_id) {
+  // Idempotent — already submitted or further along
+  if (['submitted', 'approved', 'active'].includes(ally.onboarding_status)) {
     return NextResponse.json({
-      ok:            true,
-      zoho_staff_id: ally.zoho_staff_id,
-      already_exists: true,
+      ok:              true,
+      already_submitted: true,
+      onboarding_status: ally.onboarding_status,
     });
   }
 
   // Server-side validation of required fields
   const missing: string[] = [];
-  if (!ally.full_name?.trim()) missing.push('Full name (Step 1)');
-  if (!ally.email?.trim())     missing.push('Email (Step 1)');
-  if (!ally.phone?.trim())     missing.push('Phone (Step 1)');
-  if (!ally.pronouns)          missing.push('Pronouns (Step 1)');
-  if (!ally.location?.trim())  missing.push('Location (Step 1)');
-  if (!ally.tagline?.trim())   missing.push('Tagline (Step 1)');
-  if (!ally.quote?.trim())     missing.push('Quote (Step 1)');
+  if (!ally.full_name?.trim())    missing.push('Full name (Step 1)');
+  if (!ally.email?.trim())        missing.push('Email (Step 1)');
+  if (!ally.phone?.trim())        missing.push('Phone (Step 1)');
+  if (!ally.pronouns)             missing.push('Pronouns (Step 1)');
+  if (!ally.location?.trim())     missing.push('Location (Step 1)');
+  if (!ally.tagline?.trim())      missing.push('Tagline (Step 1)');
+  if (!ally.quote?.trim())        missing.push('Quote (Step 1)');
+  if (!ally.primary_role)         missing.push('Role (Step 2)');
+  if (!ally.session_durations?.length) missing.push('Session durations (Step 3)');
+  if (!ally.session_price)        missing.push('Session price (Step 3)');
 
   if (missing.length > 0) {
     return NextResponse.json(
@@ -59,56 +64,21 @@ export async function POST(
     );
   }
 
-  // Create Zoho staff
-  let zohoStaffId: string;
-  try {
-    const result = await addZohoStaff({
-      name:            ally.full_name,
-      email:           ally.email,
-      gender:          genderFromPronouns(ally.pronouns),
-      role:            'Staff',
-      phone:           ally.phone  ?? undefined,
-      designation:     ally.primary_role ?? undefined,
-      additional_info: ally.bio    ?? undefined,
-    });
-    zohoStaffId = result.id;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Zoho staff creation failed';
-    console.error('[POST /submit] Zoho error:', message);
-    return NextResponse.json(
-      { error: message, zoho_error: true },
-      { status: 502 },
-    );
-  }
-
-  // Save zoho_staff_id and mark submitted
+  // Mark as submitted — Zoho staff will be created when admin approves
   const { data: updated, error: updateError } = await admin
     .from('allies')
     .update({
-      zoho_staff_id:     zohoStaffId,
       onboarding_status: 'submitted',
       onboarding_step:   5,
     })
     .eq('id', id)
-    .select('id, zoho_staff_id, onboarding_status')
+    .select('id, onboarding_status, onboarding_step')
     .single();
 
   if (updateError) {
-    console.error('[POST /submit] DB update error:', updateError);
-    // Zoho staff was created — return the ID even if DB update failed
-    return NextResponse.json(
-      {
-        ok:            true,
-        zoho_staff_id: zohoStaffId,
-        warning:       `DB update failed: ${updateError.message} — Zoho ID: ${zohoStaffId}`,
-      },
-      { status: 207 },
-    );
+    console.error('[POST /submit] DB error:', updateError);
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  return NextResponse.json({
-    ok:            true,
-    zoho_staff_id: zohoStaffId,
-    ally:          updated,
-  });
+  return NextResponse.json({ ok: true, ally: updated });
 }

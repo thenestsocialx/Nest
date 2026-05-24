@@ -502,11 +502,10 @@ export default function OnboardAllyPage() {
     try {
       const id = await flushSave();
       const res = await fetch(`/api/v1/allies/${id}/submit`, { method: 'POST' });
-      const data = await res.json() as { ok?: boolean; zoho_staff_id?: string; error?: string };
+      const data = await res.json() as { ok?: boolean; error?: string };
       if (!res.ok) throw new Error(data.error ?? 'Submission failed');
-      setZohoStaffId(data.zoho_staff_id ?? null);
       setSubmitted(true);
-      showToast('success', `✓ Ally created in Zoho Bookings`);
+      showToast('success', `✓ Application submitted — pending admin review`);
     } catch (err) {
       showToast('error', `Submission failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -1333,7 +1332,7 @@ export default function OnboardAllyPage() {
                       disabled={isSubmitting}
                       onClick={() => { void handleSubmit(); }}>
                       {isSubmitting
-                        ? <><div className="ob-spinner" style={{borderTopColor:'var(--ob-cream)'}}/>&nbsp;Creating in Zoho…</>
+                        ? <><div className="ob-spinner" style={{borderTopColor:'var(--ob-cream)'}}/>&nbsp;Submitting…</>
                         : 'Submit for review →'}
                     </button>
                   </>

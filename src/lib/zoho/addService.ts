@@ -1,14 +1,15 @@
 // ══════════════════════════════════════════════════════════════
 // Nest · Zoho Bookings — Create Service
 // Endpoint: POST {domain}/bookings/v1/json/createservice
-// Body:     multipart/form-data  key=serviceMap  value=JSON string
 //
-// Verified schema from https://www.zoho.com/bookings/help/api/v1/create-service.html
-//   • data is an OBJECT (not an array)
-//   • price field is "cost" (string)
-//   • duration must be a string ("60", not 60)
-//   • staff field is "assigned_staffs" (flat string array)
-//   • workspace_id is REQUIRED inside the data object
+// Verified by live testing (2026-05-24):
+//   • Content-Type must be application/json  ← NOT FormData like addstaff
+//   • Body:  { "data": { name, duration, cost, workspace_id, ... } }
+//   • duration and cost are strings ("60", "799")
+//   • workspace_id is required inside the data object
+//   • assigned_staffs is a flat string array (optional)
+//   • Response: { response: { returnvalue: { status, message, data: { id } }, status } }
+//     ↑ note: ID lives at .returnvalue.data.id — different from addstaff
 // ══════════════════════════════════════════════════════════════
 
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -40,12 +41,12 @@ export interface ZohoServiceInput {
   duration: number;   // minutes — sent as string to Zoho
   price: number;      // sent as string "cost" to Zoho
   description?: string;
-  staffId?: string;   // assigned_staffs flat array
+  staffId?: string;   // goes into assigned_staffs flat array
 }
 
 export interface ZohoServiceResult {
   id: string;
-  name: string;
+  name?: string;
   status: 'success' | 'failure';
   message?: string;
 }
@@ -53,19 +54,9 @@ export interface ZohoServiceResult {
 /**
  * Creates a single service in Zoho Bookings.
  *
- * Zoho's createservice API requires multipart/form-data with a "serviceMap" key.
- * The serviceMap value is a JSON string with this exact shape (verified from docs):
- *
- *   {
- *     "data": {                        ← object, NOT array
- *       "name":            "string",
- *       "workspace_id":    "string",   ← required in body
- *       "duration":        "60",       ← string, not number
- *       "cost":            "799",      ← "cost" not "price", string not number
- *       "description":     "string",
- *       "assigned_staffs": ["id"]      ← flat array of strings
- *     }
- *   }
+ * IMPORTANT: unlike addstaff (which uses multipart/form-data),
+ * createservice requires Content-Type: application/json.
+ * Verified live against the Zoho IN API on 2026-05-24.
  */
 export async function addZohoService(service: ZohoServiceInput): Promise<ZohoServiceResult> {
   const [token, { baseUrl, workspaceId }] = await Promise.all([
@@ -73,25 +64,18 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
     getZohoConfig(),
   ]);
 
-  // Build the serviceMap — all per verified Zoho Bookings API schema
   const serviceData: Record<string, unknown> = {
     name:         service.name,
-    duration:     String(service.duration),   // must be string
-    cost:         String(service.price),       // field is "cost", must be string
+    duration:     String(service.duration),  // must be string
+    cost:         String(service.price),     // field is "cost", must be string
   };
 
-  // workspace_id is required inside the data object
-  if (workspaceId) serviceData.workspace_id = workspaceId;
+  if (workspaceId)       serviceData.workspace_id    = workspaceId;
+  if (service.description) serviceData.description   = service.description;
+  if (service.staffId)   serviceData.assigned_staffs = [service.staffId];
 
-  if (service.description)  serviceData.description     = service.description;
-  if (service.staffId)      serviceData.assigned_staffs = [service.staffId];  // flat array
-
-  const serviceMap = { data: serviceData };   // data is an OBJECT, not an array
-
-  console.log('[addZohoService] sending serviceMap:', JSON.stringify(serviceMap));
-
-  const formData = new FormData();
-  formData.append('serviceMap', JSON.stringify(serviceMap));
+  const bodyJson = JSON.stringify({ data: serviceData });
+  console.log('[addZohoService] payload:', bodyJson);
 
   const orgParam = workspaceId ? `?orgId=${encodeURIComponent(workspaceId)}` : '';
   const url      = `${baseUrl}/bookings/v1/json/createservice${orgParam}`;
@@ -100,8 +84,11 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
   try {
     res = await fetch(url, {
       method:  'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body:    formData,
+      headers: {
+        Authorization:  `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: bodyJson,
     });
   } catch (err) {
     throw new ZohoAPIError(
@@ -115,7 +102,7 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
   catch { throw new ZohoAPIError(res.status, `Zoho returned non-JSON (${res.status})`); }
 
   const bodyStr = JSON.stringify(body);
-  console.log('[addZohoService] response body:', bodyStr.slice(0, 800));
+  console.log('[addZohoService] response:', bodyStr.slice(0, 600));
 
   if (!res.ok) {
     const msg =
@@ -125,28 +112,26 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
     throw new ZohoAPIError(res.status, `Zoho createservice failed: ${msg}`);
   }
 
-  // Zoho Bookings response shape (same nested structure as addstaff):
-  //   { response: { returnvalue: { response: [{ id, name, status }] }, status: "success" } }
+  // Response shape (verified live):
+  //   { response: { returnvalue: { status: "success", message: "...", data: { id: "..." } }, status: "success" } }
+  //   Note: ID is at .returnvalue.data.id — NOT .returnvalue.response[0].id like addstaff
   const raw       = body as Record<string, unknown>;
   const outerResp = raw?.response         as Record<string, unknown> | null | undefined;
   const returnVal = outerResp?.returnvalue as Record<string, unknown> | null | undefined;
-  const innerArr  = returnVal?.response;
 
-  let result: ZohoServiceResult | undefined;
-  if (Array.isArray(innerArr)) {
-    result = (innerArr as ZohoServiceResult[])[0];
-  } else if (Array.isArray(outerResp)) {
-    result = (outerResp as unknown as ZohoServiceResult[])[0];
+  // Check for API-level errors even on HTTP 200
+  if (outerResp?.status !== 'success' || returnVal?.status !== 'success') {
+    const msg = (returnVal?.message as string) ?? (outerResp?.status as string) ?? 'unknown error';
+    throw new ZohoAPIError(0, `Zoho createservice API error: ${msg}`);
   }
 
-  if (!result) {
-    throw new ZohoAPIError(0, `Zoho unexpected response. Body: ${bodyStr.slice(0, 400)}`);
-  }
-  if (!result.id && result.status !== 'success') {
-    throw new ZohoAPIError(0, result.message ?? `Zoho service creation failed: ${result.status}`);
+  const serviceId = (returnVal?.data as Record<string, unknown> | null | undefined)?.id as string | undefined;
+
+  if (!serviceId) {
+    throw new ZohoAPIError(0, `Zoho createservice succeeded but returned no ID. Body: ${bodyStr.slice(0, 400)}`);
   }
 
-  return result;
+  return { id: serviceId, status: 'success', message: returnVal?.message as string | undefined };
 }
 
 /**

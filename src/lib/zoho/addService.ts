@@ -1,7 +1,14 @@
 // ══════════════════════════════════════════════════════════════
-// Nest · Zoho Bookings — Add Service
-// Endpoint: POST {domain}/bookings/v1/json/addservice
+// Nest · Zoho Bookings — Create Service
+// Endpoint: POST {domain}/bookings/v1/json/createservice
 // Body:     multipart/form-data  key=serviceMap  value=JSON string
+//
+// Verified schema from https://www.zoho.com/bookings/help/api/v1/create-service.html
+//   • data is an OBJECT (not an array)
+//   • price field is "cost" (string)
+//   • duration must be a string ("60", not 60)
+//   • staff field is "assigned_staffs" (flat string array)
+//   • workspace_id is REQUIRED inside the data object
 // ══════════════════════════════════════════════════════════════
 
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -30,10 +37,10 @@ async function getZohoConfig(): Promise<ZohoConfig> {
 
 export interface ZohoServiceInput {
   name: string;
-  duration: number;        // minutes
-  price: number;
+  duration: number;   // minutes — sent as string to Zoho
+  price: number;      // sent as string "cost" to Zoho
   description?: string;
-  staffId?: string;        // assign to a specific staff member on creation
+  staffId?: string;   // assigned_staffs flat array
 }
 
 export interface ZohoServiceResult {
@@ -46,30 +53,47 @@ export interface ZohoServiceResult {
 /**
  * Creates a single service in Zoho Bookings.
  *
- * Uses FormData (not JSON) — same pattern as addZohoStaff — because Zoho's
- * Bookings API requires multipart/form-data with a "serviceMap" key.
+ * Zoho's createservice API requires multipart/form-data with a "serviceMap" key.
+ * The serviceMap value is a JSON string with this exact shape (verified from docs):
+ *
+ *   {
+ *     "data": {                        ← object, NOT array
+ *       "name":            "string",
+ *       "workspace_id":    "string",   ← required in body
+ *       "duration":        "60",       ← string, not number
+ *       "cost":            "799",      ← "cost" not "price", string not number
+ *       "description":     "string",
+ *       "assigned_staffs": ["id"]      ← flat array of strings
+ *     }
+ *   }
  */
 export async function addZohoService(service: ZohoServiceInput): Promise<ZohoServiceResult> {
-  const [token, { baseUrl, workspaceId }] = await Promise.all([getValidAccessToken(), getZohoConfig()]);
+  const [token, { baseUrl, workspaceId }] = await Promise.all([
+    getValidAccessToken(),
+    getZohoConfig(),
+  ]);
 
-  // Build the serviceMap payload
-  const serviceEntry: Record<string, unknown> = {
-    name:     service.name,
-    duration: service.duration,
-    price:    service.price,
-    type:     '1',           // 1 = one-to-one (private) session
+  // Build the serviceMap — all per verified Zoho Bookings API schema
+  const serviceData: Record<string, unknown> = {
+    name:         service.name,
+    duration:     String(service.duration),   // must be string
+    cost:         String(service.price),       // field is "cost", must be string
   };
-  if (service.description) serviceEntry.description = service.description;
-  // Zoho expects staff IDs as an array of single-element arrays: [["id1"], ["id2"]]
-  if (service.staffId)     serviceEntry.staff_ids = [[service.staffId]];
 
-  const serviceMap = { data: [serviceEntry] };
+  // workspace_id is required inside the data object
+  if (workspaceId) serviceData.workspace_id = workspaceId;
+
+  if (service.description)  serviceData.description     = service.description;
+  if (service.staffId)      serviceData.assigned_staffs = [service.staffId];  // flat array
+
+  const serviceMap = { data: serviceData };   // data is an OBJECT, not an array
+
+  console.log('[addZohoService] sending serviceMap:', JSON.stringify(serviceMap));
 
   const formData = new FormData();
   formData.append('serviceMap', JSON.stringify(serviceMap));
 
   const orgParam = workspaceId ? `?orgId=${encodeURIComponent(workspaceId)}` : '';
-  // Zoho Bookings uses "createservice" (not "addservice") — confirmed from API docs
   const url      = `${baseUrl}/bookings/v1/json/createservice${orgParam}`;
 
   let res: Response;
@@ -90,6 +114,9 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
   try { body = await res.json(); }
   catch { throw new ZohoAPIError(res.status, `Zoho returned non-JSON (${res.status})`); }
 
+  const bodyStr = JSON.stringify(body);
+  console.log('[addZohoService] response body:', bodyStr.slice(0, 800));
+
   if (!res.ok) {
     const msg =
       (body as { message?: string })?.message ??
@@ -98,13 +125,10 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
     throw new ZohoAPIError(res.status, `Zoho createservice failed: ${msg}`);
   }
 
-  // Same nested response shape as addstaff:
-  //   { response: { returnvalue: { response: [{ id, name, status }] }, status } }
-  const raw      = body as Record<string, unknown>;
-  const bodyStr  = JSON.stringify(raw);
-  console.log('[addZohoService] response:', bodyStr.slice(0, 600));
-
-  const outerResp = raw?.response      as Record<string, unknown> | null | undefined;
+  // Zoho Bookings response shape (same nested structure as addstaff):
+  //   { response: { returnvalue: { response: [{ id, name, status }] }, status: "success" } }
+  const raw       = body as Record<string, unknown>;
+  const outerResp = raw?.response         as Record<string, unknown> | null | undefined;
   const returnVal = outerResp?.returnvalue as Record<string, unknown> | null | undefined;
   const innerArr  = returnVal?.response;
 
@@ -126,14 +150,9 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
 }
 
 /**
- * Creates one Zoho service for every session duration an ally offers.
- * Returns a map of  { "60min": "zoho_service_id", "45min": "zoho_service_id" }
- * that can be stored in allies.zoho_service_ids.
- *
- * @param durations  e.g. ["60min", "45min"]  (from ally.session_durations)
- * @param price      session price in ₹
- * @param allyName   used in the service name so it's identifiable in Zoho
- * @param staffId    ally's zoho_staff_id — assigned to each service on creation
+ * Creates one Zoho service per session duration an ally offers.
+ * Returns { "60min": "zoho_service_id", "45min": "zoho_service_id" }
+ * for storage in allies.zoho_service_ids.
  */
 export async function createAllyServices(
   durations: string[],
@@ -144,7 +163,6 @@ export async function createAllyServices(
   const serviceIds: Record<string, string> = {};
 
   for (const dur of durations) {
-    // Parse "60min" → 60, "45min" → 45
     const minutes = parseInt(dur.replace(/[^0-9]/g, ''), 10);
     if (isNaN(minutes) || minutes <= 0) {
       console.warn(`[createAllyServices] skipping unrecognised duration: ${dur}`);

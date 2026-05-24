@@ -69,7 +69,8 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
   formData.append('serviceMap', JSON.stringify(serviceMap));
 
   const orgParam = workspaceId ? `?orgId=${encodeURIComponent(workspaceId)}` : '';
-  const url      = `${baseUrl}/bookings/v1/json/addservice${orgParam}`;
+  // Zoho Bookings uses "createservice" (not "addservice") — confirmed from API docs
+  const url      = `${baseUrl}/bookings/v1/json/createservice${orgParam}`;
 
   let res: Response;
   try {
@@ -94,7 +95,7 @@ export async function addZohoService(service: ZohoServiceInput): Promise<ZohoSer
       (body as { message?: string })?.message ??
       (body as { error?: string })?.error ??
       res.statusText;
-    throw new ZohoAPIError(res.status, `Zoho addservice failed: ${msg}`);
+    throw new ZohoAPIError(res.status, `Zoho createservice failed: ${msg}`);
   }
 
   // Same nested response shape as addstaff:

@@ -25,53 +25,42 @@ interface AllyListItem {
   admin_notes: string | null;
 }
 
-type TabFilter = 'submitted' | 'approved';
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
 interface Toast { type: 'success' | 'error'; message: string }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function initials(name: string | null): string {
   if (!name) return '?';
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 60)  return `${mins}m ago`;
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)   return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────────
 export default function ApplicationsPage() {
-  const [tab, setTab]       = useState<TabFilter>('submitted');
-  const [allies, setAllies] = useState<AllyListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast]   = useState<Toast | null>(null);
-  // Track in-flight action per ally ID
-  const [busy, setBusy]     = useState<Record<string, boolean>>({});
-  // For reject: show reason input
+  const [allies, setAllies]       = useState<AllyListItem[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [toast, setToast]         = useState<Toast | null>(null);
+  const [busy, setBusy]           = useState<Record<string, boolean>>({});
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const showToast = useCallback((type: Toast['type'], message: string) => {
     setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 4500);
   }, []);
 
-  // ── Load allies ──────────────────────────────────────────────────────────────
-  const load = useCallback(async (filter: TabFilter) => {
+  // ── Load all pending allies (submitted + approved) ──────────────────────────
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`/api/v1/allies?status=${filter}`);
+      const res  = await fetch('/api/v1/allies?status=submitted,approved');
       const data = await res.json() as { allies?: AllyListItem[]; error?: string };
       if (!res.ok) throw new Error(data.error ?? 'Failed to load');
       setAllies(data.allies ?? []);
@@ -83,22 +72,31 @@ export default function ApplicationsPage() {
     }
   }, [showToast]);
 
-  useEffect(() => { void load(tab); }, [tab, load]);
+  useEffect(() => { void load(); }, [load]);
 
   // ── Actions ──────────────────────────────────────────────────────────────────
   const setAllyBusy = (id: string, val: boolean) =>
     setBusy(prev => ({ ...prev, [id]: val }));
 
-  async function handleApprove(id: string, name: string | null) {
+  async function handleApproveAndActivate(id: string, name: string | null) {
     setAllyBusy(id, true);
     try {
-      const res  = await fetch(`/api/v1/allies/${id}/approve`, { method: 'POST' });
-      const data = await res.json() as { ok?: boolean; error?: string };
-      if (!res.ok) throw new Error(data.error ?? 'Approve failed');
-      showToast('success', `✓ ${name ?? 'Ally'} approved — ready for activation`);
-      void load(tab);
+      const res  = await fetch(`/api/v1/allies/${id}/approve-and-activate`, { method: 'POST' });
+      const data = await res.json() as {
+        ok?: boolean; error?: string; warning?: string; step?: string;
+      };
+      if (!res.ok) {
+        const detail = data.step ? ` (failed at: ${data.step} step)` : '';
+        throw new Error((data.error ?? 'Action failed') + detail);
+      }
+      if (data.warning) {
+        showToast('error', `Partial success — ${data.warning}`);
+      } else {
+        showToast('success', `✓ ${name ?? 'Ally'} is now live — profile and services created in Zoho`);
+      }
+      void load();
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Approve failed');
+      showToast('error', err instanceof Error ? err.message : 'Action failed');
     } finally {
       setAllyBusy(id, false);
     }
@@ -117,7 +115,7 @@ export default function ApplicationsPage() {
       showToast('success', `${name ?? 'Ally'} application rejected`);
       setRejectTarget(null);
       setRejectReason('');
-      void load(tab);
+      void load();
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Reject failed');
     } finally {
@@ -125,110 +123,154 @@ export default function ApplicationsPage() {
     }
   }
 
-  async function handleActivate(id: string, name: string | null) {
-    setAllyBusy(id, true);
-    try {
-      const res  = await fetch(`/api/v1/allies/${id}/activate`, { method: 'POST' });
-      const data = await res.json() as { ok?: boolean; error?: string; warning?: string };
-      if (!res.ok) throw new Error(data.error ?? 'Activation failed');
-      if (data.warning) showToast('error', `Warning: ${data.warning}`);
-      else showToast('success', `✓ ${name ?? 'Ally'} is now live — services created in Zoho`);
-      void load(tab);
-    } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Activation failed');
-    } finally {
-      setAllyBusy(id, false);
-    }
-  }
-
-  // ── Counts ────────────────────────────────────────────────────────────────────
-  const submittedCount = tab === 'submitted' ? allies.length : '…';
-  const approvedCount  = tab === 'approved'  ? allies.length : '…';
+  const pendingCount  = allies.filter(a => a.onboarding_status === 'submitted').length;
+  const recoveryCount = allies.filter(a => a.onboarding_status === 'approved').length;
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Toast */}
       {toast && (
-        <div
-          className={`ns-toast ns-toast--${toast.type}`}
-          style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000, maxWidth: 400 }}
-        >
+        <div className={`ns-toast ns-toast--${toast.type}`}>
           {toast.message}
         </div>
       )}
 
-      {/* Header */}
-      <div className="ns-search-row">
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--ns-ink)', margin: 0 }}>
-            Ally Applications
-          </h1>
-          <p style={{ fontSize: 12, color: 'var(--ns-ink-4)', margin: '2px 0 0' }}>
-            Review submissions, approve profiles, and activate allies in Zoho Bookings.
-          </p>
-        </div>
-        <a href="/admin/allies/onboard" className="ns-btn ns-btn--primary">+ Onboard new</a>
-      </div>
-
-      {/* Tab bar */}
+      {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div
         style={{
           display: 'flex',
-          gap: 4,
-          borderBottom: '1px solid var(--ns-line)',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
           marginBottom: 20,
         }}
       >
-        {([
-          { key: 'submitted', label: 'Pending review', badge: submittedCount, badgeColor: 'amber' },
-          { key: 'approved',  label: 'Approved · awaiting activation', badge: approvedCount, badgeColor: 'forest' },
-        ] as const).map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+        <div>
+          <h1
             style={{
-              background: 'none',
-              border: 'none',
-              padding: '8px 14px',
-              fontSize: 13,
-              fontWeight: tab === t.key ? 600 : 400,
-              color: tab === t.key ? 'var(--ns-ink)' : 'var(--ns-ink-4)',
-              borderBottom: tab === t.key ? '2px solid var(--ns-teal)' : '2px solid transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              fontFamily: 'var(--ns-font-serif)',
+              fontSize: 22,
+              fontWeight: 400,
+              color: 'var(--ns-ink)',
+              margin: 0,
+              lineHeight: 1.25,
             }}
           >
-            {t.label}
-            <span className={`ns-badge ns-badge--${t.badgeColor}`}>{t.badge}</span>
-          </button>
-        ))}
+            Ally Applications
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--ns-ink-4)', margin: '4px 0 0', lineHeight: 1.4 }}>
+            Review submissions and make allies live in a single step.
+          </p>
+        </div>
+
+        <a
+          href="/admin/allies/onboard"
+          className="ns-btn ns-btn--primary"
+          style={{ flexShrink: 0 }}
+        >
+          {/* Plus icon */}
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+            <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+          </svg>
+          Onboard New Ally
+        </a>
       </div>
 
-      {/* Content */}
+      {/* ── Info notice ──────────────────────────────────────────────────────── */}
+      <div className="ns-notice" style={{ marginBottom: 20 }}>
+        {/* Info circle icon */}
+        <svg
+          width="14" height="14" viewBox="0 0 14 14" fill="none"
+          style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true"
+        >
+          <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M7 6.5v3M7 4v.75" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+        <span style={{ fontSize: 12, lineHeight: 1.5 }}>
+          <strong>One-step approval:</strong>{' '}
+          Approving an application instantly creates the ally's Zoho profile and bookable
+          services — they go live without a separate activation step.
+          {recoveryCount > 0 && (
+            <span style={{ marginLeft: 8, color: 'var(--ns-amber)', fontWeight: 500 }}>
+              {recoveryCount} {recoveryCount === 1 ? 'ally has' : 'allies have'} a Zoho profile
+              already — clicking &ldquo;Go Live&rdquo; will create their services and activate them.
+            </span>
+          )}
+        </span>
+      </div>
+
+      {/* ── Content ─────────────────────────────────────────────────────────── */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '40px 0', color: 'var(--ns-ink-4)', fontSize: 13 }}>
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '40px 0', color: 'var(--ns-ink-4)', fontSize: 13,
+          }}
+        >
           <div className="ob-spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
           Loading applications…
         </div>
+
       ) : allies.length === 0 ? (
-        <div className="ns-card" style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--ns-ink-4)' }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>
-            {tab === 'submitted' ? '📥' : '✅'}
+        /* ── Empty state ── */
+        <div
+          className="ns-card"
+          style={{ textAlign: 'center', padding: '56px 24px', color: 'var(--ns-ink-4)' }}
+        >
+          <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+          <div
+            style={{ fontWeight: 500, fontSize: 15, marginBottom: 6, color: 'var(--ns-ink)' }}
+          >
+            No pending applications
           </div>
-          <div style={{ fontWeight: 500, marginBottom: 4, color: 'var(--ns-ink)' }}>
-            {tab === 'submitted' ? 'No pending applications' : 'No approved allies awaiting activation'}
-          </div>
-          <div style={{ fontSize: 12 }}>
-            {tab === 'submitted'
-              ? 'New submissions will appear here once allies complete onboarding and click "Submit for review".'
-              : 'Approved applications will appear here after you approve them from the Pending tab.'}
-          </div>
+          <p style={{ fontSize: 13, maxWidth: 340, margin: '0 auto', lineHeight: 1.55 }}>
+            New submissions appear here once allies complete onboarding and submit for review.
+          </p>
+          <a
+            href="/admin/allies/onboard"
+            className="ns-btn ns-btn--secondary"
+            style={{ marginTop: 20, display: 'inline-flex' }}
+          >
+            Onboard an ally manually
+          </a>
         </div>
+
       ) : (
+        /* ── Table ── */
         <div className="ns-card" style={{ padding: 0, overflow: 'hidden' }}>
+
+          {/* Summary bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '12px 16px',
+              borderBottom: '1px solid var(--ns-border-soft)',
+              background: 'var(--ns-cream)',
+            }}
+          >
+            <span style={{ fontSize: 12, color: 'var(--ns-ink-4)', flex: 1 }}>
+              <span style={{ fontWeight: 600, color: 'var(--ns-ink)' }}>
+                {allies.length}
+              </span>{' '}
+              {allies.length === 1 ? 'application' : 'applications'}
+            </span>
+            {pendingCount > 0 && (
+              <span className="ns-badge ns-badge--amber">
+                <span className="ns-badge__dot" />
+                {pendingCount} pending review
+              </span>
+            )}
+            {recoveryCount > 0 && (
+              <span className="ns-badge ns-badge--forest">
+                <span className="ns-badge__dot" />
+                {recoveryCount} awaiting activation
+              </span>
+            )}
+          </div>
+
           <div className="ns-table-wrap">
             <table className="ns-table">
               <thead>
@@ -237,183 +279,209 @@ export default function ApplicationsPage() {
                   <th>Role</th>
                   <th>Specialties</th>
                   <th>Sessions offered</th>
-                  <th>{tab === 'approved' ? 'Zoho staff' : 'Step'}</th>
+                  <th>Status</th>
                   <th>Submitted</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {allies.map(ally => (
-                  <tr key={ally.id}>
-                    {/* Ally name + photo */}
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        {ally.photo_url ? (
-                          <img
-                            src={ally.photo_url}
-                            alt={ally.full_name ?? ''}
-                            style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <div className="ns-ally-avatar" style={{ width: 34, height: 34, fontSize: 11 }}>
-                            {initials(ally.full_name)}
+                {allies.map(ally => {
+                  const isBusy     = !!busy[ally.id];
+                  const isRecovery = ally.onboarding_status === 'approved';
+
+                  return (
+                    <tr key={ally.id}>
+
+                      {/* Ally avatar + name */}
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {ally.photo_url ? (
+                            <img
+                              src={ally.photo_url}
+                              alt={ally.full_name ?? ''}
+                              style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div
+                              className="ns-ally-avatar"
+                              style={{ width: 34, height: 34, fontSize: 11, flexShrink: 0 }}
+                            >
+                              {initials(ally.full_name)}
+                            </div>
+                          )}
+                          <div>
+                            <div style={{ fontWeight: 500, fontSize: 13 }}>
+                              {ally.full_name ?? '—'}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--ns-ink-4)', marginTop: 1 }}>
+                              {ally.email ?? ''}
+                            </div>
                           </div>
-                        )}
-                        <div>
-                          <div style={{ fontWeight: 500 }}>{ally.full_name ?? '—'}</div>
-                          <div style={{ fontSize: 11, color: 'var(--ns-ink-4)' }}>{ally.email ?? ''}</div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Role */}
-                    <td className="muted" style={{ fontSize: 12 }}>
-                      {ally.primary_role ?? '—'}
-                    </td>
+                      {/* Role */}
+                      <td className="muted" style={{ fontSize: 12 }}>
+                        {ally.primary_role ?? '—'}
+                      </td>
 
-                    {/* Specialties */}
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {(ally.specialties ?? []).slice(0, 3).map(s => (
-                          <span key={s} className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>
-                            {s}
+                      {/* Specialties */}
+                      <td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {(ally.specialties ?? []).slice(0, 3).map(s => (
+                            <span key={s} className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>
+                              {s}
+                            </span>
+                          ))}
+                          {(ally.specialties ?? []).length > 3 && (
+                            <span className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>
+                              +{ally.specialties.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Sessions offered */}
+                      <td className="muted" style={{ fontSize: 12 }}>
+                        {ally.session_durations?.join(', ') ?? '—'}
+                        {ally.session_price ? (
+                          <span style={{ marginLeft: 4, color: 'var(--ns-ink)' }}>
+                            · ₹{ally.session_price}
                           </span>
-                        ))}
-                        {(ally.specialties ?? []).length > 3 && (
-                          <span className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>
-                            +{ally.specialties.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                        ) : null}
+                      </td>
 
-                    {/* Sessions */}
-                    <td className="muted" style={{ fontSize: 12 }}>
-                      {ally.session_durations?.join(', ') ?? '—'}
-                      {ally.session_price ? (
-                        <span style={{ marginLeft: 4, color: 'var(--ns-ink)' }}>· ₹{ally.session_price}</span>
-                      ) : null}
-                    </td>
-
-                    {/* Zoho staff ID status — only meaningful on "approved" tab */}
-                    <td>
-                      {tab === 'approved' ? (
-                        ally.zoho_staff_id ? (
+                      {/* Status badge */}
+                      <td>
+                        {isRecovery ? (
                           <span className="ns-badge ns-badge--forest">
-                            <span className="ns-badge__dot" />Created
+                            <span className="ns-badge__dot" />
+                            Needs activation
                           </span>
                         ) : (
-                          <span className="ns-badge ns-badge--red">
-                            <span className="ns-badge__dot" />Missing
+                          <span className="ns-badge ns-badge--amber">
+                            <span className="ns-badge__dot" />
+                            Pending review
                           </span>
-                        )
-                      ) : (
-                        <span className="ns-badge ns-badge--gray">
-                          Step {ally.onboarding_step} / 5
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Submitted */}
-                    <td className="muted" style={{ fontSize: 12 }}>
-                      {timeAgo(ally.updated_at ?? ally.created_at)}
-                    </td>
-
-                    {/* Actions */}
-                    <td>
-                      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        {/* View onboarding form */}
-                        <a
-                          href={`/admin/allies/onboard?ally=${ally.id}`}
-                          className="ns-btn ns-btn--ghost ns-btn--sm"
-                        >
-                          View
-                        </a>
-
-                        {tab === 'submitted' && (
-                          <>
-                            <button
-                              className="ns-btn ns-btn--primary ns-btn--sm"
-                              disabled={busy[ally.id]}
-                              onClick={() => void handleApprove(ally.id, ally.full_name)}
-                            >
-                              {busy[ally.id] ? (
-                                <><span className="ob-spinner" style={{ width: 12, height: 12, borderWidth: 2, borderTopColor: 'var(--ob-cream)', display: 'inline-block' }} />&nbsp;Creating in Zoho…</>
-                              ) : (
-                                'Approve'
-                              )}
-                            </button>
-                            <button
-                              className="ns-btn ns-btn--ghost ns-btn--sm"
-                              style={{ color: 'var(--ns-red)' }}
-                              disabled={busy[ally.id]}
-                              onClick={() => { setRejectTarget(ally.id); setRejectReason(''); }}
-                            >
-                              Reject
-                            </button>
-                          </>
                         )}
+                      </td>
 
-                        {tab === 'approved' && (
-                          <>
-                            <button
-                              className="ns-btn ns-btn--primary ns-btn--sm"
-                              disabled={busy[ally.id]}
-                              onClick={() => void handleActivate(ally.id, ally.full_name)}
-                            >
-                              {busy[ally.id] ? (
-                                <><span className="ob-spinner" style={{ width: 12, height: 12, borderWidth: 2, borderTopColor: 'var(--ob-cream)', display: 'inline-block' }} />&nbsp;Activating…</>
-                              ) : (
-                                '⚡ Activate'
-                              )}
-                            </button>
-                            <button
-                              className="ns-btn ns-btn--ghost ns-btn--sm"
-                              style={{ color: 'var(--ns-red)' }}
-                              disabled={busy[ally.id]}
-                              onClick={() => { setRejectTarget(ally.id); setRejectReason(''); }}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      {/* Time */}
+                      <td className="muted" style={{ fontSize: 12 }}>
+                        {timeAgo(ally.updated_at ?? ally.created_at)}
+                      </td>
+
+                      {/* Actions */}
+                      <td>
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {/* View form */}
+                          <a
+                            href={`/admin/allies/onboard?ally=${ally.id}`}
+                            className="ns-btn ns-btn--ghost ns-btn--sm"
+                          >
+                            View
+                          </a>
+
+                          {/* Approve & Go Live / Go Live */}
+                          <button
+                            className="ns-btn ns-btn--primary ns-btn--sm"
+                            disabled={isBusy}
+                            onClick={() => void handleApproveAndActivate(ally.id, ally.full_name)}
+                            style={{ minWidth: isRecovery ? 76 : 136 }}
+                          >
+                            {isBusy ? (
+                              <>
+                                <span
+                                  className="ob-spinner"
+                                  style={{
+                                    width: 11, height: 11, borderWidth: 1.5,
+                                    borderTopColor: '#fff', display: 'inline-block',
+                                  }}
+                                />
+                                &nbsp;Processing…
+                              </>
+                            ) : isRecovery ? (
+                              '⚡ Go Live'
+                            ) : (
+                              '✓ Approve & Go Live'
+                            )}
+                          </button>
+
+                          {/* Reject */}
+                          <button
+                            className="ns-btn ns-btn--ghost ns-btn--sm"
+                            style={{ color: 'var(--ns-red)', borderColor: 'transparent' }}
+                            disabled={isBusy}
+                            onClick={() => { setRejectTarget(ally.id); setRejectReason(''); }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Reject dialog */}
+      {/* ── Reject dialog ────────────────────────────────────────────────────── */}
       {rejectTarget && (
         <div
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+            position: 'fixed', inset: 0,
+            background: 'rgba(26,43,34,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200,
           }}
           onClick={e => { if (e.target === e.currentTarget) setRejectTarget(null); }}
         >
-          <div className="ns-card" style={{ width: 440, padding: 24 }}>
-            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Reject application</div>
-            <p style={{ fontSize: 13, color: 'var(--ns-ink-4)', marginBottom: 16, lineHeight: 1.5 }}>
-              This will move the ally to <strong>rejected</strong> status. Add a reason (optional) — it will be saved to their admin notes.
+          <div className="ns-card" style={{ width: 440, padding: 28 }}>
+            {/* Icon + title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div
+                style={{
+                  width: 34, height: 34, borderRadius: 8,
+                  background: 'var(--ns-red-light)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                  <path
+                    d="M7.5 1L1 13h13L7.5 1z"
+                    stroke="var(--ns-red)" strokeWidth="1.3" strokeLinejoin="round"
+                  />
+                  <path d="M7.5 6v3.5M7.5 11v.5" stroke="var(--ns-red)" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--ns-ink)' }}>
+                Reject application
+              </div>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--ns-ink-4)', marginBottom: 16, lineHeight: 1.55 }}>
+              This moves the ally to <strong>rejected</strong> status. Optionally add a reason —
+              it will be saved to their admin notes.
             </p>
+
             <textarea
               placeholder="Reason for rejection (optional)"
               value={rejectReason}
               onChange={e => setRejectReason(e.target.value)}
               rows={3}
               style={{
-                width: '100%', padding: '8px 10px', fontSize: 13,
-                border: '1px solid var(--ns-line)', borderRadius: 6,
+                width: '100%', padding: '9px 11px', fontSize: 13,
+                border: '1px solid var(--ns-border)', borderRadius: 6,
                 resize: 'vertical', fontFamily: 'inherit',
-                background: 'var(--ns-surface)', color: 'var(--ns-ink)',
+                background: '#fff', color: 'var(--ns-ink)',
                 boxSizing: 'border-box',
+                outline: 'none',
               }}
             />
+
             <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
               <button
                 className="ns-btn ns-btn--ghost ns-btn--sm"
@@ -422,8 +490,7 @@ export default function ApplicationsPage() {
                 Cancel
               </button>
               <button
-                className="ns-btn ns-btn--sm"
-                style={{ background: 'var(--ns-red)', color: '#fff', border: 'none' }}
+                className="ns-btn ns-btn--danger ns-btn--sm"
                 disabled={!!busy[rejectTarget]}
                 onClick={() => {
                   const target = allies.find(a => a.id === rejectTarget);
@@ -436,44 +503,6 @@ export default function ApplicationsPage() {
           </div>
         </div>
       )}
-
-      {/* Flow explanation */}
-      <div
-        className="ns-card"
-        style={{ marginTop: 24, background: 'var(--ns-surface-2, #f8f9f7)', padding: '16px 20px' }}
-      >
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ns-ink-4)', letterSpacing: '0.05em', marginBottom: 10 }}>
-          ACTIVATION FLOW
-        </div>
-        <div style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-          {[
-            { step: '1', label: 'Onboard',   sub: 'Admin fills Steps 1–5',     color: 'var(--ns-ink-4)' },
-            { step: '2', label: 'Submit',     sub: 'Zoho staff created',         color: 'var(--ns-ink-4)' },
-            { step: '3', label: 'Review',     sub: 'Check docs & profile',       color: 'var(--ns-amber)' },
-            { step: '4', label: 'Approve',    sub: 'status → approved',          color: 'var(--ns-amber)' },
-            { step: '5', label: 'Activate',   sub: 'Zoho services created · Live', color: 'var(--ns-teal)' },
-          ].map((s, i, arr) => (
-            <div key={s.step} style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ textAlign: 'center', padding: '0 12px' }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: '50%',
-                  background: s.color === 'var(--ns-teal)' ? 'var(--ns-teal)' : s.color === 'var(--ns-amber)' ? 'var(--ns-amber)' : 'var(--ns-line)',
-                  color: s.color !== 'var(--ns-ink-4)' ? '#fff' : 'var(--ns-ink-4)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 600, margin: '0 auto 4px',
-                }}>
-                  {s.step}
-                </div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ns-ink)' }}>{s.label}</div>
-                <div style={{ fontSize: 10, color: 'var(--ns-ink-4)', marginTop: 1 }}>{s.sub}</div>
-              </div>
-              {i < arr.length - 1 && (
-                <div style={{ fontSize: 16, color: 'var(--ns-line)', flexShrink: 0 }}>→</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </>
   );
 }

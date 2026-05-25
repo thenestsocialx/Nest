@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { addZohoStaff, genderFromPronouns } from '@/lib/zoho/addStaff';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(
   _req: NextRequest,
@@ -95,6 +96,19 @@ export async function POST(
       { status: 207 },
     );
   }
+
+  // Fire-and-forget audit log
+  logAuditEvent({
+    actor_id:     user.id,
+    actor_email:  user.email,
+    event_type:   'ally.approved',
+    target_type:  'ally',
+    target_id:    id,
+    target_label: ally.full_name ?? undefined,
+    action:       'approved',
+    old_value:    { onboarding_status: 'submitted' },
+    new_value:    { onboarding_status: 'approved', zoho_staff_id: zohoStaffId },
+  });
 
   return NextResponse.json({ ok: true, ally: updated });
 }

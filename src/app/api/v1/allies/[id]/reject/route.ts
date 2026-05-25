@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(
   req: NextRequest,
@@ -57,6 +58,20 @@ export async function POST(
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
+
+  // Fire-and-forget audit log
+  logAuditEvent({
+    actor_id:     user.id,
+    actor_email:  user.email,
+    event_type:   'ally.rejected',
+    target_type:  'ally',
+    target_id:    id,
+    target_label: ally.full_name ?? undefined,
+    action:       'rejected',
+    old_value:    { onboarding_status: ally.onboarding_status },
+    new_value:    { onboarding_status: 'rejected' },
+    metadata:     reason ? { reason } : undefined,
+  });
 
   return NextResponse.json({ ok: true, ally: updated });
 }

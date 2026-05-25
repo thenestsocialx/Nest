@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createAllyServices } from '@/lib/zoho/addService';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(
   _req: NextRequest,
@@ -109,6 +110,19 @@ export async function POST(
       { status: 207 },
     );
   }
+
+  // Fire-and-forget audit log
+  logAuditEvent({
+    actor_id:     user.id,
+    actor_email:  user.email,
+    event_type:   'ally.activated',
+    target_type:  'ally',
+    target_id:    id,
+    target_label: allyName,
+    action:       'activated',
+    old_value:    { onboarding_status: 'approved', is_active: false },
+    new_value:    { onboarding_status: 'active', is_active: true },
+  });
 
   return NextResponse.json({ ok: true, ally: updated });
 }

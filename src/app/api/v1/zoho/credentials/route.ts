@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logAuditEvent } from '@/lib/audit';
 
 async function getAdminUser() {
   const supabase = await createClient();
@@ -60,6 +61,17 @@ export async function PATCH(request: Request) {
       { status: 500 },
     );
   }
+
+  // Fire-and-forget audit log
+  logAuditEvent({
+    actor_id:     user.id,
+    actor_email:  user.email,
+    event_type:   'system.zoho_connected',
+    target_type:  'system',
+    target_label: workspace_name ?? workspace_id,
+    action:       'zoho workspace connected',
+    new_value:    { workspace_id, workspace_name: workspace_name ?? null },
+  });
 
   return NextResponse.json({ success: true });
 }

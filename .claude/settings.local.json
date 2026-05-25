@@ -17,7 +17,24 @@
       "PowerShell(Get-Command *)",
       "PowerShell(Start-Process \"http://localhost:3000/login\")",
       "PowerShell(Start-Process \"http://localhost:3000/admin/dashboard\")",
-      "PowerShell(Start-Process \"http://localhost:3000/admin/allies/onboard\")"
+      "PowerShell(Start-Process \"http://localhost:3000/admin/allies/onboard\")",
+      "mcp__plugin_supabase_supabase__list_tables",
+      "mcp__plugin_supabase_supabase__list_migrations",
+      "PowerShell(\\(Get-Content \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\\\\src\\\\app\\\\admin\\\\admin.css\" | Measure-Object -Line\\).Lines)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\" -Recurse -Directory | ForEach-Object { $_.FullName } | Sort-Object)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\" -Depth 0 | Where-Object { -not $_.PSIsContainer } | Select-Object Name)",
+      "mcp__plugin_supabase_supabase__execute_sql",
+      "Bash(Get-ChildItem -Path . -Force -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name)",
+      "WebSearch",
+      "WebFetch(domain:www.zoho.com)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\" -Directory)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Nest\\\\Deployment\\\\source_code\\\\user_manickavasagam_1\\\\src\" -Recurse -Directory | Where-Object {$_.Name -match \"admin|allies|applications\"} | Select-Object -ExpandProperty FullName | Select-Object -First 30)"
     ]
   }
 }

@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(
   _req: NextRequest,
@@ -58,6 +59,19 @@ export async function POST(
     console.error('[POST /reactivate]', updateError);
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
+
+  // Fire-and-forget audit log
+  logAuditEvent({
+    actor_id:     user.id,
+    actor_email:  user.email,
+    event_type:   'ally.reactivated',
+    target_type:  'ally',
+    target_id:    id,
+    target_label: ally.full_name ?? undefined,
+    action:       'reactivated',
+    old_value:    { is_active: false },
+    new_value:    { is_active: true },
+  });
 
   return NextResponse.json({ ok: true, ally: updated });
 }

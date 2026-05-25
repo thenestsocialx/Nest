@@ -43,6 +43,6 @@ export async function GET(request: Request) {
   }
 
   const url = new URL('/login', origin)
-  url.searchParams.set('error', 'Authentication failed. Please try again.')
+  url.searchParams.set('error', 'callback_failed')
   return NextResponse.redirect(url)
 }

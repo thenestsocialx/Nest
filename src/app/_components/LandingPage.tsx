@@ -295,8 +295,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 { now: '"It\'s 2am and my thoughts won\'t stop. I can\'t call anyone — I don\'t want to be a burden."', with: 'Nila, at 3am. No judgment. No questions you\'re not ready for. Just there.', delay: '1' },
                 { now: '"The breakup wrecked me more than I expected. I keep replaying it. I don\'t even know who I am without them."', with: 'Slowly finding your footing. Beginning to trust your own choices again.', delay: '2' },
                 { now: '"I have people around me but I\'ve never felt more alone. I can\'t explain it without sounding ungrateful."', with: 'People who actually get it — without you having to explain yourself first.', delay: '3' },
-                { now: '"Every argument ends the same way. I shut down or I say too much. I don\'t know how to just talk anymore."', with: 'Learning what\'s actually happening beneath the surface — and how to say it out loud.', delay: '4' },
-                { now: '"I\'m fine on paper. Good job, good life. But something feels off and I can\'t even name what it is."', with: 'A space to finally sit with it — and start making sense of what\'s actually going on.', delay: '5' },
+                { now: '"I\'m fine on paper. Good job, good life. But something feels off and I can\'t even name what it is."', with: 'A space to finally sit with it — and start making sense of what\'s actually going on.', delay: '4' },
               ].map((row, i) => (
                 <div key={i} className={styles.painRow} data-animate data-delay={row.delay}>
                   <div className={styles.painNow}>
@@ -641,15 +640,11 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <p className={styles.tamilQuoteMain} data-animate lang="ta">
               &ldquo;ஆனால் மிஞ்சி போனால் மரணம் என்ற போது,<br />வாழ்க்கை வாழ வெக்க படலாமா&rdquo;
             </p>
-            <p className={styles.tamilQuoteRoman} data-animate data-delay="1">
-              Aanal minji ponaal maranam endra podhu,<br />
-              Vaazhkai vaazha vekka padalaamaa
-            </p>
-            <p className={styles.tamilQuoteEnglish} data-animate data-delay="2">
+            <p className={styles.tamilQuoteEnglish} data-animate data-delay="1">
               &ldquo;When even death feels like what remains at the end —<br />
               should life itself be ashamed of wanting to be lived?&rdquo;
             </p>
-            <p className={styles.tamilQuoteAttr} data-animate data-delay="3">— Kaber Vasuki</p>
+            <p className={styles.tamilQuoteAttr} data-animate data-delay="2">— Kaber Vasuki</p>
           </div>
         </section>
 

@@ -36,6 +36,10 @@ const notoSerifTamil = Noto_Serif_Tamil({
 export const metadata: Metadata = {
   title: 'Nest — a space for you',
   description: 'A warm space that helps people feel less alone and more like themselves.',
+  icons: {
+    icon: [{ url: '/nest-icon.svg', type: 'image/svg+xml' }],
+    shortcut: '/nest-icon.svg',
+  },
 }
 
 export default function RootLayout({

@@ -137,6 +137,9 @@
   border-radius: 2px;
   transition: all 0.3s;
 }
+.navScrolled .navHamburger span {
+  background: var(--anchor);
+}
 
 /* Mobile dropdown */
 .mobileMenu {
@@ -622,6 +625,10 @@
   min-height: 320px;
   max-height: 380px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+.chatUiMessages::-webkit-scrollbar {
+  display: none;
 }
 .chatMsg {
   max-width: 82%;

@@ -195,7 +195,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <a href="#events">Events</a>
             {isAuthenticated
               ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
-              : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.navCta}>Start Here</Link>
+              : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.navCta}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>
             }
           </nav>
         </div>
@@ -209,7 +209,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
           <a href="#events" onClick={closeMenu}>Events</a>
           {isAuthenticated
             ? <Link href="/home" onClick={closeMenu}>Go to your space →</Link>
-            : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={(e) => { closeMenu(); handleCta(e) }}>Start Here</Link>
+            : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={(e) => { closeMenu(); handleCta(e) }}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>
           }
         </nav>
       </header>
@@ -240,7 +240,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 <p className={styles.heroSub} data-animate data-delay="3">Whether it&apos;s a breakup, a relationship falling apart, feeling disconnected from everyone, anxiety that won&apos;t quit — or just a heaviness you can&apos;t name. You found the right place.</p>
                 <div data-animate data-delay="4">
                   <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.btnMain}>
-                    Start Here
+                    {IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
@@ -662,7 +662,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <p data-animate data-delay="1">Maybe tonight is the night. Maybe it&apos;s three months from now. Maybe you just needed to know that something like this exists. All of it is okay. When you&apos;re ready — we&apos;ll be here.</p>
             <div data-animate data-delay="2">
               <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.btnMain}>
-                Start Here
+                {IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -709,7 +709,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
               <a href="#nila">Nila</a>
               <a href="#events">Events</a>
               <a href="#about">About</a>
-              <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta}>Start Here</Link>
+              <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>
             </nav>
           </div>
           <div className={styles.footerBottom}>

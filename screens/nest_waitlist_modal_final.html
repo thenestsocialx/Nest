@@ -1,0 +1,360 @@
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<h2 class="sr-only">Nest waitlist modal — final design</h2>
+
+<style>
+.ww, .ww * { box-sizing: border-box; margin: 0; padding: 0; }
+
+.ww {
+  width: 100%;
+  background: #1A2C1E;
+  border-radius: 16px;
+  padding: 32px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.ww-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #FAF7F2;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ww-header {
+  background: #1A3A2A;
+  padding: 28px 24px 24px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ww-orb1 {
+  position: absolute; top: -50px; right: -50px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(199,142,82,0.10);
+  pointer-events: none;
+}
+.ww-orb2 {
+  position: absolute; bottom: -35px; left: -20px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(91,130,97,0.14);
+  pointer-events: none;
+}
+.ww-closebtn {
+  position: absolute; top: 14px; right: 14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(250,247,242,0.10);
+  border: 1px solid rgba(250,247,242,0.14);
+  color: rgba(250,247,242,0.55);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; z-index: 3;
+  transition: background 0.18s;
+}
+.ww-closebtn:hover { background: rgba(250,247,242,0.2); color: #FAF7F2; }
+
+.ww-chip {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(91,130,97,0.2);
+  border: 1px solid rgba(91,130,97,0.28);
+  border-radius: 100px; padding: 4px 10px; margin-bottom: 14px;
+}
+.ww-chip-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #7AB882;
+  animation: ww-pulse 2s ease-in-out infinite; flex-shrink: 0;
+}
+@keyframes ww-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.ww-chip-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.07em; text-transform: uppercase; color: #7AB882;
+}
+
+.ww-heading {
+  position: relative; z-index: 1;
+  font-family: 'DM Serif Display', serif;
+  font-size: 23px; font-weight: 400; line-height: 1.25;
+  color: #FAF7F2; margin-bottom: 10px;
+}
+.ww-heading em { font-style: italic; color: #C78E52; }
+
+.ww-sub {
+  position: relative; z-index: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px; font-weight: 300; line-height: 1.65;
+  color: rgba(250,247,242,0.52);
+}
+
+.ww-body {
+  padding: 22px 24px 26px;
+  display: flex; flex-direction: column;
+  background: #FAF7F2;
+}
+
+.ww-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+.ww-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.09em; text-transform: uppercase; color: #4A6B52;
+}
+
+.ww-input-wrap {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: stretch;
+  background: #FFFFFF !important;
+  border: 1.5px solid #DDE9DE;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  min-height: 50px;
+}
+.ww-input-wrap:focus-within {
+  border-color: #4A6B52;
+  box-shadow: 0 0 0 3px rgba(74,107,82,0.1);
+}
+.ww-input-wrap.err {
+  border-color: #B85C3A;
+  box-shadow: 0 0 0 3px rgba(184,92,58,0.08);
+}
+.ww-input-wa-wrap { grid-template-columns: 42px 1fr auto; }
+
+.ww-icon-cell {
+  display: flex; align-items: center; justify-content: center;
+  background: #FFFFFF !important;
+  color: #8FAF95; font-size: 15px;
+  flex-shrink: 0; pointer-events: none;
+  border-right: 1px solid #EDF3EE;
+}
+
+.ww-input {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13.5px !important; font-weight: 400 !important;
+  color: #1A3A2A !important;
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 12px !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+.ww-input::placeholder { color: #B5CCBA !important; font-weight: 300 !important; }
+
+.ww-wa-badge {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 12px;
+  background: #E9F5EA !important;
+  border-left: 1px solid #D0E8D1;
+  pointer-events: none; flex-shrink: 0;
+}
+.ww-wa-dot { width: 5px; height: 5px; border-radius: 50%; background: #43A047; flex-shrink: 0; }
+.ww-wa-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px; font-weight: 500; color: #2E7D32; letter-spacing: 0.03em;
+}
+
+.ww-sep { height: 1px; background: #E4EDE5; margin: 16px 0; flex-shrink: 0; }
+
+.ww-submit {
+  all: unset;
+  display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px;
+  width: 100% !important;
+  min-height: 50px;
+  padding: 0 20px;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 14px !important; font-weight: 500 !important;
+  letter-spacing: 0.02em;
+  color: #FAF7F2 !important;
+  background: #1A3A2A !important;
+  background-color: #1A3A2A !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  flex-shrink: 0;
+  transition: background-color 0.18s, transform 0.14s;
+}
+.ww-submit:hover { background: #224C30 !important; background-color: #224C30 !important; transform: translateY(-1px); }
+.ww-submit:active { transform: scale(0.98); }
+.ww-submit:focus-visible { box-shadow: 0 0 0 3px rgba(74,107,82,0.35) !important; }
+.ww-submit.busy { opacity: 0.72; pointer-events: none; }
+
+.ww-spin {
+  width: 14px; height: 14px; flex-shrink: 0;
+  border: 2px solid rgba(250,247,242,0.3);
+  border-top-color: #FAF7F2; border-radius: 50%;
+  animation: ww-spin 0.65s linear infinite; display: none;
+}
+@keyframes ww-spin { to { transform: rotate(360deg); } }
+.ww-submit.busy .ww-spin { display: block; }
+.ww-submit.busy .ww-btn-text, .ww-submit.busy .ww-arrow { display: none; }
+
+.ww-note {
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 300; color: #8FAF95;
+  margin-top: 12px; line-height: 1.5;
+}
+.ww-note strong { color: #4A6B52; font-weight: 500; }
+
+.ww-trust {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 12px;
+  padding: 12px 24px;
+  background: #EDE8E0;
+  border-top: 1px solid #E0D9D0;
+  flex-shrink: 0;
+}
+.ww-trust-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; color: #7A8E7E; white-space: nowrap;
+}
+.ww-trust-item i { font-size: 13px; color: #8FAF95; }
+
+.ww-success {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px 28px; background: #FAF7F2;
+}
+.ww-ring {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #EBF3EC; border: 1.5px solid #C3D9C5;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 18px; font-size: 22px; color: #4A6B52;
+}
+.ww-success-h {
+  font-family: 'DM Serif Display', serif;
+  font-size: 21px; font-weight: 400; color: #1A3A2A; margin-bottom: 8px;
+}
+.ww-success-p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 300; line-height: 1.65; color: #5B7A62; margin-bottom: 18px;
+}
+.ww-success-p strong { font-weight: 500; color: #2F4C3A; }
+.ww-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #EBF3EC; border: 1px solid #C3D9C5; border-radius: 100px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #3D6648;
+}
+</style>
+
+<div class="ww">
+  <div class="ww-modal" role="dialog" aria-modal="true" aria-labelledby="ww-title">
+
+    <div class="ww-header">
+      <div class="ww-orb1" aria-hidden="true"></div>
+      <div class="ww-orb2" aria-hidden="true"></div>
+      <button class="ww-closebtn" aria-label="Close" onclick="this.closest('.ww-modal').style.opacity='0.3'">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+      <div class="ww-chip" aria-hidden="true">
+        <div class="ww-chip-dot"></div>
+        <span class="ww-chip-label">Coming soon</span>
+      </div>
+      <h2 class="ww-heading" id="ww-title">
+        You were never meant<br>to do this <em>alone.</em>
+      </h2>
+      <p class="ww-sub">Be the first in line for support that helps you heal, grow, and show up better — for yourself, and the people you love.</p>
+    </div>
+
+    <div class="ww-body" id="ww-form">
+      <div class="ww-field">
+        <label class="ww-label" for="ww-name">Your name</label>
+        <div class="ww-input-wrap" id="wrap-name">
+          <div class="ww-icon-cell"><i class="ti ti-user" aria-hidden="true"></i></div>
+          <input class="ww-input" id="ww-name" type="text" placeholder="What do your people call you?" autocomplete="name">
+        </div>
+      </div>
+
+      <div class="ww-field">
+        <label class="ww-label" for="ww-email">Email address</label>
+        <div class="ww-input-wrap" id="wrap-email">
+          <div class="ww-icon-cell"><i class="ti ti-mail" aria-hidden="true"></i></div>
+          <input class="ww-input" id="ww-email" type="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="ww-field">
+        <label class="ww-label" for="ww-wa">WhatsApp number</label>
+        <div class="ww-input-wrap ww-input-wa-wrap" id="wrap-wa">
+          <div class="ww-icon-cell"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i></div>
+          <input class="ww-input" id="ww-wa" type="tel" placeholder="+91 98765 43210" autocomplete="tel">
+          <div class="ww-wa-badge" aria-hidden="true">
+            <div class="ww-wa-dot"></div>
+            <span class="ww-wa-text">WA</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ww-sep"></div>
+
+      <button class="ww-submit" id="ww-btn" onclick="wwSubmit()">
+        <div class="ww-spin"></div>
+        <span class="ww-btn-text">Claim my spot</span>
+        <span class="ww-arrow"><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+      </button>
+
+      <p class="ww-note">No spam, ever. Just <strong>early access</strong> when we open the doors.</p>
+    </div>
+
+    <div class="ww-success" id="ww-success" role="status" aria-live="polite">
+      <div class="ww-ring"><i class="ti ti-check" aria-hidden="true"></i></div>
+      <h3 class="ww-success-h">You're on the list.</h3>
+      <p class="ww-success-p">Welcome to the nest, <strong id="ww-firstname">friend</strong>.<br>We'll reach out when the doors open.</p>
+      <div class="ww-pill"><i class="ti ti-heart" aria-hidden="true"></i> <span>Talk soon</span></div>
+    </div>
+
+    <div class="ww-trust" id="ww-trust">
+      <div class="ww-trust-item"><i class="ti ti-lock" aria-hidden="true"></i> Private &amp; safe</div>
+      <div class="ww-trust-item"><i class="ti ti-shield-check" aria-hidden="true"></i> No spam, ever</div>
+      <div class="ww-trust-item"><i class="ti ti-heart" aria-hidden="true"></i> Built with care</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function wwSubmit() {
+  var name  = document.getElementById('ww-name').value.trim();
+  var email = document.getElementById('ww-email').value.trim();
+  var wa    = document.getElementById('ww-wa').value.trim();
+  ['wrap-name','wrap-email','wrap-wa'].forEach(function(id){
+    document.getElementById(id).classList.remove('err');
+  });
+  var ok = true;
+  if (!name)                         { document.getElementById('wrap-name').classList.add('err');  ok = false; }
+  if (!email || !email.includes('@')){ document.getElementById('wrap-email').classList.add('err'); ok = false; }
+  if (!wa)                           { document.getElementById('wrap-wa').classList.add('err');    ok = false; }
+  if (!ok) return;
+  var btn = document.getElementById('ww-btn');
+  btn.classList.add('busy');
+  fetch('https://formspree.io/f/meedbzzy', {
+    method: 'POST',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name, email: email, whatsapp: wa })
+  })
+  .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+  .then(function(){
+    document.getElementById('ww-firstname').textContent = name.split(' ')[0];
+    document.getElementById('ww-form').style.display = 'none';
+    document.getElementById('ww-trust').style.display = 'none';
+    document.getElementById('ww-success').style.display = 'flex';
+  })
+  .catch(function(){
+    btn.classList.remove('busy');
+    document.querySelector('.ww-btn-text').textContent = 'Try again';
+  });
+}
+</script>

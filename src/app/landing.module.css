@@ -33,21 +33,18 @@
 
 /* ── NAV ── */
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 200;
   height: 68px;
+  background: var(--anchor);
   transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 .navScrolled {
   background: var(--canvas);
   box-shadow: 0 1px 16px rgba(47,76,58,0.08);
-}
-/* force pine bg nav on mobile since hamburger is always dark-bg */
-@media (max-width: 767px) {
-  .nav { background: var(--anchor); }
-  .navScrolled .logoLight { display: block !important; }
-  .navScrolled .logoDark  { display: none  !important; }
 }
 .navInner {
   display: flex;
@@ -66,13 +63,12 @@
 .navLogo {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
   text-decoration: none;
+  color: var(--canvas);
 }
-.logoLight { display: block; }
-.logoDark  { display: none; }
-.navScrolled .logoLight { display: none; }
-.navScrolled .logoDark  { display: block; }
+.navScrolled .navLogo { color: var(--anchor); }
 
 /* Desktop nav links */
 .navLinks {
@@ -83,7 +79,7 @@
 @media (min-width: 768px) {
   .navLinks { display: flex; }
 }
-.navLinks a {
+.navLinks a:not(.navCta) {
   font-size: 15px;
   font-weight: 500;
   color: rgba(248,240,229,0.75);
@@ -94,9 +90,9 @@
   display: inline-flex;
   align-items: center;
 }
-.navLinks a:hover { color: var(--canvas); }
-.navScrolled .navLinks a { color: rgba(28,43,34,0.65); }
-.navScrolled .navLinks a:hover { color: var(--ink); }
+.navLinks a:not(.navCta):hover { color: var(--canvas); }
+.navScrolled .navLinks a:not(.navCta) { color: rgba(28,43,34,0.65); }
+.navScrolled .navLinks a:not(.navCta):hover { color: var(--ink); }
 
 .navCta {
   background: var(--canvas) !important;
@@ -178,7 +174,7 @@
   align-items: center;
   position: relative;
   overflow: hidden;
-  padding: 80px 0 80px;
+  padding: 148px 0 80px; /* 68px fixed nav + 80px design padding */
 }
 .heroBg {
   position: absolute;

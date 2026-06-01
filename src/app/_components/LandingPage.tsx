@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import styles from '../landing.module.css'
+import { IS_WAITLIST } from '@/lib/config'
+import { WaitlistModal } from '@/components/WaitlistModal'
 
 interface Props {
   isAuthenticated: boolean
@@ -30,6 +32,9 @@ function sleep(ms: number) {
 }
 
 export default function LandingPage({ isAuthenticated }: Props) {
+  // ── Waitlist modal ──
+  const [waitlistOpen, setWaitlistOpen] = useState(false)
+
   // ── Nav state ──
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -95,7 +100,9 @@ export default function LandingPage({ isAuthenticated }: Props) {
       setChatEntries((p) => [...p, { id: i, ...m, visible: false }])
       await sleep(50)
       setChatEntries((p) => p.map((e) => e.id === i ? { ...e, visible: true } : e))
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      // Scroll within the chat container only — do NOT call scrollIntoView (it scrolls the page)
+      const container = messagesEndRef.current?.parentElement
+      if (container) container.scrollTop = container.scrollHeight
       await sleep(m.type === 'ara' ? 600 : 900)
     }
   }, [])
@@ -148,6 +155,13 @@ export default function LandingPage({ isAuthenticated }: Props) {
 
   useEffect(() => () => { if (breathTimerRef.current) clearTimeout(breathTimerRef.current) }, [])
 
+  const handleCta = (e: React.MouseEvent) => {
+    if (IS_WAITLIST) {
+      e.preventDefault()
+      setWaitlistOpen(true)
+    }
+  }
+
   const closeMenu = () => setMenuOpen(false)
 
   const navClass = [styles.nav, scrolled ? styles.navScrolled : ''].filter(Boolean).join(' ')
@@ -158,26 +172,12 @@ export default function LandingPage({ isAuthenticated }: Props) {
       <header className={navClass} role="banner">
         <div className={styles.navInner}>
           <Link href="/" className={styles.navLogo} aria-label="nest home">
-            <svg className={styles.logoLight} width="96" height="30" viewBox="0 0 96 30" fill="none" aria-hidden="true">
-              <path d="M8 20 Q14 9 20 20" stroke="#F8F0E5" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
-              <circle cx="14" cy="13" r="2.2" fill="#F8F0E5"/>
-              <path d="M28 22 L28 12 Q28 8 33 8 Q38 8 38 12 L38 22" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M42 17 Q42 8 49 8 Q56 8 56 15 L42 15" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M42 17 Q43 22 49 22 Q53 22 55 20" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M60 10 Q60 8 65 8 Q70 8 70 12 Q70 15 60 16 Q58 16.5 58 20 Q58 22 64 22 Q68 22 70 20" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <line x1="76" y1="5" x2="76" y2="22" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="72" y1="11" x2="80" y2="11" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round"/>
+            {/* Brand mark — arc (nest) + dot */}
+            <svg width="26" height="24" viewBox="0 0 30 28" fill="none" aria-hidden="true">
+              <path d="M 3,16 Q 15,26 27,16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round"/>
+              <circle cx="15" cy="8" r="3.2" fill="currentColor"/>
             </svg>
-            <svg className={styles.logoDark} width="96" height="30" viewBox="0 0 96 30" fill="none" aria-hidden="true">
-              <path d="M8 20 Q14 9 20 20" stroke="#2F4C3A" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
-              <circle cx="14" cy="13" r="2.2" fill="#2F4C3A"/>
-              <path d="M28 22 L28 12 Q28 8 33 8 Q38 8 38 12 L38 22" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M42 17 Q42 8 49 8 Q56 8 56 15 L42 15" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M42 17 Q43 22 49 22 Q53 22 55 20" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M60 10 Q60 8 65 8 Q70 8 70 12 Q70 15 60 16 Q58 16.5 58 20 Q58 22 64 22 Q68 22 70 20" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <line x1="76" y1="5" x2="76" y2="22" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="72" y1="11" x2="80" y2="11" stroke="#2F4C3A" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: 'currentColor' }}>nest</span>
           </Link>
 
           <button
@@ -195,7 +195,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <a href="#events">Events</a>
             {isAuthenticated
               ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
-              : <Link href="/assessment" className={styles.navCta}>Start Here</Link>
+              : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.navCta}>Start Here</Link>
             }
           </nav>
         </div>
@@ -209,7 +209,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
           <a href="#events" onClick={closeMenu}>Events</a>
           {isAuthenticated
             ? <Link href="/home" onClick={closeMenu}>Go to your space →</Link>
-            : <Link href="/assessment" onClick={closeMenu}>Start Here</Link>
+            : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={(e) => { closeMenu(); handleCta(e) }}>Start Here</Link>
           }
         </nav>
       </header>
@@ -239,7 +239,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 <h1 data-animate data-delay="2">You don&apos;t have to keep<br />carrying this <em>alone.</em></h1>
                 <p className={styles.heroSub} data-animate data-delay="3">Whether it&apos;s a breakup, a relationship falling apart, feeling disconnected from everyone, anxiety that won&apos;t quit — or just a heaviness you can&apos;t name. You found the right place.</p>
                 <div data-animate data-delay="4">
-                  <Link href="/assessment" className={styles.btnMain}>
+                  <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.btnMain}>
                     Start Here
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -666,7 +666,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <h2 data-animate>No rush. Really.</h2>
             <p data-animate data-delay="1">Maybe tonight is the night. Maybe it&apos;s three months from now. Maybe you just needed to know that something like this exists. All of it is okay. When you&apos;re ready — we&apos;ll be here.</p>
             <div data-animate data-delay="2">
-              <Link href="/assessment" className={styles.btnMain}>
+              <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.btnMain}>
                 Start Here
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -700,16 +700,13 @@ export default function LandingPage({ isAuthenticated }: Props) {
         <div className={styles.containerWide}>
           <div className={styles.footerInner}>
             <div>
-              <svg width="96" height="30" viewBox="0 0 96 30" fill="none" aria-label="nest" role="img">
-                <path d="M8 20 Q14 9 20 20" stroke="#F8F0E5" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity=".6"/>
-                <circle cx="14" cy="13" r="2.2" fill="#F8F0E5" opacity=".6"/>
-                <path d="M28 22 L28 12 Q28 8 33 8 Q38 8 38 12 L38 22" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".6"/>
-                <path d="M42 17 Q42 8 49 8 Q56 8 56 15 L42 15" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".6"/>
-                <path d="M42 17 Q43 22 49 22 Q53 22 55 20" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".6"/>
-                <path d="M60 10 Q60 8 65 8 Q70 8 70 12 Q70 15 60 16 Q58 16.5 58 20 Q58 22 64 22 Q68 22 70 20" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".6"/>
-                <line x1="76" y1="5" x2="76" y2="22" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" opacity=".6"/>
-                <line x1="72" y1="11" x2="80" y2="11" stroke="#F8F0E5" strokeWidth="2" strokeLinecap="round" opacity=".6"/>
-              </svg>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(248,240,229,0.7)' }} aria-label="nest" role="img">
+                <svg width="22" height="20" viewBox="0 0 30 28" fill="none" aria-hidden="true">
+                  <path d="M 3,16 Q 15,26 27,16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round"/>
+                  <circle cx="15" cy="8" r="3.2" fill="currentColor"/>
+                </svg>
+                <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: 'currentColor' }}>nest</span>
+              </div>
               <p className={styles.footerTagline}>made with a lot of care, for the in-between days.</p>
             </div>
             <nav className={styles.footerNav} aria-label="Footer navigation">
@@ -717,7 +714,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
               <a href="#nila">Nila</a>
               <a href="#events">Events</a>
               <a href="#about">About</a>
-              <Link href="/assessment">Start Here</Link>
+              <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta}>Start Here</Link>
             </nav>
           </div>
           <div className={styles.footerBottom}>
@@ -729,6 +726,10 @@ export default function LandingPage({ isAuthenticated }: Props) {
           </div>
         </div>
       </footer>
+
+      {IS_WAITLIST && (
+        <WaitlistModal isOpen={waitlistOpen} onClose={() => setWaitlistOpen(false)} />
+      )}
     </>
   )
 }

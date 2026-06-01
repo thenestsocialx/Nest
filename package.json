@@ -3,15 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint",
-
-  "db:types": "supabase gen types typescript --project-id YOUR_STAGING_PROJECT_REF --schema public > src/types/database.ts",
-  "db:push":  "supabase db push",
-  "db:reset": "supabase db reset"
-},
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:types": "supabase gen types typescript --project-id YOUR_STAGING_PROJECT_REF --schema public > src/types/database.ts",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
     "@supabase/ssr": "^0.10.3",
@@ -26,12 +25,14 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",

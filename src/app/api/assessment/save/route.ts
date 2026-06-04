@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { AnswerRecord, ResultData } from '@/lib/assessment/types'
+import type { AnswerRecord, ResultData, BranchId } from '@/lib/assessment/types'
 
 interface SaveRequest {
-  sessionId: string
-  answers: AnswerRecord[]
-  result: ResultData
+  sessionId:  string
+  answers:    AnswerRecord[]
+  result:     ResultData
+  branch:     BranchId | null
+  crisisFlag: boolean
 }
 
 export async function POST(request: Request) {
-  // Validate session — middleware already guards this route, but verify defensively
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -42,10 +43,12 @@ export async function POST(request: Request) {
   const { data, error } = await admin
     .from('assessment_responses')
     .insert({
-      user_id: user.id,
+      user_id:    user.id,
       session_id: body.sessionId,
-      answers: body.answers,
-      result: body.result,
+      branch:     body.branch ?? null,
+      crisis_flag: body.crisisFlag ?? false,
+      answers:    body.answers,
+      result:     body.result,
       created_at: new Date().toISOString(),
     })
     .select('id')

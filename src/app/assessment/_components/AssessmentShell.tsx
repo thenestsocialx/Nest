@@ -2,29 +2,40 @@
 
 import { useEffect, useRef, useCallback, useReducer } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AssessmentState, AnswerRecord, ResultData } from '@/lib/assessment/types'
-import { QUESTIONS } from '@/config/questions'
+import type { AssessmentState, AnswerRecord, ResultData, BranchId, NextTarget } from '@/lib/assessment/types'
+import { QUESTION_TREE, BRANCH_START_MAP, ESTIMATED_TOTAL_STEPS } from '@/config/questions'
 import ProgressBar from './ProgressBar'
 import QuestionScreen from './QuestionScreen'
 import PauseScreen from './PauseScreen'
 import ResultScreen from './ResultScreen'
+import CrisisScreen from './CrisisScreen'
 
-const TOTAL = QUESTIONS.length
 const SESSION_ID_KEY = 'nest_session_id'
-const PROGRESS_KEY = 'nest_assessment_progress'
-const RESULT_KEY = 'nest_assessment_result'
-const PENDING_KEY = 'nest_assessment_pending'
+const PROGRESS_KEY   = 'nest_assessment_progress'
+const RESULT_KEY     = 'nest_assessment_result'
+const PENDING_KEY    = 'nest_assessment_pending'
 
-type StoredProgress = { answers: AnswerRecord[]; currentIndex: number }
+const FIRST_QUESTION = 'Q0'
 
-// ── Reducer ─────────────────────────────────────────────────────────────────
+type StoredProgress = {
+  currentQuestionId: string
+  branch: BranchId | null
+  answers: AnswerRecord[]
+  history: string[]
+  crisisFlag: boolean
+}
+
+// ── Reducer ──────────────────────────────────────────────────────────────────
 
 type Action =
   | { type: 'RESTORE'; payload: StoredProgress }
-  | { type: 'SELECT'; payload: { label: string; microcopy: string } }
+  | { type: 'SELECT'; payload: { label: string; microcopy: string; next: NextTarget; branch: BranchId | null } }
+  | { type: 'TEXT_SUBMIT'; payload: { text: string; microcopy: string; next: NextTarget } }
   | { type: 'ADVANCE_TO_PAUSE' }
-  | { type: 'ADVANCE_TO_QUESTION'; payload: AnswerRecord }
+  | { type: 'ADVANCE_TO_QUESTION'; payload: { record: AnswerRecord; nextId: string } }
   | { type: 'ADVANCE_TO_LOADING'; payload: AnswerRecord }
+  | { type: 'ADVANCE_TO_CRISIS'; payload: AnswerRecord }
+  | { type: 'CONTINUE_FROM_CRISIS' }
   | { type: 'SET_RESULT'; payload: ResultData }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'RETRY' }
@@ -32,11 +43,14 @@ type Action =
 
 const initialState: AssessmentState = {
   phase: 'question',
-  currentIndex: 0,
+  currentQuestionId: FIRST_QUESTION,
+  branch: null,
+  history: [],
   answers: [],
   currentAnswer: null,
   result: null,
   error: null,
+  crisisFlag: false,
 }
 
 function reducer(state: AssessmentState, action: Action): AssessmentState {
@@ -44,23 +58,39 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
     case 'RESTORE':
       return {
         ...state,
-        currentIndex: action.payload.currentIndex,
-        answers: action.payload.answers,
+        currentQuestionId: action.payload.currentQuestionId ?? FIRST_QUESTION,
+        branch: action.payload.branch ?? null,
+        answers: action.payload.answers ?? [],
+        history: action.payload.history ?? [],
+        crisisFlag: action.payload.crisisFlag ?? false,
       }
+
     case 'SELECT':
-      return { ...state, currentAnswer: action.payload }
+      return {
+        ...state,
+        currentAnswer: { label: action.payload.label, microcopy: action.payload.microcopy, next: action.payload.next },
+        branch: action.payload.branch ?? state.branch,
+      }
+
+    case 'TEXT_SUBMIT':
+      return {
+        ...state,
+        currentAnswer: { label: action.payload.text, microcopy: action.payload.microcopy, next: action.payload.next },
+      }
+
     case 'ADVANCE_TO_PAUSE':
       return { ...state, phase: 'pause' }
-    case 'ADVANCE_TO_QUESTION': {
-      const nextIndex = state.currentIndex + 1
+
+    case 'ADVANCE_TO_QUESTION':
       return {
         ...state,
         phase: 'question',
-        currentIndex: nextIndex,
-        answers: [...state.answers, action.payload],
+        currentQuestionId: action.payload.nextId,
+        history: [...state.history, state.currentQuestionId],
+        answers: [...state.answers, action.payload.record],
         currentAnswer: null,
       }
-    }
+
     case 'ADVANCE_TO_LOADING':
       return {
         ...state,
@@ -69,27 +99,66 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
         currentAnswer: null,
         error: null,
       }
-    case 'SET_RESULT':
-      return { ...state, phase: 'result', result: action.payload }
-    case 'SET_ERROR':
-      return { ...state, error: action.payload }
-    case 'RETRY':
-      return { ...state, error: null, phase: 'loading' }
-    case 'BACK': {
-      if (state.currentIndex === 0) return state
-      const prevAnswers = state.answers.slice(0, -1)
+
+    case 'ADVANCE_TO_CRISIS':
+      return {
+        ...state,
+        phase: 'crisis',
+        crisisFlag: true,
+        answers: [...state.answers, action.payload],
+        currentAnswer: null,
+      }
+
+    case 'CONTINUE_FROM_CRISIS':
+      // After crisis screen, continue to INTENSITY question
       return {
         ...state,
         phase: 'question',
-        currentIndex: state.currentIndex - 1,
+        currentQuestionId: 'INTENSITY',
+        history: [...state.history, state.currentQuestionId],
+      }
+
+    case 'SET_RESULT':
+      return { ...state, phase: 'result', result: action.payload }
+
+    case 'SET_ERROR':
+      return { ...state, error: action.payload }
+
+    case 'RETRY':
+      return { ...state, error: null, phase: 'loading' }
+
+    case 'BACK': {
+      if (state.history.length === 0) return state
+      const prevId = state.history[state.history.length - 1]
+      const prevAnswers = state.answers.slice(0, -1)
+      // Restore branch: if going back to before Q1 was answered, clear branch
+      const prevBranch = prevAnswers.find(a => a.questionId === 'Q1')
+        ? state.branch
+        : null
+      return {
+        ...state,
+        phase: 'question',
+        currentQuestionId: prevId,
+        history: state.history.slice(0, -1),
         answers: prevAnswers,
         currentAnswer: null,
         error: null,
+        branch: prevBranch,
       }
     }
+
     default:
       return state
   }
+}
+
+// ── Helper — resolve BRANCH_START to actual first question ID ──────────────
+function resolveNext(next: NextTarget, branch: BranchId | null): string | 'RESULT' | 'CRISIS' {
+  if (next === 'BRANCH_START') {
+    if (!branch) return 'A1' // fallback — should not happen in practice
+    return BRANCH_START_MAP[branch]
+  }
+  return next as string | 'RESULT' | 'CRISIS'
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -97,11 +166,10 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 export default function AssessmentShell() {
   const router = useRouter()
   const [state, dispatch] = useReducer(reducer, initialState)
-  const sessionIdRef = useRef<string>('')
-  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionIdRef   = useRef<string>('')
+  const pauseTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const selectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resultFetchRef = useRef<Promise<void> | null>(null)
-  const isLastQuestion = state.currentIndex === TOTAL - 1
 
   // ── Mount: session ID + progress restore ──────────────────────────────────
   useEffect(() => {
@@ -116,42 +184,48 @@ export default function AssessmentShell() {
     if (raw) {
       try {
         const stored: StoredProgress = JSON.parse(raw)
-        if (stored.currentIndex > 0 && stored.answers.length > 0) {
+        if (stored.answers.length > 0) {
           dispatch({ type: 'RESTORE', payload: stored })
         }
       } catch {
-        // corrupt data — start fresh
+        // corrupt — start fresh
       }
     }
   }, [])
 
   // ── Persist progress on every answer ─────────────────────────────────────
-  const persistProgress = useCallback((answers: AnswerRecord[], currentIndex: number) => {
-    const stored: StoredProgress = { answers, currentIndex }
+  const persistProgress = useCallback((s: Pick<AssessmentState, 'currentQuestionId' | 'branch' | 'answers' | 'history' | 'crisisFlag'>) => {
+    const stored: StoredProgress = {
+      currentQuestionId: s.currentQuestionId,
+      branch: s.branch,
+      answers: s.answers,
+      history: s.history,
+      crisisFlag: s.crisisFlag,
+    }
     sessionStorage.setItem(PROGRESS_KEY, JSON.stringify(stored))
   }, [])
 
   // ── Fetch result from API ─────────────────────────────────────────────────
   const fetchResult = useCallback(async (allAnswers: AnswerRecord[]) => {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30_000)
+    const timeout    = setTimeout(() => controller.abort(), 30_000)
 
     try {
       const res = await fetch('/api/assessment/result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          branch: state.branch,
           answers: allAnswers.map(a => ({
-            questionId: a.questionId,
+            questionId:   a.questionId,
             questionText: a.questionText,
-            answer: a.answer,
+            answer:       a.answer,
           })),
         }),
         signal: controller.signal,
       })
 
       const data: ResultData = await res.json()
-
       if (!res.ok) throw new Error('Result generation failed')
 
       sessionStorage.setItem(RESULT_KEY, JSON.stringify(data))
@@ -162,63 +236,106 @@ export default function AssessmentShell() {
     } finally {
       clearTimeout(timeout)
     }
-  }, [])
+  }, [state.branch])
 
   // ── Chip selected ─────────────────────────────────────────────────────────
   const handleSelect = useCallback((label: string) => {
     if (state.phase !== 'question') return
 
-    const question = QUESTIONS[state.currentIndex]
-    const option = question.options.find(o => o.label === label)
+    const question = QUESTION_TREE[state.currentQuestionId]
+    const option   = question.options.find(o => o.label === label)
     if (!option) return
 
-    dispatch({ type: 'SELECT', payload: { label: option.label, microcopy: option.microcopy } })
+    const newBranch = option.branchId ?? state.branch
 
-    // Write progress immediately
-    const newAnswer: AnswerRecord = {
-      questionId: question.id,
-      questionText: question.text,
-      answer: option.label,
-      microcopy: option.microcopy,
+    dispatch({
+      type: 'SELECT',
+      payload: { label: option.label, microcopy: option.microcopy, next: option.next, branch: newBranch },
+    })
+
+    persistProgress({
+      currentQuestionId: state.currentQuestionId,
+      branch: newBranch,
+      answers: state.answers,
+      history: state.history,
+      crisisFlag: state.crisisFlag,
+    })
+
+    if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
+
+    // Crisis answers bypass pause — go directly to crisis screen
+    if (option.next === 'CRISIS') {
+      selectTimerRef.current = setTimeout(() => {
+        const record: AnswerRecord = {
+          questionId:   question.id,
+          questionText: question.text,
+          answer:       option.label,
+          microcopy:    option.microcopy,
+        }
+        dispatch({ type: 'ADVANCE_TO_CRISIS', payload: record })
+      }, 400)
+      return
     }
-    persistProgress([...state.answers, newAnswer], state.currentIndex)
 
-    // Transition to pause after 1400ms
+    // All other answers — pause after 1400ms
+    selectTimerRef.current = setTimeout(() => {
+      dispatch({ type: 'ADVANCE_TO_PAUSE' })
+    }, 1400)
+  }, [state.phase, state.currentQuestionId, state.branch, state.answers, state.history, state.crisisFlag, persistProgress])
+
+  // ── Open-text submitted ───────────────────────────────────────────────────
+  const handleTextSubmit = useCallback((text: string) => {
+    if (state.phase !== 'question') return
+
+    const question = QUESTION_TREE[state.currentQuestionId]
+    if (!question.textNext || !question.textMicrocopy) return
+
+    dispatch({
+      type: 'TEXT_SUBMIT',
+      payload: { text: text.trim() || '—', microcopy: question.textMicrocopy, next: question.textNext },
+    })
+
     if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
     selectTimerRef.current = setTimeout(() => {
       dispatch({ type: 'ADVANCE_TO_PAUSE' })
     }, 1400)
-  }, [state.phase, state.currentIndex, state.answers, persistProgress])
+  }, [state.phase, state.currentQuestionId])
 
   // ── Pause screen auto-advance ─────────────────────────────────────────────
   useEffect(() => {
     if (state.phase !== 'pause' || !state.currentAnswer) return
 
-    const question = QUESTIONS[state.currentIndex]
+    const question = QUESTION_TREE[state.currentQuestionId]
     const record: AnswerRecord = {
-      questionId: question.id,
+      questionId:   question.id,
       questionText: question.text,
-      answer: state.currentAnswer.label,
-      microcopy: state.currentAnswer.microcopy,
+      answer:       state.currentAnswer.label,
+      microcopy:    state.currentAnswer.microcopy,
     }
+
+    const resolved = resolveNext(state.currentAnswer.next, state.branch)
 
     if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
 
     pauseTimerRef.current = setTimeout(() => {
-      if (isLastQuestion) {
-        // Last question — go to loading and fire API concurrently
+      if (resolved === 'RESULT') {
         const allAnswers = [...state.answers, record]
         dispatch({ type: 'ADVANCE_TO_LOADING', payload: record })
         resultFetchRef.current = fetchResult(allAnswers)
       } else {
-        dispatch({ type: 'ADVANCE_TO_QUESTION', payload: record })
+        dispatch({ type: 'ADVANCE_TO_QUESTION', payload: { record, nextId: resolved } })
+        persistProgress({
+          currentQuestionId: resolved,
+          branch: state.branch,
+          answers: [...state.answers, record],
+          history: [...state.history, state.currentQuestionId],
+          crisisFlag: state.crisisFlag,
+        })
       }
     }, 1400)
 
-    return () => {
-      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
-    }
-  }, [state.phase]) // intentionally minimal deps — fires once per pause entry
+    return () => { if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current) }
+  }, [state.phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Retry after error ─────────────────────────────────────────────────────
   const handleRetry = useCallback(() => {
@@ -226,56 +343,68 @@ export default function AssessmentShell() {
     resultFetchRef.current = fetchResult(state.answers)
   }, [state.answers, fetchResult])
 
-  // ── Save: store pending data, navigate to login or save directly ──────────
+  // ── Save: store pending, navigate to login ────────────────────────────────
   const handleSave = useCallback(() => {
     if (!state.result) return
     const pending = {
-      answers: state.answers,
-      result: state.result,
-      sessionId: sessionIdRef.current,
+      answers:    state.answers,
+      result:     state.result,
+      branch:     state.branch,
+      crisisFlag: state.crisisFlag,
+      sessionId:  sessionIdRef.current,
     }
     sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending))
     router.push('/login?redirectTo=/assessment/save')
-  }, [state.result, state.answers, router])
+  }, [state.result, state.answers, state.branch, state.crisisFlag, router])
 
-  // ── Back ─────────────────────────────────────────────────────────────────
+  // ── Back ──────────────────────────────────────────────────────────────────
   const handleBack = useCallback(() => {
     if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
     dispatch({ type: 'BACK' })
   }, [])
 
-  // ── Cleanup timers ────────────────────────────────────────────────────────
+  // ── Continue from crisis ──────────────────────────────────────────────────
+  const handleContinueFromCrisis = useCallback(() => {
+    dispatch({ type: 'CONTINUE_FROM_CRISIS' })
+  }, [])
+
+  // ── Cleanup ───────────────────────────────────────────────────────────────
   useEffect(() => {
     return () => {
       if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
-      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
+      if (pauseTimerRef.current)  clearTimeout(pauseTimerRef.current)
     }
   }, [])
 
-  // ── Progress calculation ──────────────────────────────────────────────────
-  const progress = ((state.currentIndex + (state.phase === 'result' ? 1 : 0)) / TOTAL) * 100
+  // ── Derived: progress bar ─────────────────────────────────────────────────
+  const progress = state.phase === 'result'
+    ? 100
+    : Math.min(95, (state.answers.length / ESTIMATED_TOTAL_STEPS) * 100)
 
-  // ── Hint text ─────────────────────────────────────────────────────────────
-  const showHint = state.currentIndex >= 5 || state.phase === 'loading' || state.phase === 'result'
+  // ── Derived: show "Almost there" hint ────────────────────────────────────
+  const showHint = state.answers.length >= 8 || state.phase === 'loading' || state.phase === 'result'
 
-  // ── Active answer label (for pause/loading screens) ───────────────────────
-  const pauseAnswer = state.currentAnswer?.label ?? ''
+  // ── Derived: back button visibility ──────────────────────────────────────
+  const canGoBack = state.phase === 'question' && state.history.length > 0
+
+  // ── Derived: step number for label ───────────────────────────────────────
+  const stepNumber = state.answers.length + 1
+
+  // ── Pause screen data ─────────────────────────────────────────────────────
+  const pauseAnswer    = state.currentAnswer?.label    ?? ''
   const pauseMicrocopy = state.currentAnswer?.microcopy ?? ''
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        background: 'var(--cream)',
-      }}
-    >
-      {/* Progress bar */}
-      {state.phase !== 'result' && <ProgressBar progress={progress} />}
+  const isResultPhase = state.phase === 'result'
+  const isCrisisPhase = state.phase === 'crisis'
 
-      {/* Nav */}
-      {state.phase !== 'result' && (
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--cream)' }}>
+
+      {/* Progress bar — hidden on result and crisis */}
+      {!isResultPhase && !isCrisisPhase && <ProgressBar progress={progress} />}
+
+      {/* Nav — hidden on result and crisis */}
+      {!isResultPhase && !isCrisisPhase && (
         <nav
           style={{
             display: 'flex',
@@ -294,8 +423,8 @@ export default function AssessmentShell() {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              opacity: state.phase === 'question' && state.currentIndex > 0 ? 0.65 : 0,
-              pointerEvents: state.phase === 'question' && state.currentIndex > 0 ? 'auto' : 'none',
+              opacity: canGoBack ? 0.65 : 0,
+              pointerEvents: canGoBack ? 'auto' : 'none',
               fontFamily: 'inherit',
               minHeight: '44px',
               padding: '0 8px',
@@ -305,15 +434,7 @@ export default function AssessmentShell() {
             ‹ Back
           </button>
 
-          <span
-            style={{
-              fontSize: '0.8125rem',
-              fontWeight: 500,
-              letterSpacing: '0.1em',
-              color: 'var(--deep-pine)',
-              textTransform: 'lowercase',
-            }}
-          >
+          <span style={{ fontSize: '0.8125rem', fontWeight: 500, letterSpacing: '0.1em', color: 'var(--deep-pine)', textTransform: 'lowercase' }}>
             nest
           </span>
 
@@ -334,19 +455,23 @@ export default function AssessmentShell() {
       )}
 
       {/* Screens */}
-      {(state.phase === 'question') && (
+      {state.phase === 'question' && (
         <QuestionScreen
-          question={QUESTIONS[state.currentIndex]}
-          questionNumber={state.currentIndex + 1}
-          totalQuestions={TOTAL}
+          question={QUESTION_TREE[state.currentQuestionId]}
+          stepNumber={stepNumber}
           selectedLabel={state.currentAnswer?.label ?? null}
           onSelect={handleSelect}
+          onTextSubmit={handleTextSubmit}
           disabled={state.currentAnswer !== null}
         />
       )}
 
       {(state.phase === 'pause' || state.phase === 'loading') && (
         <PauseScreen answer={pauseAnswer} microcopy={pauseMicrocopy} />
+      )}
+
+      {state.phase === 'crisis' && (
+        <CrisisScreen onContinue={handleContinueFromCrisis} />
       )}
 
       {state.phase === 'result' && (

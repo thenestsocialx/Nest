@@ -384,7 +384,7 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
               </div>
               <div className="ns-bubble__col">
                 <div className="ns-bubble__body">{m.content}</div>
-                <div className="ns-bubble__time">{formatTime(m.timestamp)}</div>
+                <div className="ns-bubble__time" suppressHydrationWarning>{formatTime(m.timestamp)}</div>
               </div>
             </div>
           ))}

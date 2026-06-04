@@ -4,38 +4,34 @@ interface NestLogoProps {
 }
 
 export default function NestLogo({ size = 20, color = '#F8F0E5' }: NestLogoProps) {
-  // viewBox is 88×22 — leaf sits left of wordmark with a 4px gap
-  const w = Math.round(size * 4.4)
-  const h = Math.round(size * 1.1)
+  // viewBox 0 0 100 26 — bowl mark on left, serif wordmark on right
+  const w = Math.round(size * (100 / 26))
+  const h = size
   return (
     <svg
       width={w}
       height={h}
-      viewBox="0 0 88 22"
+      viewBox="0 0 100 26"
       fill="none"
       aria-label="Nest"
     >
-      {/* Small botanical leaf mark, cap-height aligned */}
+      {/* Upward-opening bowl arc (the nest) */}
       <path
-        d="M5 18 Q1 12 3 6 Q9 3 11 9 Q13 15 7 19 Z"
-        fill={color}
-        opacity="0.82"
-      />
-      <path
-        d="M7 19 L5 18"
+        d="M 2,15 A 11,9 0 0,1 24,15"
         stroke={color}
-        strokeWidth="0.7"
+        strokeWidth="2"
         strokeLinecap="round"
-        opacity="0.55"
+        fill="none"
       />
-      {/* Wordmark */}
+      {/* Egg dot centered inside the bowl */}
+      <circle cx="13" cy="9" r="2.2" fill={color} />
+      {/* Wordmark — Lora serif matches brand font */}
       <text
-        x="17"
-        y="17"
-        fontFamily="DM Sans, sans-serif"
-        fontSize="15"
+        x="29"
+        y="20"
+        fontFamily="var(--font-serif), Lora, Georgia, serif"
+        fontSize="18"
         fontWeight="400"
-        letterSpacing="0.01em"
         fill={color}
       >
         nest

@@ -36,12 +36,9 @@ export default async function SignupPage() {
     <main className="ns-signup">
       {/* Left — form column */}
       <div className="ns-signup__form-col">
-        <nav className="ns-signup__nav" aria-label="Site navigation">
+        <div className="ns-signup__nav">
           <NestLogo size={18} color="#2F4C3A" />
-          <a href="/login" className="ns-signup__signin-link">
-            Already have an account? <span>Sign in</span>
-          </a>
-        </nav>
+        </div>
 
         <SignupForm defaultName={defaultName} email={email} />
       </div>

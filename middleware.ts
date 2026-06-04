@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PROTECTED = ['/app', '/assessment', '/onboarding', '/dashboard']
+const PROTECTED = ['/app', '/assessment', '/onboarding', '/dashboard', '/signup']
 
 export function middleware(req: NextRequest) {
   const mode = process.env.NEXT_PUBLIC_APP_MODE ?? 'live'
@@ -15,5 +15,12 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/assessment/:path*', '/onboarding/:path*', '/dashboard/:path*'],
+  matcher: [
+    '/app/:path*',
+    '/assessment/:path*',
+    '/onboarding/:path*',
+    '/dashboard/:path*',
+    '/signup/:path*',
+    '/signup',
+  ],
 }

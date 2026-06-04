@@ -19,22 +19,30 @@ export async function GET(request: Request) {
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!exchangeError) {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (user) {
-        // If returning from assessment, skip onboarding and save results first
+        // If returning from assessment, skip straight to save
         if (next === '/assessment/save') {
           return NextResponse.redirect(new URL('/assessment/save', origin))
         }
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('nila_onboarded')
+          .select('profile_completed, nila_onboarded')
           .eq('id', user.id)
           .maybeSingle()
 
-        if (!profile || !profile.nila_onboarded) {
-          return NextResponse.redirect(`${origin}/nila/onboarding`)
+        // New user — profile form not yet completed
+        if (!profile || !profile.profile_completed) {
+          return NextResponse.redirect(new URL('/signup', origin))
+        }
+
+        // Profile done but NILA onboarding not yet completed
+        if (!profile.nila_onboarded) {
+          return NextResponse.redirect(new URL('/nila/onboarding', origin))
         }
       }
 

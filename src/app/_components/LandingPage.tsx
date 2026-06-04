@@ -191,7 +191,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
 
           <nav className={styles.navLinks} aria-label="Main navigation">
             <a href="#allies">Allies</a>
-            <a href="#nila">Nila</a>
+            <a href="#how-it-works">Nila</a>
             <a href="#events">Events</a>
             {isAuthenticated
               ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
@@ -205,7 +205,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
           aria-label="Mobile navigation"
         >
           <a href="#allies" onClick={closeMenu}>Allies</a>
-          <a href="#nila" onClick={closeMenu}>Nila</a>
+          <a href="#how-it-works" onClick={closeMenu}>Nila</a>
           <a href="#events" onClick={closeMenu}>Events</a>
           {isAuthenticated
             ? <Link href="/home" onClick={closeMenu}>Go to your space →</Link>
@@ -340,7 +340,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 <div className={styles.stepCardTag}>AI Companion</div>
                 <h3>Talk to Nila, anytime.</h3>
                 <p>Nila is there at 3am when everything feels loud. She listens without judgment, without unsolicited advice, without making you feel like a burden. Just there — whenever you need.</p>
-                <a href="#nila" className={styles.stepCardLink}>Meet Nila →</a>
+                <a href="#how-it-works" className={styles.stepCardLink}>Meet Nila →</a>
               </article>
               <article className={styles.stepCard} data-animate data-delay="2" id="allies">
                 <div className={styles.stepCardNum}>2</div>
@@ -355,7 +355,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 <div className={styles.stepCardTag}>Human Allies</div>
                 <h3>Find an Ally who gets it.</h3>
                 <p>Browse Ally profiles and pick someone who feels right. These are warm, trained people who&apos;ve been through hard things too. You set the pace. No timeline, no agenda.</p>
-                <a href="#allies" className={styles.stepCardLink}>See Allies →</a>
+                <a href="#features" className={styles.stepCardLink}>See Allies →</a>
               </article>
               <article className={styles.stepCard} data-animate data-delay="3">
                 <div className={styles.stepCardNum}>3</div>
@@ -382,7 +382,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 <div className={styles.stepCardTag}>Weekend Events</div>
                 <h3>Actual humans, in actual rooms.</h3>
                 <p>Low-pressure weekend gatherings. No icebreakers. No performing wellness. Just people who showed up because they wanted to feel a little less alone — and usually did.</p>
-                <a href="#events" className={styles.stepCardLink}>See Events →</a>
+                <a href="#signup" className={styles.stepCardLink}>View Events →</a>
               </article>
             </div>
           </div>
@@ -706,7 +706,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
             </div>
             <nav className={styles.footerNav} aria-label="Footer navigation">
               <a href="#allies">Allies</a>
-              <a href="#nila">Nila</a>
+              <a href="#how-it-works">Nila</a>
               <a href="#events">Events</a>
               <a href="#about">About</a>
               <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>

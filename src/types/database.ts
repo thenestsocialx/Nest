@@ -238,7 +238,9 @@ export type Database = {
       assessment_responses: {
         Row: {
           answers: Json
+          branch: string | null
           created_at: string
+          crisis_flag: boolean
           id: string
           result: Json | null
           session_id: string
@@ -246,7 +248,9 @@ export type Database = {
         }
         Insert: {
           answers: Json
+          branch?: string | null
           created_at?: string
+          crisis_flag?: boolean
           id?: string
           result?: Json | null
           session_id: string
@@ -254,7 +258,9 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          branch?: string | null
           created_at?: string
+          crisis_flag?: boolean
           id?: string
           result?: Json | null
           session_id?: string
@@ -309,6 +315,80 @@ export type Database = {
           target_type?: string | null
         }
         Relationships: []
+      }
+      nila_conversations: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          last_mode: string
+          message_count: number
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          last_mode?: string
+          message_count?: number
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          last_mode?: string
+          message_count?: number
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nila_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          id: string
+          is_mode_opening: boolean
+          mode: string
+          role: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          id?: string
+          is_mode_opening?: boolean
+          mode?: string
+          role: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          id?: string
+          is_mode_opening?: boolean
+          mode?: string
+          role?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nila_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "nila_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

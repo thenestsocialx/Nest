@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
-import { sendNilaMessage } from '@/actions/nila'
-import type { ConversationMessage } from '@/actions/nila'
+import { sendNilaMessage, switchNilaMode } from '@/actions/nila'
+import type { ConversationMessage, NilaMode } from '@/actions/nila'
+import ModeSwitcher from './ModeSwitcher'
 
 const MESSAGE_LIMIT = 10
 
@@ -119,6 +120,8 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
   const [currentTime, setCurrentTime] = useState(() => formatTime(new Date()))
   const [sessionDuration, setSessionDuration] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [mode, setMode] = useState<NilaMode>('normal')
+  const [conversationId, setConversationId] = useState<string | null>(null)
 
   const messageCount = messages.filter((m) => m.role === 'user').length
   const limitReached = messageCount >= MESSAGE_LIMIT
@@ -149,9 +152,40 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
         timestamp: now,
       },
     ])
+    setMode('normal')
+    setConversationId(null)
     setSessionStartTime(now)
     setSessionDuration(0)
     setCurrentTime(formatTime(now))
+  }
+
+  async function handleModeSwitch(newMode: NilaMode) {
+    if (newMode === mode || isSending) return
+    // Before the first message there's no conversation yet — just set the mode
+    // locally so the first send goes out in the chosen mode. Opening lines only
+    // fire once a conversation is underway.
+    if (conversationId === null) {
+      setMode(newMode)
+      return
+    }
+    setIsSending(true)
+    try {
+      const { openingLine, error } = await switchNilaMode(conversationId, newMode)
+      if (!error && openingLine) {
+        setMode(newMode)
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            role: 'nila',
+            content: openingLine,
+            timestamp: new Date(),
+          },
+        ])
+      }
+    } finally {
+      setIsSending(false)
+    }
   }
 
   async function handleSend(e: React.FormEvent) {
@@ -178,7 +212,8 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
         content: m.content,
       }))
 
-      const { reply, error } = await sendNilaMessage(text, history)
+      const { reply, conversationId: returnedConvId, error } = await sendNilaMessage(text, history, mode, conversationId)
+      if (returnedConvId) setConversationId(returnedConvId)
 
       if (error && !reply) {
         setMessages((prev) => [
@@ -208,6 +243,7 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
 
   const barFillPct = Math.min(100, (messageCount / MESSAGE_LIMIT) * 100)
   const inputDisabled = limitReached || isSending
+  const inputModeClass = mode === 'rant' ? ' ns-chat__input--rant' : mode === 'figure_it_out' ? ' ns-chat__input--figureout' : ''
   const inputPlaceholder = limitReached
     ? 'Free messages used — come back tomorrow, or unlock more.'
     : 'Say anything. There\'s no right way to start.'
@@ -413,7 +449,12 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
 
         {/* Input */}
         <form className="ns-chat__input-wrap" onSubmit={handleSend}>
-          <div className={`ns-chat__input${inputDisabled ? ' ns-chat__input--disabled' : ''}`}>
+          <ModeSwitcher
+            mode={mode}
+            disabled={inputDisabled}
+            onChange={handleModeSwitch}
+          />
+          <div className={`ns-chat__input${inputModeClass}${inputDisabled ? ' ns-chat__input--disabled' : ''}`}>
             <input
               type="text"
               value={input}

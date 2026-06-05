@@ -346,6 +346,16 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   30% { transform: translateY(-6px); opacity: 1; }
 }
 
+/* ── MODE SWITCHER ── */
+.ns-mode-strip { display: flex; gap: 6px; margin-bottom: 8px; }
+.ns-mode-chip { display: inline-flex; align-items: center; padding: 5px 13px; font-size: 11px; border-radius: var(--r-pill); border: 1px solid var(--honey-mute); background: var(--cream); color: var(--moss); font-family: inherit; cursor: pointer; transition: all var(--t-fast) var(--ease); letter-spacing: 0.01em; font-weight: 400; }
+.ns-mode-chip:hover:not(.is-active):not(:disabled) { border-color: var(--moss); color: var(--deep-pine); }
+.ns-mode-chip.is-active { background: var(--pine-tint); border: 1.5px solid var(--moss); color: var(--deep-pine); font-weight: 500; }
+.ns-mode-chip--rant.is-active { background: var(--terra-15); border: 1.5px solid rgba(155,102,81,0.4); color: var(--terracotta); }
+.ns-mode-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.ns-chat__input--rant { border-color: rgba(155,102,81,0.4); }
+.ns-chat__input--figureout { border-color: rgba(92,122,102,0.4); }
+
 /* ── BOTTOM NAV ── */
 .ns-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: var(--deep-pine); border-top: 1px solid rgba(232,200,160,0.15); z-index: 50; align-items: center; justify-content: space-around; }
 .ns-bottom-nav__item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--cream-55); background: transparent; border: none; font-family: inherit; font-size: 10px; cursor: pointer; padding: 8px 12px; text-decoration: none; transition: color var(--t-fast) var(--ease); }

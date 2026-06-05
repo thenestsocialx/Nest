@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "db:types": "supabase gen types typescript --project-id YOUR_STAGING_PROJECT_REF --schema public > src/types/database.ts",
+    "db:types": "supabase gen types typescript --project-id bnopdlkqhigypzxlarvx --schema public > src/types/database.ts",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset"
   },

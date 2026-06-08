@@ -65,6 +65,7 @@ export interface AllyRow {
   languages_therapy: string | null;
   approach_style: string | null;
   session_tones: string[];
+  user_vibes: string[];
 
   // ── Step 3: Sessions ─────────────────────────────────────────
   session_formats: string[];

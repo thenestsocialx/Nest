@@ -56,6 +56,7 @@ export type Database = {
           session_price: number | null
           session_tones: string[] | null
           sort_priority: string | null
+          user_vibes: string[] | null
           specialties: string[] | null
           tagline: string | null
           updated_at: string | null
@@ -114,6 +115,7 @@ export type Database = {
           tagline?: string | null
           updated_at?: string | null
           user_id?: string | null
+          user_vibes?: string[] | null
           visibility_bookings?: boolean | null
           visibility_featured?: boolean | null
           visibility_matching?: boolean | null
@@ -168,6 +170,7 @@ export type Database = {
           tagline?: string | null
           updated_at?: string | null
           user_id?: string | null
+          user_vibes?: string[] | null
           visibility_bookings?: boolean | null
           visibility_featured?: boolean | null
           visibility_matching?: boolean | null

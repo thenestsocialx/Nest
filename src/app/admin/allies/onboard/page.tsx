@@ -16,8 +16,14 @@ const STEP_LABELS = [
 
 const SPECIALITIES = [
   'heartbreak','loneliness','family','identity','anxiety','grief',
-  'self-esteem','career','trauma','depression','relationships',
+  'self-esteem','career','trauma','depression','relationships','burnout',
   'communication','confidence','cultural','lgbtq+','anger management',
+];
+const USER_VIBES = [
+  { id: 'vent',   label: 'I just need to vent',    sub: 'Listens, no advice' },
+  { id: 'tools',  label: 'Give me tools to cope',  sub: 'Practical & structured' },
+  { id: 'gentle', label: 'Be gentle with me',      sub: 'Soft & patient' },
+  { id: 'direct', label: 'Give it to me straight', sub: 'Direct & honest' },
 ];
 const MODALITIES = [
   'CBT','DBT','ACT','IFS','narrative therapy','person-centred',
@@ -172,6 +178,7 @@ export default function OnboardAllyPage() {
   const [langTherapy,   setLangTherapy]   = useState('English');
   const [approachStyle, setApproachStyle] = useState('');
   const [sessionTones,  setSessionTones]  = useState<string[]>([]);
+  const [userVibes,     setUserVibes]     = useState<string[]>([]);
 
   /* ── Step 3 ── */
   const [formats,    setFormats]    = useState<string[]>(['🎥 Online']);
@@ -241,6 +248,8 @@ export default function OnboardAllyPage() {
         if (ally.languages_therapy)          setLangTherapy(ally.languages_therapy);
         if (ally.approach_style)             setApproachStyle(ally.approach_style);
         if (ally.session_tones?.length)      setSessionTones(ally.session_tones);
+        if ((ally as Record<string,unknown>).user_vibes && Array.isArray((ally as Record<string,unknown>).user_vibes))
+          setUserVibes((ally as Record<string,unknown>).user_vibes as string[]);
         // Step 3
         if (ally.session_formats?.length)    setFormats(ally.session_formats);
         if (ally.session_durations?.length)  setDurations(ally.session_durations);
@@ -316,6 +325,7 @@ export default function OnboardAllyPage() {
     languages_therapy:          langTherapy.trim() || null,
     approach_style:             approachStyle.trim() || null,
     session_tones:              sessionTones,
+    user_vibes:                 userVibes,
     session_formats:            formats,
     session_durations:          durations,
     session_price:              price,
@@ -337,7 +347,7 @@ export default function OnboardAllyPage() {
     tagline, ownWords, bio, photoUrl, photoPath,
     primaryRole, experience, qualification, licenseNo, extraCerts,
     specialties, modalities, ageGroups, genderPrefs, langSpoken, langTherapy,
-    approachStyle, sessionTones,
+    approachStyle, sessionTones, userVibes,
     formats, durations, price, introPrice, maxClients, bufferMin, avail, visibility,
     adminNotes, weights, sortPriority, priorityScore, step,
   ]);
@@ -903,6 +913,19 @@ export default function OnboardAllyPage() {
                               className={`ob-chip-opt${sessionTones.includes(t)?' selected':''}`}
                               onClick={() => { toggleChip(sessionTones, setSessionTones, t); scheduleAutoSave(); }}>
                               {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="ob-field">
+                        <label className="ob-field__label">User vibe match <span style={{fontWeight:400,opacity:.65,fontSize:11}}>(shown on Find Allies)</span></label>
+                        <div className="ob-chip-group">
+                          {USER_VIBES.map(v => (
+                            <button key={v.id} type="button"
+                              className={`ob-chip-opt${userVibes.includes(v.id)?' selected':''}`}
+                              onClick={() => { toggleChip(userVibes, setUserVibes, v.id); scheduleAutoSave(); }}
+                              title={v.sub}>
+                              {v.label}
                             </button>
                           ))}
                         </div>

@@ -13,7 +13,7 @@ const PATCHABLE_FIELDS = new Set<string>([
   'primary_role', 'years_experience', 'highest_qualification', 'license_number',
   'additional_certifications', 'specialties', 'modalities', 'age_groups',
   'gender_preferences', 'languages_spoken', 'languages_therapy',
-  'approach_style', 'session_tones',
+  'approach_style', 'session_tones', 'user_vibes',
   'session_formats', 'session_durations', 'session_price', 'intro_price',
   'max_clients_per_week', 'buffer_minutes', 'availability',
   'visibility_search', 'visibility_bookings', 'visibility_matching', 'visibility_featured',

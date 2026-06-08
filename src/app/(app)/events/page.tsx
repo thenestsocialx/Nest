@@ -1,0 +1,237 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import Sidebar from '@/components/layout/Sidebar'
+import BottomNav from '@/components/layout/BottomNav'
+import NotifyForm from './_components/NotifyForm'
+
+export const metadata = {
+  title: 'Events — Nest',
+}
+
+/* ── Inline SVG icons ── */
+
+function CalendarIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="8"  cy="14" r="1" fill="currentColor"/>
+      <circle cx="12" cy="14" r="1" fill="currentColor"/>
+      <circle cx="16" cy="14" r="1" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function GroupIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9"  cy="8"  r="3.5" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="17" cy="9"  r="2.5" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M2 20c0-3.31 3.13-6 7-6s7 2.69 7 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <path d="M17 14c2.21 0 4 1.79 4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function EaseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Z" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M9 12.5c.5.8 1.7 1.5 3 1.5s2.5-.7 3-1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <circle cx="9.5"  cy="9.5" r="1" fill="currentColor"/>
+      <circle cx="14.5" cy="9.5" r="1" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function MapIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7Z" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.4"/>
+    </svg>
+  )
+}
+
+// Replace VIBES with dynamic data when real event programming exists
+const VIBES = [
+  {
+    title: 'Small groups. Real conversations.',
+    body:  'Six to eight people. Enough to feel held, few enough to be heard.',
+    icon:  <GroupIcon />,
+  },
+  {
+    title: 'No icebreakers. No pressure.',
+    body:  "Show up, settle in. There's no agenda — just presence.",
+    icon:  <EaseIcon />,
+  },
+  {
+    title: 'Cities near you, soon.',
+    body:  "We're starting in a few places and growing from there.",
+    icon:  <MapIcon />,
+  },
+]
+
+export default async function EventsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, display_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const firstName =
+    profile?.display_name ??
+    profile?.full_name?.split(' ')[0] ??
+    user.email?.split('@')[0] ??
+    'there'
+  const initial = firstName[0]?.toUpperCase() ?? 'A'
+
+  return (
+    <div className="ns-shell">
+      <Sidebar userName={firstName} userInitial={initial} />
+
+      <main className="ns-main">
+        <header className="ns-topbar">
+          <div className="ns-topbar__left">
+            <div className="ns-topbar__greeting">Events</div>
+            <div className="ns-topbar__sub">Spaces to feel less alone, together</div>
+          </div>
+        </header>
+
+        <div className="ns-content" style={{ maxWidth: 720 }}>
+
+          {/* Upcoming events — replace with real event cards when data is available */}
+          <section aria-label="Upcoming events" style={{ marginBottom: 48 }}>
+            <div className="ns-section-label" style={{ marginBottom: 20 }}>Upcoming</div>
+
+            <div
+              style={{
+                background:    'var(--cream)',
+                border:        'var(--bd-card)',
+                borderRadius:  'var(--r-lg)',
+                padding:       '56px 40px 52px',
+                display:       'flex',
+                flexDirection: 'column',
+                alignItems:    'center',
+                textAlign:     'center',
+                gap:           20,
+              }}
+            >
+              <div
+                style={{
+                  width:           72,
+                  height:          72,
+                  borderRadius:    '50%',
+                  background:      'var(--pine-tint)',
+                  border:          '1px solid rgba(92,122,102,0.25)',
+                  display:         'flex',
+                  alignItems:      'center',
+                  justifyContent:  'center',
+                  color:           'var(--moss)',
+                  marginBottom:    4,
+                }}
+                aria-hidden="true"
+              >
+                <CalendarIcon />
+              </div>
+
+              <div>
+                <h2
+                  style={{
+                    fontSize:   18,
+                    fontWeight: 500,
+                    color:      'var(--deep-pine)',
+                    margin:     '0 0 10px',
+                    lineHeight: 1.35,
+                  }}
+                >
+                  No events scheduled yet.
+                </h2>
+                <p
+                  style={{
+                    fontSize:   14,
+                    color:      'var(--moss)',
+                    margin:     0,
+                    fontStyle:  'italic',
+                    lineHeight: 1.65,
+                    maxWidth:   '38ch',
+                  }}
+                >
+                  We&rsquo;re planning something special. Stay close.
+                </p>
+              </div>
+
+              <div style={{ marginTop: 8, width: '100%' }}>
+                <p
+                  style={{
+                    fontSize:      12,
+                    color:         'var(--moss)',
+                    margin:        '0 0 14px',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    opacity:       0.8,
+                  }}
+                >
+                  Get notified when we announce
+                </p>
+                <NotifyForm />
+              </div>
+            </div>
+          </section>
+
+          {/* What to expect — stays as evergreen content */}
+          <section aria-label="What to expect at Nest events">
+            <div className="ns-section-label" style={{ marginBottom: 20 }}>What to expect</div>
+            <div
+              style={{
+                display:             'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap:                 14,
+              }}
+            >
+              {VIBES.map((vibe, i) => (
+                <article
+                  key={i}
+                  className="ns-card"
+                  style={{ padding: 20, gap: 12 }}
+                >
+                  <div
+                    style={{
+                      width:           40,
+                      height:          40,
+                      borderRadius:    'var(--r-md)',
+                      background:      'var(--pine-tint)',
+                      border:          '1px solid rgba(92,122,102,0.2)',
+                      display:         'flex',
+                      alignItems:      'center',
+                      justifyContent:  'center',
+                      color:           'var(--moss)',
+                      flexShrink:      0,
+                      marginBottom:    4,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {vibe.icon}
+                  </div>
+                  <h3 className="ns-card__title" style={{ fontSize: 14, marginBottom: 6 }}>
+                    {vibe.title}
+                  </h3>
+                  <p className="ns-card__body" style={{ fontSize: 13, margin: 0 }}>
+                    {vibe.body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+        </div>
+
+        <BottomNav />
+      </main>
+    </div>
+  )
+}

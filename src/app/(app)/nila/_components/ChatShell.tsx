@@ -1,25 +1,89 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
-import { sendNilaMessage, switchNilaMode } from '@/actions/nila'
-import type { ConversationMessage, NilaMode } from '@/actions/nila'
+import { switchNilaMode, endNilaSession } from '@/actions/nila'
+import type { NilaMode, RestoredConversation } from '@/actions/nila'
 import ModeSwitcher from './ModeSwitcher'
+import NilaSettingsPanel from './NilaSettingsPanel'
 
-const MESSAGE_LIMIT = 10
+// ── Mood inference ───────────────────────────────────────────────────────────
+
+const MOOD_MAP: { emoji: string; label: string; keywords: string[] }[] = [
+  { emoji: '😰', label: 'Anxious',    keywords: ['anxious', 'panic', 'scared', 'nervous', 'worried', 'anxiety'] },
+  { emoji: '😔', label: 'Low',        keywords: ['sad', 'crying', 'hopeless', 'numb', 'empty', 'depressed', 'cry'] },
+  { emoji: '😤', label: 'Frustrated', keywords: ['angry', 'pissed', 'furious', 'hate', 'unfair', 'frustrated', 'anger'] },
+  { emoji: '😮‍💨', label: 'Relieved',   keywords: ['better', 'lighter', 'thanks', 'helped', 'relieved', 'calmer', 'thank'] },
+]
+
+function inferMood(msgs: string[]): { emoji: string; label: string } {
+  const text = msgs.join(' ').toLowerCase()
+  let best = { emoji: '😶', label: 'Neutral', count: 0 }
+  for (const m of MOOD_MAP) {
+    const count = m.keywords.filter((k) => text.includes(k)).length
+    if (count > best.count) best = { ...m, count }
+  }
+  return { emoji: best.emoji, label: best.label }
+}
+
+// ── Topic extraction ─────────────────────────────────────────────────────────
+
+const TOPIC_MAP: { label: string; keywords: string[] }[] = [
+  { label: 'Loneliness',  keywords: ['lonely', 'alone', 'isolated', 'no one'] },
+  { label: 'Heartbreak',  keywords: ['breakup', 'break up', 'ex', 'heartbreak', 'relationship ended'] },
+  { label: 'Anxiety',     keywords: ['anxious', 'anxiety', 'nervous', 'panic', 'worried'] },
+  { label: 'Burnout',     keywords: ['burned out', 'exhausted', 'no energy', 'drained', 'overworked'] },
+  { label: 'Family',      keywords: ['family', 'parents', 'mom', 'dad', 'siblings', 'mother', 'father'] },
+  { label: 'Self-worth',  keywords: ['not good enough', 'worthless', 'hate myself', 'failure', 'useless'] },
+  { label: 'Grief',       keywords: ['lost', 'grief', 'died', 'miss them', 'gone', 'passed away'] },
+  { label: 'Stress',      keywords: ['stress', 'stressed', 'overwhelmed', 'pressure', 'too much'] },
+  { label: 'Trust',       keywords: ['trust', 'betrayed', 'lied', 'cheated', 'backstabbed'] },
+]
+
+function extractTopics(msgs: string[], maxTopics: number): string[] {
+  const text = msgs.join(' ').toLowerCase()
+  const matched: string[] = []
+  for (const t of TOPIC_MAP) {
+    if (matched.length >= maxTopics) break
+    if (t.keywords.some((k) => text.includes(k))) matched.push(t.label)
+  }
+  return matched
+}
+
+// ── Session restore signal detection ────────────────────────────────────────
+
+const FRESH_START_SIGNALS = ['new', 'fresh', 'start over', 'something else', 'different', 'no']
+
+function wantsFreshStart(text: string): boolean {
+  const lower = text.toLowerCase().trim()
+  return FRESH_START_SIGNALS.some((s) => lower.includes(s))
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 interface Message {
   id: string
   role: 'user' | 'nila'
   content: string
   timestamp: Date
+  isRetryable?: boolean
 }
 
 interface ChatShellProps {
   userName: string
   userEmail: string
   userInitial: string
+  dailyMessagesSent: number
+  messageLimit: number
+  initialGreeting: string
+  maxTopics: number
+  nilaDefaultMode: NilaMode
+  nilaLanguage: string
+  nilaNudgeEnabled: boolean
+  nilaNudgeTime: string
+  initialSession: RestoredConversation | null
 }
 
 function formatTime(date: Date): string {
@@ -31,12 +95,24 @@ function formatTime(date: Date): string {
   return `${hour}:${min} ${ampm}`
 }
 
-const INITIAL_MESSAGE: Message = {
-  id: 'init',
-  role: 'nila',
-  content: "Hey. I'm Nila. I'm here to listen — no rush, no judgment. What's on your mind?",
-  timestamp: new Date(),
+function getSessionPeriod(): string {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'This morning'
+  if (h >= 12 && h < 17) return 'This afternoon'
+  if (h >= 17 && h < 21) return 'Tonight'
+  return 'Late night'
 }
+
+function makeInitialMessage(greeting: string): Message {
+  return {
+    id: 'init',
+    role: 'nila',
+    content: greeting,
+    timestamp: new Date(),
+  }
+}
+
+const RESTORE_PROMPT = "Hey, you're back. We left off on something — want to pick up where we were, or start somewhere new?"
 
 function NilaBubbleAvatar() {
   return (
@@ -111,20 +187,88 @@ function ArrowIcon() {
   )
 }
 
-export default function ChatShell({ userName, userInitial }: ChatShellProps) {
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
+// ── Component ────────────────────────────────────────────────────────────────
+
+export default function ChatShell({
+  userName,
+  userEmail,
+  userInitial,
+  dailyMessagesSent,
+  messageLimit,
+  initialGreeting,
+  maxTopics,
+  nilaDefaultMode,
+  nilaLanguage,
+  nilaNudgeEnabled,
+  nilaNudgeTime,
+  initialSession,
+}: ChatShellProps) {
+  const router = useRouter()
+
+  // Session restore state
+  const isRestoring = initialSession !== null
+  const restoredMessages: Message[] = isRestoring
+    ? [
+        ...initialSession!.messages.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          timestamp: new Date(m.sentAt),
+        })),
+        {
+          id: 'restore-prompt',
+          role: 'nila' as const,
+          content: RESTORE_PROMPT,
+          timestamp: new Date(),
+        },
+      ]
+    : [makeInitialMessage(initialGreeting)]
+
+  const [messages, setMessages] = useState<Message[]>(restoredMessages)
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [showBanner, setShowBanner] = useState(true)
+  const [showCrisisPanel, setShowCrisisPanel] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [sessionStartTime, setSessionStartTime] = useState(() => new Date())
   const [currentTime, setCurrentTime] = useState(() => formatTime(new Date()))
   const [sessionDuration, setSessionDuration] = useState(0)
+  const [sessionPeriod] = useState(() => getSessionPeriod())
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [mode, setMode] = useState<NilaMode>('normal')
-  const [conversationId, setConversationId] = useState<string | null>(null)
 
-  const messageCount = messages.filter((m) => m.role === 'user').length
-  const limitReached = messageCount >= MESSAGE_LIMIT
+  const [mode, setMode] = useState<NilaMode>(
+    isRestoring ? initialSession!.lastMode : nilaDefaultMode,
+  )
+  const [conversationId, setConversationId] = useState<string | null>(
+    isRestoring ? initialSession!.id : null,
+  )
+  const [messageCount, setMessageCount] = useState(dailyMessagesSent)
+  const limitReached = messageCount >= messageLimit
+
+  const [mood, setMood] = useState<{ emoji: string; label: string }>({ emoji: '😶', label: 'Neutral' })
+  const [topics, setTopics] = useState<string[]>([])
+
+  // Pending retry
+  const [failedMessage, setFailedMessage] = useState<string | null>(null)
+
+  // Whether the first user message in a restored session might want fresh start
+  const [awaitingRestoreDecision, setAwaitingRestoreDecision] = useState(isRestoring)
+
+  // Mutable settings (updated by NilaSettingsPanel without page reload)
+  const [currentLanguage, setCurrentLanguage]       = useState(nilaLanguage)
+  const [currentDefaultMode, setCurrentDefaultMode] = useState(nilaDefaultMode)
+  const [currentNudgeEnabled, setCurrentNudgeEnabled] = useState(nilaNudgeEnabled)
+  const [currentNudgeTime, setCurrentNudgeTime]     = useState(nilaNudgeTime)
+
+  const nilaLanguageRef = useRef(currentLanguage)
+  nilaLanguageRef.current = currentLanguage
+
+  function handleSettingChange(field: string, value: string | boolean) {
+    if (field === 'nila_language')      setCurrentLanguage(value as string)
+    if (field === 'nila_default_mode')  setCurrentDefaultMode(value as NilaMode)
+    if (field === 'nila_nudge_enabled') setCurrentNudgeEnabled(value as boolean)
+    if (field === 'nila_nudge_time')    setCurrentNudgeTime(value as string)
+  }
 
   useEffect(() => {
     const tick = () => {
@@ -142,28 +286,29 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isSending])
 
-  function handleNewSession() {
+  function updateSidebarAfterReply(userMsgs: string[]) {
+    setMood(inferMood(userMsgs))
+    const extracted = extractTopics(userMsgs, maxTopics)
+    if (extracted.length > 0) setTopics(extracted)
+  }
+
+  async function handleNewSession() {
+    if (conversationId) void endNilaSession(conversationId)
     const now = new Date()
-    setMessages([
-      {
-        id: 'init-' + now.getTime(),
-        role: 'nila',
-        content: "Hey. I'm Nila. I'm here to listen — no rush, no judgment. What's on your mind?",
-        timestamp: now,
-      },
-    ])
-    setMode('normal')
+    setMessages([makeInitialMessage(initialGreeting)])
+    setMode(currentDefaultMode)
     setConversationId(null)
     setSessionStartTime(now)
     setSessionDuration(0)
     setCurrentTime(formatTime(now))
+    setTopics([])
+    setMood({ emoji: '😶', label: 'Neutral' })
+    setFailedMessage(null)
+    setAwaitingRestoreDecision(false)
   }
 
   async function handleModeSwitch(newMode: NilaMode) {
     if (newMode === mode || isSending) return
-    // Before the first message there's no conversation yet — just set the mode
-    // locally so the first send goes out in the chosen mode. Opening lines only
-    // fire once a conversation is underway.
     if (conversationId === null) {
       setMode(newMode)
       return
@@ -175,12 +320,7 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
         setMode(newMode)
         setMessages((prev) => [
           ...prev,
-          {
-            id: Date.now().toString(),
-            role: 'nila',
-            content: openingLine,
-            timestamp: new Date(),
-          },
+          { id: Date.now().toString(), role: 'nila', content: openingLine, timestamp: new Date() },
         ])
       }
     } finally {
@@ -188,10 +328,24 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
     }
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault()
-    const text = input.trim()
+  const doSend = useCallback(async (text: string) => {
     if (!text || isSending || limitReached) return
+
+    // Restore-decision handling: if user wants to start fresh, reset
+    if (awaitingRestoreDecision) {
+      setAwaitingRestoreDecision(false)
+      if (wantsFreshStart(text)) {
+        if (conversationId) void endNilaSession(conversationId)
+        const now = new Date()
+        setMessages([makeInitialMessage(initialGreeting)])
+        setMode(currentDefaultMode)
+        setConversationId(null)
+        setSessionStartTime(now)
+        setSessionDuration(0)
+        setCurrentTime(formatTime(now))
+        return
+      }
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -200,53 +354,145 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
       timestamp: new Date(),
     }
 
-    const updatedMessages = [...messages, userMsg]
-    setMessages(updatedMessages)
-    setInput('')
+    setMessages((prev) => [...prev, userMsg])
+    setMessageCount((prev) => prev + 1)
+    setFailedMessage(null)
     setIsSending(true)
 
+    const streamingId = (Date.now() + 1).toString()
+    let bubbleAdded = false
+    let accumulatedContent = ''
+
     try {
-      // history = conversation BEFORE current message; server action appends it
-      const history: ConversationMessage[] = messages.slice(-10).map((m) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
+      const contextLimit = mode === 'figure_it_out' ? 20 : 10
+      const history = messages.slice(-contextLimit).map((m) => ({
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
         content: m.content,
       }))
 
-      const { reply, conversationId: returnedConvId, error } = await sendNilaMessage(text, history, mode, conversationId)
-      if (returnedConvId) setConversationId(returnedConvId)
+      const response = await fetch('/api/nila/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history,
+          mode,
+          conversationId,
+          language: nilaLanguageRef.current,
+        }),
+      })
 
-      if (error && !reply) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: 'nila',
-            content: 'Something went wrong. Please try again.',
-            timestamp: new Date(),
-          },
-        ])
-      } else if (reply) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: 'nila',
-            content: reply,
-            timestamp: new Date(),
-          },
-        ])
+      if (!response.ok) {
+        const data = await response.json() as { error?: string; conversationId?: string }
+        if (data.conversationId) setConversationId(data.conversationId)
+        if (data.error === 'daily_limit_reached') {
+          setMessageCount(messageLimit)
+        } else {
+          setFailedMessage(text)
+          setMessageCount((prev) => Math.max(0, prev - 1))
+          setMessages((prev) => [
+            ...prev,
+            { id: streamingId, role: 'nila', content: 'Something went wrong. Tap to retry.', timestamp: new Date(), isRetryable: true },
+          ])
+        }
+        return
+      }
+
+      if (!response.body) return
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue
+          try {
+            const data = JSON.parse(line.slice(6)) as {
+              token?: string
+              done?: boolean
+              conversationId?: string
+              error?: string
+            }
+
+            if (data.token) {
+              accumulatedContent += data.token
+              if (!bubbleAdded) {
+                bubbleAdded = true
+                setMessages((prev) => [
+                  ...prev,
+                  { id: streamingId, role: 'nila', content: data.token!, timestamp: new Date() },
+                ])
+              } else {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId ? { ...m, content: accumulatedContent } : m,
+                  ),
+                )
+              }
+            }
+
+            if (data.done) {
+              if (data.conversationId) setConversationId(data.conversationId)
+              const recentUserMsgs = [...messages, userMsg]
+                .filter((m) => m.role === 'user')
+                .slice(-3)
+                .map((m) => m.content)
+              updateSidebarAfterReply(recentUserMsgs)
+            }
+
+            if (data.error) {
+              setFailedMessage(text)
+              setMessageCount((prev) => Math.max(0, prev - 1))
+              if (!bubbleAdded) {
+                setMessages((prev) => [
+                  ...prev,
+                  { id: streamingId, role: 'nila', content: 'Something went wrong. Tap to retry.', timestamp: new Date(), isRetryable: true },
+                ])
+              } else {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId
+                      ? { ...m, content: 'Something went wrong. Tap to retry.', isRetryable: true }
+                      : m,
+                  ),
+                )
+              }
+            }
+          } catch { /* skip malformed SSE lines */ }
+        }
       }
     } finally {
       setIsSending(false)
     }
+  }, [isSending, limitReached, awaitingRestoreDecision, conversationId, messages, mode, messageLimit, currentDefaultMode, initialGreeting])
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault()
+    const text = input.trim()
+    if (!text) return
+    setInput('')
+    await doSend(text)
   }
 
-  const barFillPct = Math.min(100, (messageCount / MESSAGE_LIMIT) * 100)
+  async function handleRetry() {
+    if (!failedMessage) return
+    const text = failedMessage
+    // Remove the error bubble first
+    setMessages((prev) => prev.filter((m) => !m.isRetryable))
+    setInput('')
+    await doSend(text)
+  }
+
+  const barFillPct = Math.min(100, (messageCount / messageLimit) * 100)
   const inputDisabled = limitReached || isSending
   const inputModeClass = mode === 'rant' ? ' ns-chat__input--rant' : mode === 'figure_it_out' ? ' ns-chat__input--figureout' : ''
   const inputPlaceholder = limitReached
-    ? 'Free messages used — come back tomorrow, or unlock more.'
-    : 'Say anything. There\'s no right way to start.'
+    ? "You've had a full conversation today. Come back tomorrow."
+    : "Say anything. There's no right way to start."
 
   return (
     <div className="ns-chat-shell">
@@ -259,11 +505,11 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
           <div className="ns-rail__eyebrow">Session</div>
           <div className="ns-rail__time">{currentTime}</div>
           <div className="ns-rail__meta">
-            {messageCount} of {MESSAGE_LIMIT} messages · {sessionDuration} min
+            {messageCount} of {messageLimit} messages · {sessionDuration} min
           </div>
           <div className="ns-rail__mood">
-            <span className="ns-rail__mood-glyph">😶</span>
-            <span className="ns-rail__mood-label">Neutral</span>
+            <span className="ns-rail__mood-glyph">{mood.emoji}</span>
+            <span className="ns-rail__mood-label">{mood.label}</span>
           </div>
         </div>
 
@@ -275,7 +521,12 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
           {limitReached && (
             <div className="ns-rail__limit-row">
               <span className="ns-rail__limit-label">Limit reached</span>
-              <button className="ns-link" type="button">
+              <button
+                className="ns-link"
+                type="button"
+                style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+                onClick={() => router.push('/plans')}
+              >
                 View plans <ArrowIcon />
               </button>
             </div>
@@ -285,7 +536,10 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
         <div className="ns-rail__section">
           <div className="ns-rail__eyebrow">Topics tonight</div>
           <div className="ns-rail__chips">
-            <span className="ns-rail-chip">Listening…</span>
+            {topics.length > 0
+              ? topics.map((t) => <span key={t} className="ns-rail-chip">{t}</span>)
+              : <span className="ns-rail-chip">Listening…</span>
+            }
           </div>
         </div>
 
@@ -330,19 +584,46 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
             </div>
           </div>
           <div className="ns-chat__actions">
-            <button className="ns-chat__crisis" type="button" aria-label="Crisis line numbers">
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path
-                  d="M3 4 Q3 3 4 3 H5.5 Q6 3 6.2 3.5 L 7 5.8 Q 7.2 6.3 6.8 6.6 L 5.8 7.6 Q 7 10 9 11 L 10 10 Q 10.5 9.7 11 9.9 L 13.3 10.7 Q 13.8 10.9 13.8 11.5 V 12.8 Q 13.8 13.5 13 13.5 Q 7 13.5 4 10.5 Q 3 7.5 3 4 Z"
-                  stroke="currentColor"
-                  strokeWidth="1.1"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>Crisis line</span>
-            </button>
-            <button className="ns-chat__icon-btn" type="button" aria-label="Settings">
+            <div style={{ position: 'relative' }}>
+              <button
+                className="ns-chat__crisis"
+                type="button"
+                aria-label="Crisis line numbers"
+                aria-expanded={showCrisisPanel}
+                onClick={() => setShowCrisisPanel((p) => !p)}
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M3 4 Q3 3 4 3 H5.5 Q6 3 6.2 3.5 L 7 5.8 Q 7.2 6.3 6.8 6.6 L 5.8 7.6 Q 7 10 9 11 L 10 10 Q 10.5 9.7 11 9.9 L 13.3 10.7 Q 13.8 10.9 13.8 11.5 V 12.8 Q 13.8 13.5 13 13.5 Q 7 13.5 4 10.5 Q 3 7.5 3 4 Z"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    fill="none"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>Crisis line</span>
+              </button>
+              {showCrisisPanel && (
+                <div className="ns-crisis-panel">
+                  <div className="ns-crisis-panel__item">
+                    <div className="ns-crisis-panel__name">iCall</div>
+                    <div className="ns-crisis-panel__number">9152 987 821</div>
+                    <div className="ns-crisis-panel__hours">Mon–Sat · 8am–10pm · Free</div>
+                  </div>
+                  <div className="ns-crisis-panel__item">
+                    <div className="ns-crisis-panel__name">Vandrevala</div>
+                    <div className="ns-crisis-panel__number">1860 2662 345</div>
+                    <div className="ns-crisis-panel__hours">24 / 7 · Free</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button
+              className="ns-chat__icon-btn"
+              type="button"
+              aria-label="Settings"
+              onClick={() => setShowSettings(true)}
+            >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <circle cx="7" cy="7" r="1.6" stroke="currentColor" strokeWidth="1.2" fill="none" />
                 <path
@@ -382,12 +663,7 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
               onClick={() => setShowBanner(false)}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path
-                  d="M3 3 L 9 9 M9 3 L 3 9"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
+                <path d="M3 3 L 9 9 M9 3 L 3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
             </button>
           </div>
@@ -401,7 +677,7 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
           aria-label="Conversation with Nila"
         >
           <div className="ns-chat__day-divider">
-            <span>Tonight</span>
+            <span>{sessionPeriod}</span>
           </div>
 
           {messages.map((m) => (
@@ -419,13 +695,23 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
                 )}
               </div>
               <div className="ns-bubble__col">
-                <div className="ns-bubble__body">{m.content}</div>
+                {m.isRetryable ? (
+                  <button
+                    className="ns-bubble__body ns-bubble__body--retryable"
+                    type="button"
+                    onClick={handleRetry}
+                  >
+                    {m.content}
+                  </button>
+                ) : (
+                  <div className="ns-bubble__body">{m.content}</div>
+                )}
                 <div className="ns-bubble__time" suppressHydrationWarning>{formatTime(m.timestamp)}</div>
               </div>
             </div>
           ))}
 
-          {isSending && <TypingIndicator />}
+          {isSending && messages[messages.length - 1]?.role !== 'nila' && <TypingIndicator />}
 
           <div ref={messagesEndRef} />
         </div>
@@ -438,12 +724,14 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
               <path d="M7 4 V7.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
               <circle cx="7" cy="9.4" r="0.6" fill="currentColor" />
             </svg>
-            <span>
-              You&apos;ve used your free messages for today.{' '}
-              <button className="ns-link" type="button">
-                Pick up tomorrow, or unlock more →
-              </button>
-            </span>
+            <span>You&apos;ve had a full conversation today. Come back tomorrow — Nila will be here.</span>
+            <a
+              href="/plans"
+              className="ns-link"
+              style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: 12 }}
+            >
+              Unlock more →
+            </a>
           </div>
         )}
 
@@ -482,10 +770,22 @@ export default function ChatShell({ userName, userInitial }: ChatShellProps) {
             </button>
           </div>
           <p className="ns-chat__footer-note">
-            <em>Your conversation is private and stays on this device.</em>
+            <em>Your conversation is stored privately on Nest&apos;s servers.</em>
           </p>
         </form>
       </main>
+
+      {/* Settings panel overlay */}
+      {showSettings && (
+        <NilaSettingsPanel
+          defaultMode={currentDefaultMode}
+          language={currentLanguage}
+          nudgeEnabled={currentNudgeEnabled}
+          nudgeTime={currentNudgeTime}
+          onClose={() => setShowSettings(false)}
+          onSettingChange={handleSettingChange}
+        />
+      )}
 
       <BottomNav />
     </div>

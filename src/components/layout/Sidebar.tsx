@@ -53,6 +53,11 @@ function NavIcon({ id }: { id: string }) {
       <path d="M4 13.5 Q4 11 8 11 Q12 11 12 13.5" {...c} />
     </svg>
   )
+  if (id === 'plans') return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M8 2 L10 6 L14.5 6.5 L11 10 L12 14.5 L8 12 L4 14.5 L5 10 L1.5 6.5 L6 6 Z" {...c} />
+    </svg>
+  )
   return null
 }
 
@@ -90,6 +95,17 @@ export default function Sidebar({ userName = 'You', userInitial = 'Y' }: Sidebar
           </a>
         ))}
       </nav>
+
+      <div className="ns-sidebar__upgrade">
+        <a
+          href="/plans"
+          className={`ns-sidebar__item${pathname.startsWith('/plans') ? ' is-active' : ''}`}
+          style={{ opacity: pathname.startsWith('/plans') ? 1 : 0.8 }}
+        >
+          <NavIcon id="plans" />
+          <span>Plans</span>
+        </a>
+      </div>
 
       <div className="ns-sidebar__foot">
         <div className="ns-profile">

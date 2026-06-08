@@ -36,7 +36,7 @@ export default function ResourcesTabs() {
 
   return (
     <div>
-      <nav className="ns-chips" style={{ marginBottom: 36 }} aria-label="Content categories">
+      <nav className="ns-res-tabs-nav" aria-label="Content categories">
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -62,16 +62,7 @@ export default function ResourcesTabs() {
       {/* Replace this block with real content grid when data is available */}
       <div
         key={active}
-        style={{
-          display:        'flex',
-          flexDirection:  'column',
-          alignItems:     'center',
-          justifyContent: 'center',
-          textAlign:      'center',
-          padding:        '72px 32px 80px',
-          gap:            20,
-          animation:      'nsFade 200ms var(--ease) both',
-        }}
+        className="ns-res-empty"
       >
         <div
           style={{

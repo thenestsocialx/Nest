@@ -1,9 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useTransition } from 'react'
 import NestLogo from '@/components/ui/NestLogo'
-import { signOut } from '@/actions/auth'
 
 const NAV_ITEMS = [
   { id: 'home',      label: 'Home',            href: '/home' },
@@ -68,13 +66,6 @@ interface SidebarProps {
 
 export default function Sidebar({ userName = 'You', userInitial = 'Y' }: SidebarProps) {
   const pathname = usePathname()
-  const [pending, startTransition] = useTransition()
-
-  function handleSignOut() {
-    startTransition(async () => {
-      await signOut()
-    })
-  }
 
   return (
     <aside className="ns-sidebar">
@@ -108,22 +99,17 @@ export default function Sidebar({ userName = 'You', userInitial = 'Y' }: Sidebar
       </div>
 
       <div className="ns-sidebar__foot">
-        <div className="ns-profile">
+        <a
+          href="/profile"
+          className="ns-sidebar__profile-link"
+          aria-label={`View profile for ${userName}`}
+        >
           <div className="ns-profile__avatar" aria-hidden="true">{userInitial}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ minWidth: 0 }}>
             <div className="ns-profile__name">{userName}</div>
             <div className="ns-profile__role">Member</div>
           </div>
-          <button
-            onClick={handleSignOut}
-            disabled={pending}
-            className="ns-btn ns-btn--ghost ns-btn--sm"
-            aria-label="Sign out"
-            style={{ padding: '6px 10px', fontSize: 11, flexShrink: 0 }}
-          >
-            Out
-          </button>
-        </div>
+        </a>
       </div>
     </aside>
   )

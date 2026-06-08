@@ -395,7 +395,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          anonymous_mode: boolean
           avatar_url: string | null
+          city: string | null
           created_at: string
           credits: number
           display_name: string | null
@@ -403,8 +405,18 @@ export type Database = {
           full_name: string | null
           id: string
           last_active_at: string | null
+          nila_default_mode: string
+          nila_language: string
+          nila_limit_reminder: boolean
+          nila_memory_enabled: boolean
           nila_message_count: number
+          nila_nudge_enabled: boolean
+          nila_nudge_time: string
           nila_onboarded: boolean
+          nila_tone: string
+          notify_ally_reminders: boolean
+          notify_email_updates: boolean
+          notify_event_reminders: boolean
           onboarding_completed: boolean
           phone: string | null
           phone_country_code: string | null
@@ -420,7 +432,9 @@ export type Database = {
           whatsapp_opt_in: boolean | null
         }
         Insert: {
+          anonymous_mode?: boolean
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           credits?: number
           display_name?: string | null
@@ -428,8 +442,18 @@ export type Database = {
           full_name?: string | null
           id: string
           last_active_at?: string | null
+          nila_default_mode?: string
+          nila_language?: string
+          nila_limit_reminder?: boolean
+          nila_memory_enabled?: boolean
           nila_message_count?: number
+          nila_nudge_enabled?: boolean
+          nila_nudge_time?: string
           nila_onboarded?: boolean
+          nila_tone?: string
+          notify_ally_reminders?: boolean
+          notify_email_updates?: boolean
+          notify_event_reminders?: boolean
           onboarding_completed?: boolean
           phone?: string | null
           phone_country_code?: string | null
@@ -445,7 +469,9 @@ export type Database = {
           whatsapp_opt_in?: boolean | null
         }
         Update: {
+          anonymous_mode?: boolean
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           credits?: number
           display_name?: string | null
@@ -453,8 +479,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_active_at?: string | null
+          nila_default_mode?: string
+          nila_language?: string
+          nila_limit_reminder?: boolean
+          nila_memory_enabled?: boolean
           nila_message_count?: number
+          nila_nudge_enabled?: boolean
+          nila_nudge_time?: string
           nila_onboarded?: boolean
+          nila_tone?: string
+          notify_ally_reminders?: boolean
+          notify_email_updates?: boolean
+          notify_event_reminders?: boolean
           onboarding_completed?: boolean
           phone?: string | null
           phone_country_code?: string | null

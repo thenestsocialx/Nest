@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
+import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import MoodSelector from './_components/MoodSelector'
 
 export const metadata = {
@@ -56,10 +57,13 @@ export default async function HomePage() {
             </div>
             <div className="ns-topbar__sub">How are you holding up?</div>
           </div>
-          <button className="ns-bell" aria-label="Notifications">
-            <BellIcon />
-            <span className="ns-bell__dot" aria-hidden="true" />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button className="ns-bell" aria-label="Notifications">
+              <BellIcon />
+              <span className="ns-bell__dot" aria-hidden="true" />
+            </button>
+            <MobileProfileLink initial={initial} />
+          </div>
         </header>
 
         {/* Ambient morning strip */}

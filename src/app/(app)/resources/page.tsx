@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
+import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import ResourcesTabs from './_components/ResourcesTabs'
 
 export const metadata = {
@@ -36,6 +37,7 @@ export default async function ResourcesPage() {
             <div className="ns-topbar__greeting">Resources</div>
             <div className="ns-topbar__sub">Curated for how you&rsquo;re feeling</div>
           </div>
+          <MobileProfileLink initial={initial} />
         </header>
 
         {/* Replace ns-content children with real resource grid when data is available */}

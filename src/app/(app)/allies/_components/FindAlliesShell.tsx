@@ -108,10 +108,10 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
           <div className="fa-topbar-breadcrumb">connect</div>
           <h1 className="fa-topbar-title">Find your ally</h1>
         </div>
-        <div className="fa-user-chip">
+        <a href="/profile" className="fa-user-chip" aria-label={`View profile for ${userName}`}>
           <span style={{ fontSize: 13, color: 'var(--moss)', opacity: 0.8 }}>{userName}</span>
           <div className="fa-avatar" aria-hidden="true">{userInitial}</div>
-        </div>
+        </a>
       </header>
 
       {/* Workspace */}

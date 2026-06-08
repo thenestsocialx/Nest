@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
+import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import NotifyForm from './_components/NotifyForm'
 
 export const metadata = {
@@ -100,27 +101,16 @@ export default async function EventsPage() {
             <div className="ns-topbar__greeting">Events</div>
             <div className="ns-topbar__sub">Spaces to feel less alone, together</div>
           </div>
+          <MobileProfileLink initial={initial} />
         </header>
 
-        <div className="ns-content" style={{ maxWidth: 720 }}>
+        <div className="ns-content" style={{ maxWidth: 720, width: '100%' }}>
 
           {/* Upcoming events — replace with real event cards when data is available */}
           <section aria-label="Upcoming events" style={{ marginBottom: 48 }}>
             <div className="ns-section-label" style={{ marginBottom: 20 }}>Upcoming</div>
 
-            <div
-              style={{
-                background:    'var(--cream)',
-                border:        'var(--bd-card)',
-                borderRadius:  'var(--r-lg)',
-                padding:       '56px 40px 52px',
-                display:       'flex',
-                flexDirection: 'column',
-                alignItems:    'center',
-                textAlign:     'center',
-                gap:           20,
-              }}
-            >
+            <div className="ns-evt-empty">
               <div
                 style={{
                   width:           72,

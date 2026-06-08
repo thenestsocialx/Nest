@@ -46,12 +46,14 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
   /* ── Profile form state ── */
   const [fullName, setFullName] = useState(profile?.full_name ?? '')
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
-  const [phone, setPhone] = useState(
-    // strip the stored country-code prefix if it was concatenated on save
-    profile?.phone
-      ? profile.phone.replace(/^\+\d{1,3}/, '').trim()
-      : ''
-  )
+  const [phone, setPhone] = useState(() => {
+    if (!profile?.phone) return ''
+    const code = profile.phone_country_code ?? ''
+    if (code && profile.phone.startsWith(code)) {
+      return profile.phone.slice(code.length).trim()
+    }
+    return profile.phone
+  })
   const [phoneCode, setPhoneCode] = useState(profile?.phone_country_code ?? '+91')
   const [language, setLanguage] = useState(profile?.preferred_language ?? 'english')
   const [city, setCity] = useState(profile?.city ?? '')
@@ -118,13 +120,11 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
   function toggle<T extends string | boolean>(
     field: string,
     setter: (v: T) => void,
+    prev: T,
     next: T,
   ) {
     setter(next)
-    saveProfileSetting(field, next).catch(() => {
-      // revert on error
-      setter((next === true ? false : next === false ? true : next) as T)
-    })
+    saveProfileSetting(field, next).catch(() => setter(prev))
   }
 
   function handleSignOut() {
@@ -347,7 +347,7 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                     <button
                       key={t}
                       className={`ns-seg__btn${nilaTone === t ? ' is-active' : ''}`}
-                      onClick={() => toggle('nila_tone', setNilaTone, t)}
+                      onClick={() => toggle('nila_tone', setNilaTone, nilaTone, t)}
                       type="button"
                     >
                       {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -361,7 +361,7 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                 label="Memory"
                 sub="Let Nila remember across sessions"
                 checked={nilaMemory}
-                onToggle={() => toggle('nila_memory_enabled', setNilaMemory, !nilaMemory)}
+                onToggle={() => toggle('nila_memory_enabled', setNilaMemory, nilaMemory, !nilaMemory)}
               />
 
               {/* Limit reminder */}
@@ -369,7 +369,7 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                 label="Daily message limit reminder"
                 sub="Remind me when I'm near my limit"
                 checked={nilaLimitReminder}
-                onToggle={() => toggle('nila_limit_reminder', setNilaLimitReminder, !nilaLimitReminder)}
+                onToggle={() => toggle('nila_limit_reminder', setNilaLimitReminder, nilaLimitReminder, !nilaLimitReminder)}
               />
             </div>
 
@@ -380,17 +380,17 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
               <ToggleRow
                 label="Email updates from Nest"
                 checked={notifyEmail}
-                onToggle={() => toggle('notify_email_updates', setNotifyEmail, !notifyEmail)}
+                onToggle={() => toggle('notify_email_updates', setNotifyEmail, notifyEmail, !notifyEmail)}
               />
               <ToggleRow
                 label="Event reminders"
                 checked={notifyEvents}
-                onToggle={() => toggle('notify_event_reminders', setNotifyEvents, !notifyEvents)}
+                onToggle={() => toggle('notify_event_reminders', setNotifyEvents, notifyEvents, !notifyEvents)}
               />
               <ToggleRow
                 label="Session reminders from Allies"
                 checked={notifyAllySessions}
-                onToggle={() => toggle('notify_ally_reminders', setNotifyAllySessions, !notifyAllySessions)}
+                onToggle={() => toggle('notify_ally_reminders', setNotifyAllySessions, notifyAllySessions, !notifyAllySessions)}
               />
             </div>
 
@@ -402,7 +402,7 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                 label="Anonymous mode"
                 sub="Hide your name from Allies during sessions"
                 checked={anonymousMode}
-                onToggle={() => toggle('anonymous_mode', setAnonymousMode, !anonymousMode)}
+                onToggle={() => toggle('anonymous_mode', setAnonymousMode, anonymousMode, !anonymousMode)}
               />
 
               {/* Data export */}

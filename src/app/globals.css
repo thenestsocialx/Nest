@@ -1344,3 +1344,30 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 @media (max-width: 767px) {
   .ns-evt-empty { padding: 40px 20px 44px; }
 }
+
+/* ── EVENTS — "What to expect" responsive grid & compact mobile cards ── */
+.ns-evt-vibes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.ns-evt-vibe-card { padding: 20px; gap: 12px; }
+.ns-evt-vibe-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--pine-tint);
+  border: 1px solid rgba(92, 122, 102, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--moss);
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+.ns-evt-vibe-text { flex: 1; }
+@media (max-width: 767px) {
+  .ns-evt-vibes-grid { grid-template-columns: 1fr; gap: 12px; }
+  .ns-evt-vibe-card { flex-direction: row; align-items: flex-start; padding: 16px; gap: 12px; }
+  .ns-evt-vibe-icon { margin-bottom: 0; }
+}

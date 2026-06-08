@@ -55,11 +55,13 @@ export default function NotifyForm() {
     >
       <input
         type="email"
+        id="notify-email"
+        name="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="your@email.com"
         required
-        aria-label="Email address"
+        aria-label="Email address for event notifications"
         style={{
           flex:        1,
           padding:     '11px 16px',

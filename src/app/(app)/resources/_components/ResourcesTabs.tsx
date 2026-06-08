@@ -63,6 +63,7 @@ export default function ResourcesTabs() {
       <div
         key={active}
         className="ns-res-empty"
+        style={{ minHeight: 400 }}
       >
         <div
           style={{

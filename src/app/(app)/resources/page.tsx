@@ -41,8 +41,10 @@ export default async function ResourcesPage() {
         </header>
 
         {/* Replace ns-content children with real resource grid when data is available */}
-        <div className="ns-content">
-          <ResourcesTabs />
+        <div className="ns-content" style={{ paddingTop: 40 }}>
+          <div style={{ maxWidth: '48rem', width: '100%', margin: '0 auto' }}>
+            <ResourcesTabs />
+          </div>
         </div>
 
         <BottomNav />

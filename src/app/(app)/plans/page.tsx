@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
 import PlanCard from '@/components/plans/PlanCard'
@@ -9,61 +9,35 @@ export const metadata = {
   title: 'Plans — Nest',
 }
 
-const PLANS: PlanConfig[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '₹0',
-    tag: 'Where you are now',
-    features: [
-      '10 conversations with Nila per day',
-      'Access to Resources',
-      'Weekend event discovery',
-    ],
-    cta: "You're on this plan",
-  },
-  {
-    id: 'core',
-    name: 'Core',
-    price: '₹299',
-    tag: 'Most chosen',
-    features: [
-      'Unlimited Nila conversations',
-      '1 Ally session per month',
-      'Full Resources library',
-      'Priority support',
-    ],
-    cta: 'Start Core',
-    isFeatured: true,
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: '₹599',
-    tag: "For when you’re ready to go deeper",
-    features: [
-      'Everything in Core',
-      'Unlimited Ally sessions',
-      'Early access to events',
-      'Priority Ally matching',
-    ],
-    cta: 'Start Premium',
-  },
-]
-
 export default async function PlansPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('plan, display_name, full_name')
-    .eq('id', user.id)
-    .maybeSingle()
+  const [{ data: profile }, { data: planRows }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('plan, display_name, full_name')
+      .eq('id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('plans')
+      .select('id, name, price_inr, tag, features, cta, is_featured')
+      .order('display_order'),
+  ])
 
   const currentPlan = (profile?.plan as string | null) ?? 'free'
+
+  const PLANS: PlanConfig[] = (planRows ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price_inr === 0 ? '₹0' : `₹${p.price_inr}`,
+    tag: p.tag,
+    features: p.features as string[],
+    cta: p.cta,
+    isFeatured: p.is_featured,
+  }))
   const displayName = profile?.display_name ?? profile?.full_name?.split(' ')[0] ?? 'You'
   const initial = displayName[0]?.toUpperCase() ?? 'Y'
 

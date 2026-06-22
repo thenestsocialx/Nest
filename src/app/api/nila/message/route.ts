@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getConfig } from '@/lib/nila-config'
+import { getConfig, getPeriodStart } from '@/lib/nila-config'
 import type { NilaMode, ConversationMessage } from '@/actions/nila'
 
 // Re-export the system prompt builder logic inline so the route handler is
@@ -108,23 +108,41 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Daily limit check
-  const dailyLimit = parseInt(await getConfig('nila.free_daily_message_limit', '10'), 10)
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // Plan-aware, period-aware limit check
+  const { data: profileData } = await admin
+    .from('profiles')
+    .select('plan')
+    .eq('id', user.id)
+    .maybeSingle()
 
-  const { count: todayCount } = await admin
-    .from('nila_messages')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('role', 'user')
-    .gte('sent_at', todayStart.toISOString())
+  const userPlan = (profileData?.plan ?? 'free') as string
+  const limitKey =
+    userPlan === 'premium' ? 'nila.premium_message_limit'
+    : userPlan === 'core'  ? 'nila.core_message_limit'
+    :                        'nila.free_daily_message_limit'
 
-  if ((todayCount ?? 0) >= dailyLimit) {
-    return new Response(
-      JSON.stringify({ error: 'daily_limit_reached', conversationId: activeConversationId }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } },
-    )
+  const [limitStr, resetPeriod] = await Promise.all([
+    getConfig(limitKey, userPlan === 'free' ? '10' : '999'),
+    getConfig('nila.limit_reset_period', 'daily'),
+  ])
+
+  const limit = parseInt(limitStr, 10)
+
+  if (limit < 999) {
+    const periodStart = getPeriodStart(resetPeriod)
+    const { count: periodCount } = await admin
+      .from('nila_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('role', 'user')
+      .gte('sent_at', periodStart.toISOString())
+
+    if ((periodCount ?? 0) >= limit) {
+      return new Response(
+        JSON.stringify({ error: 'daily_limit_reached', conversationId: activeConversationId }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
   }
 
   // Persist user message

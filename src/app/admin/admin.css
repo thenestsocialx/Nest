@@ -46,9 +46,9 @@
 }
 .ns-admin-shell {
   font-family: var(--ns-font-sans);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
-  color: var(--ns-ink);
+  color: var(--moss);
   -webkit-font-smoothing: antialiased;
 }
 /* Strip underlines; do NOT set color:inherit here (causes specificity clash with nav/btn classes) */
@@ -225,8 +225,6 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  /* Override body's moss colour so all admin content defaults to dark ink */
-  color: var(--ns-ink);
 }
 
 /* ── TOPBAR ── */
@@ -243,14 +241,12 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  /* Ensure topbar text is always dark ink, not inherited moss */
-  color: var(--ns-ink);
 }
 .ns-topbar__page { flex: 1; }
 .ns-topbar__page-title {
   font-family: var(--ns-font-serif);
   font-size: 20px;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   line-height: 1;
 }
 .ns-topbar__page-sub {
@@ -318,7 +314,7 @@
 .ns-section-hd h2 {
   font-family: var(--ns-font-serif);
   font-size: 22px;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
 }
 .ns-section-hd__note {
   font-size: 12px;
@@ -351,7 +347,7 @@
 .ns-card__title {
   font-size: 15px;
   font-weight: 500;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   margin-bottom: 4px;
 }
 .ns-card__head {
@@ -399,7 +395,7 @@
 .ns-metric__val {
   font-family: var(--ns-font-serif);
   font-size: 28px;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   line-height: 1;
 }
 .ns-metric__sub {
@@ -488,7 +484,7 @@
   border: 1px solid var(--ns-border);
   background: #fff;
   font-size: 13px;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   transition: border-color 0.15s, box-shadow 0.15s;
   width: 100%;
 }
@@ -504,7 +500,7 @@
   border: 1px solid var(--ns-border);
   background: #fff;
   font-size: 13px;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   width: 100%;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A89E' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -521,7 +517,7 @@
 }
 .ns-toggle-row:last-child { border-bottom: none; }
 .ns-toggle-row__info { flex: 1; min-width: 0; padding-right: 16px; }
-.ns-toggle-row__title { font-size: 13px; font-weight: 500; color: var(--ns-ink); }
+.ns-toggle-row__title { font-size: 13px; font-weight: 500; color: var(--deep-pine); }
 .ns-toggle-row__desc  { font-size: 12px; color: var(--ns-ink-4); margin-top: 2px; }
 .ns-toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
 .ns-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
@@ -573,7 +569,7 @@
 .ns-btn--danger    { background: var(--ns-red) !important; color: #fff !important; border-color: var(--ns-red) !important; }
 .ns-btn--danger:hover { background: #a33a2b !important; }
 .ns-btn--ghost     { background: transparent !important; color: var(--ns-ink-3) !important; border-color: var(--ns-border) !important; }
-.ns-btn--ghost:hover { background: var(--ns-cream-2) !important; color: var(--ns-ink) !important; }
+.ns-btn--ghost:hover { background: var(--ns-cream-2) !important; color: var(--deep-pine) !important; }
 .ns-btn--sm        { padding: 5px 14px; font-size: 12px; }
 
 /* ── INTEGRATIONS CONNECT CARD ── */
@@ -595,7 +591,7 @@
   background: var(--ns-cream-2);
 }
 .ns-connect__body { flex: 1; min-width: 0; }
-.ns-connect__name { font-size: 13px; font-weight: 600; color: var(--ns-ink); margin-bottom: 2px; }
+.ns-connect__name { font-size: 13px; font-weight: 600; color: var(--deep-pine); margin-bottom: 2px; }
 .ns-connect__desc { font-size: 12px; color: var(--ns-ink-4); }
 .ns-connect__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
@@ -626,7 +622,7 @@
   background: var(--ns-forest-light);
   text-align: left;
 }
-.ns-oauth-box__title { font-size: 15px; font-weight: 500; color: var(--ns-ink); margin-bottom: 6px; }
+.ns-oauth-box__title { font-size: 15px; font-weight: 500; color: var(--deep-pine); margin-bottom: 6px; }
 .ns-oauth-box__sub   { font-size: 13px; color: var(--ns-ink-4); margin-bottom: 16px; }
 .ns-oauth-meta       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .ns-oauth-meta__item { background: var(--ns-cream); border-radius: 6px; padding: 10px 12px; border: 1px solid var(--ns-border); }
@@ -635,7 +631,7 @@
   text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--ns-ink-4); margin-bottom: 3px;
 }
-.ns-oauth-meta__val  { font-size: 12px; font-weight: 500; color: var(--ns-ink); }
+.ns-oauth-meta__val  { font-size: 12px; font-weight: 500; color: var(--deep-pine); }
 
 /* ── ENV VAR LIST ── */
 .ns-env-row {
@@ -660,7 +656,7 @@
   background: #fff;
   font-size: 13px;
   line-height: 1.4;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   width: 100%;
   font-family: inherit;
   box-sizing: border-box;
@@ -700,7 +696,7 @@
 .ns-audit__icon--amber  { background: var(--ns-amber-light); }
 .ns-audit__icon--forest { background: var(--ns-forest-light); }
 .ns-audit__body  { flex: 1; min-width: 0; }
-.ns-audit__title { font-size: 12px; font-weight: 500; color: var(--ns-ink); }
+.ns-audit__title { font-size: 12px; font-weight: 500; color: var(--deep-pine); }
 .ns-audit__sub   { font-size: 11px; color: var(--ns-ink-4); margin-top: 1px; }
 .ns-audit__time  { font-size: 11px; color: var(--ns-ink-4); white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
 
@@ -747,7 +743,7 @@
 }
 .ns-plan__price {
   font-family: var(--ns-font-serif);
-  font-size: 24px; color: var(--ns-ink); margin-bottom: 2px;
+  font-size: 24px; color: var(--deep-pine); margin-bottom: 2px;
 }
 .ns-plan__price-unit { font-family: var(--ns-font-sans); font-size: 12px; color: var(--ns-ink-4); }
 .ns-plan__features { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
@@ -815,7 +811,7 @@
 .ns-event-row__month { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ns-forest); }
 .ns-event-row__day   { font-size: 18px; font-weight: 600; color: var(--ns-forest); line-height: 1; }
 .ns-event-row__body  { flex: 1; min-width: 0; }
-.ns-event-row__name  { font-size: 13px; font-weight: 500; color: var(--ns-ink); }
+.ns-event-row__name  { font-size: 13px; font-weight: 500; color: var(--deep-pine); }
 .ns-event-row__meta  { font-size: 11px; color: var(--ns-ink-4); margin-top: 1px; }
 .ns-event-row__cap   { font-size: 12px; font-weight: 500; color: var(--ns-ink-3); white-space: nowrap; }
 
@@ -832,7 +828,7 @@
   font-size: 14px; background: var(--ns-cream-2);
 }
 .ns-resource-row__body  { flex: 1; min-width: 0; }
-.ns-resource-row__title { font-size: 13px; color: var(--ns-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ns-resource-row__title { font-size: 13px; color: var(--deep-pine); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ns-resource-row__tags  { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
 
 /* ── TAGS ── */
@@ -860,7 +856,7 @@
 .ns-ally-avatar--v2 { background: var(--ns-forest-light); color: var(--ns-forest); }
 .ns-ally-avatar--v3 { background: var(--ns-cream-3);      color: var(--ns-ink-2); }
 .ns-ally__body     { flex: 1; min-width: 0; }
-.ns-ally__name     { font-size: 13px; font-weight: 500; color: var(--ns-ink); }
+.ns-ally__name     { font-size: 13px; font-weight: 500; color: var(--deep-pine); }
 .ns-ally__meta     { font-size: 11px; color: var(--ns-ink-4); margin-top: 1px; }
 .ns-ally__sessions { font-size: 11px; color: var(--ns-ink-4); margin-top: 2px; }
 
@@ -886,7 +882,7 @@
 }
 .ns-tab--active {
   background: #fff;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
@@ -1330,7 +1326,7 @@
   background: #fff;
   font-size: 13px;
   font-family: inherit;
-  color: var(--ns-ink);
+  color: var(--deep-pine);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s;

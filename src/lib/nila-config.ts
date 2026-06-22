@@ -33,3 +33,19 @@ export function invalidateConfig(key?: string): void {
     cache.clear()
   }
 }
+
+export function getPeriodStart(period: string): Date {
+  const now = new Date()
+  if (period === 'weekly') {
+    const day = now.getDay() // 0=Sun … 6=Sat
+    const daysBack = day === 0 ? 6 : day - 1 // days since last Monday
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - daysBack)
+    monday.setHours(0, 0, 0, 0)
+    return monday
+  }
+  // daily: midnight today (local)
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+  return today
+}

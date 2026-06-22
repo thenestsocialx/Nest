@@ -46,3 +46,16 @@ export class ZohoAPIError extends Error {
     this.name = 'ZohoAPIError';
   }
 }
+
+/** A synced Zoho service row from public.zoho_services */
+export interface ZohoServiceRow {
+  zoho_service_id:       string;
+  name:                  string;
+  duration_mins:         number;
+  pre_buffer_mins:       number;
+  post_buffer_mins:      number;
+  effective_slot_mins:   number;
+  session_format:        string[];
+  is_active:             boolean;
+  last_synced_at?:       string;
+}

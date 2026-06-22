@@ -15,10 +15,16 @@ export async function createCheckoutSession(planId: string): Promise<never> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Look up stripe_price_id from plans table; fall back to env vars
+  const { data: planRow } = await supabase
+    .from('plans')
+    .select('stripe_price_id')
+    .eq('id', planId)
+    .maybeSingle()
+
   const priceId =
-    planId === 'core'
-      ? process.env.STRIPE_CORE_PRICE_ID
-      : process.env.STRIPE_PREMIUM_PRICE_ID
+    planRow?.stripe_price_id ??
+    (planId === 'core' ? process.env.STRIPE_CORE_PRICE_ID : process.env.STRIPE_PREMIUM_PRICE_ID)
 
   if (!priceId) throw new Error(`Price ID for plan "${planId}" is not configured`)
 

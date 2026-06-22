@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import NestLogo from '@/components/ui/NestLogo'
+import { useFeatureFlags } from '@/contexts/FeatureFlagsContext'
 
 const NAV_ITEMS = [
   { id: 'home',      label: 'Home',            href: '/home' },
@@ -66,6 +67,13 @@ interface SidebarProps {
 
 export default function Sidebar({ userName = 'You', userInitial = 'Y' }: SidebarProps) {
   const pathname = usePathname()
+  const flags = useFeatureFlags()
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.id === 'resources') return flags.resources
+    if (item.id === 'events')    return flags.events
+    return true
+  })
 
   return (
     <aside className="ns-sidebar">
@@ -75,7 +83,7 @@ export default function Sidebar({ userName = 'You', userInitial = 'Y' }: Sidebar
       </div>
 
       <nav className="ns-sidebar__nav" aria-label="Main navigation">
-        {NAV_ITEMS.map((item) => (
+        {visibleItems.map((item) => (
           <a
             key={item.id}
             href={item.href}

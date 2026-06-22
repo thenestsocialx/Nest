@@ -7,8 +7,8 @@
 
 /* ── CUSTOM PROPERTIES ── */
 :root {
-  --ns-cream:        #F8F4ED;
-  --ns-cream-2:      #F2EBE0;
+  --ns-cream:        #F8F0E5;
+  --ns-cream-2:      #F2EAD8;
   --ns-cream-3:      #E8DDD0;
   --ns-forest:       #2F4C3A;
   --ns-forest-2:     #3D6150;
@@ -153,8 +153,8 @@
   color: rgba(255,255,255,0.9);
 }
 .ns-nav-item--active {
-  background: rgba(255,255,255,0.12);
-  color: #fff;
+  background: rgba(232,200,160,0.14);
+  color: var(--ns-gold-mid);
   font-weight: 500;
 }
 .ns-nav-item--active::before {
@@ -327,11 +327,11 @@
 
 /* ── CARDS ── */
 .ns-card {
-  background: #fff;
-  border: 1px solid var(--ns-border-soft);
+  background: var(--ns-cream);
+  border: 1px solid var(--ns-border);
   border-radius: var(--ns-radius);
   padding: 20px;
-  box-shadow: var(--ns-shadow);
+  box-shadow: 0 1px 3px rgba(47,76,58,0.06), 0 2px 8px rgba(47,76,58,0.03);
   /* Override globals.css display:flex that leaks in */
   display: block;
   position: relative;
@@ -368,11 +368,11 @@
   gap: 14px;
 }
 .ns-metric {
-  background: #fff;
-  border: 1px solid var(--ns-border-soft);
+  background: var(--ns-cream);
+  border: 1px solid var(--ns-border);
   border-radius: var(--ns-radius);
   padding: 18px 20px;
-  box-shadow: var(--ns-shadow);
+  box-shadow: 0 1px 3px rgba(47,76,58,0.06), 0 2px 8px rgba(47,76,58,0.03);
   position: relative;
   overflow: hidden;
   display: block; /* reset globals.css flex */
@@ -549,8 +549,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--ns-radius-sm);
+  padding: 8px 18px;
+  border-radius: 999px;
   font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -568,21 +568,21 @@
 .ns-btn--secondary:hover { background: var(--ns-cream-2) !important; }
 .ns-btn--danger    { background: var(--ns-red) !important; color: #fff !important; border-color: var(--ns-red) !important; }
 .ns-btn--danger:hover { background: #a33a2b !important; }
-.ns-btn--ghost     { background: transparent !important; color: var(--ns-ink-3) !important; border-color: var(--ns-border-soft) !important; }
+.ns-btn--ghost     { background: transparent !important; color: var(--ns-ink-3) !important; border-color: var(--ns-border) !important; }
 .ns-btn--ghost:hover { background: var(--ns-cream-2) !important; color: var(--ns-ink) !important; }
-.ns-btn--sm        { padding: 5px 12px; font-size: 12px; }
+.ns-btn--sm        { padding: 5px 14px; font-size: 12px; }
 
 /* ── INTEGRATIONS CONNECT CARD ── */
 .ns-connect {
   display: flex; align-items: center; gap: 14px;
   padding: 16px;
   border-radius: var(--ns-radius);
-  border: 1px solid var(--ns-border-soft);
-  background: #fff;
+  border: 1px solid var(--ns-border);
+  background: var(--ns-cream);
   margin-bottom: 10px;
-  transition: box-shadow 0.15s;
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
-.ns-connect:hover { box-shadow: var(--ns-shadow); }
+.ns-connect:hover { box-shadow: 0 2px 12px rgba(47,76,58,0.10); border-color: var(--ns-border); }
 .ns-connect__icon {
   width: 40px; height: 40px;
   border-radius: 8px; flex-shrink: 0;
@@ -625,7 +625,7 @@
 .ns-oauth-box__title { font-size: 15px; font-weight: 500; color: var(--ns-ink); margin-bottom: 6px; }
 .ns-oauth-box__sub   { font-size: 13px; color: var(--ns-ink-4); margin-bottom: 16px; }
 .ns-oauth-meta       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-.ns-oauth-meta__item { background: #fff; border-radius: 6px; padding: 10px 12px; border: 1px solid var(--ns-border-soft); }
+.ns-oauth-meta__item { background: var(--ns-cream); border-radius: 6px; padding: 10px 12px; border: 1px solid var(--ns-border); }
 .ns-oauth-meta__label {
   font-size: 10px; font-weight: 500;
   text-transform: uppercase; letter-spacing: 0.06em;
@@ -724,8 +724,8 @@
 .ns-plan {
   border-radius: var(--ns-radius);
   padding: 16px;
-  border: 1px solid var(--ns-border-soft);
-  background: #fff;
+  border: 1px solid var(--ns-border);
+  background: var(--ns-cream);
   position: relative;
   display: block; /* reset any inherited flex from globals */
 }
@@ -758,11 +758,11 @@
 
 /* ── LIMIT SLIDER ── */
 .ns-limit-card {
-  background: #fff;
-  border: 1px solid var(--ns-border-soft);
+  background: var(--ns-cream);
+  border: 1px solid var(--ns-border);
   border-radius: var(--ns-radius);
   padding: 18px 20px;
-  box-shadow: var(--ns-shadow);
+  box-shadow: 0 1px 3px rgba(47,76,58,0.06), 0 2px 8px rgba(47,76,58,0.03);
   display: block;
 }
 .ns-limit-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
@@ -1679,7 +1679,7 @@
   cursor: default;
 }
 .ns-metric:hover {
-  box-shadow: 0 6px 24px rgba(47, 76, 58, 0.13);
+  box-shadow: 0 4px 20px rgba(47, 76, 58, 0.12);
   border-color: var(--ns-border);
 }
 /* Clickable metric cards (wrapped in <a> / <Link>) */

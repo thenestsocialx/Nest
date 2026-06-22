@@ -78,6 +78,13 @@ export default async function EventsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: flag } = await supabase
+    .from('nest_config')
+    .select('value')
+    .eq('key', 'features.events.enabled')
+    .maybeSingle()
+  if (flag?.value !== 'true') redirect('/home')
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, display_name')

@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useFeatureFlags } from '@/contexts/FeatureFlagsContext'
 
 const NAV_ITEMS = [
   { id: 'home',      label: 'Home',     href: '/home' },
@@ -55,10 +56,17 @@ function NavIcon({ id }: { id: string }) {
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const flags = useFeatureFlags()
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.id === 'resources') return flags.resources
+    if (item.id === 'events')    return flags.events
+    return true
+  })
 
   return (
     <nav className="ns-bottom-nav" aria-label="Mobile navigation">
-      {NAV_ITEMS.map((item) => (
+      {visibleItems.map((item) => (
         <a
           key={item.id}
           href={item.href}

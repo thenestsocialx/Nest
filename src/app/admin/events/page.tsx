@@ -1,108 +1,104 @@
-const EVENTS = [
-  {
-    month: 'Jul', day: 26,
-    name: 'Sunday Circle — Bangalore',
-    meta: 'Indiranagar · 6:00 PM · 20 capacity',
-    cap: '12/20', status: 'Open',
-  },
-  {
-    month: 'Aug', day: 2,
-    name: 'Quiet Gathering — Chennai',
-    meta: 'Nungambakkam · 5:30 PM · 15 capacity',
-    cap: '15/15', status: 'Full', capAmber: true,
-  },
-  {
-    month: 'Aug', day: 9,
-    name: 'Evening Walk — Pune',
-    meta: 'Koregaon Park · 6:30 PM · 25 capacity',
-    cap: '4/25', status: 'Open',
-  },
-];
+'use client'
 
-const POST_EVENT_TOGGLES = [
-  { title: 'Send reflection email after event', desc: '2h after event ends · via Resend', on: true },
-  { title: 'Nila follow-up prompt', desc: 'Next day · personalised check-in', on: true },
-  { title: '24h reminder to registrants', desc: 'via Resend email', on: true },
-];
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { saveAdminConfig } from '../config/actions'
 
-export default function EventsPage() {
+export default function AdminEventsPage() {
+  const [enabled, setEnabled] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('nest_config')
+      .select('value')
+      .eq('key', 'features.events.enabled')
+      .maybeSingle()
+      .then(({ data }) => {
+        setEnabled(data?.value === 'true')
+        setLoading(false)
+      })
+  }, [])
+
+  async function handleToggle() {
+    const next = !enabled
+    setSaving(true)
+    setMsg('')
+    const { error } = await saveAdminConfig('features.events.enabled', next ? 'true' : 'false')
+    setSaving(false)
+    if (!error) {
+      setEnabled(next)
+      setMsg(next ? 'Events are now visible to users.' : 'Events hidden from users.')
+    } else {
+      setMsg('Failed to save — try again.')
+    }
+    setTimeout(() => setMsg(''), 3500)
+  }
+
   return (
     <>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <div className="ns-tabs">
-          <button className="ns-tab ns-tab--active">Upcoming</button>
-          <button className="ns-tab">Past</button>
+      {/* Feature toggle */}
+      <div className="ns-card" style={{ marginBottom: 20 }}>
+        <div className="ns-toggle-row" style={{ borderBottom: 'none', padding: 0 }}>
+          <div className="ns-toggle-row__info">
+            <div className="ns-toggle-row__title">Events · Visible to users</div>
+            <div className="ns-toggle-row__desc">
+              When enabled, the Events section appears in the app sidebar and bottom nav.
+              Users can browse upcoming events and sign up for notifications. Disable to hide it entirely — direct URL access is also blocked.
+            </div>
+            {msg && (
+              <div style={{ marginTop: 8, fontSize: 12, color: msg.startsWith('Failed') ? 'var(--ns-red)' : 'var(--ns-teal)', fontWeight: 500 }}>
+                {msg}
+              </div>
+            )}
+          </div>
+          {loading ? (
+            <div style={{ width: 38, height: 22, borderRadius: 11, background: 'var(--ns-border)', flexShrink: 0 }} />
+          ) : (
+            <label className="ns-toggle" style={{ opacity: saving ? 0.5 : 1 }}>
+              <input type="checkbox" checked={enabled} onChange={handleToggle} disabled={saving} />
+              <div className="ns-toggle__track" />
+              <div className="ns-toggle__thumb" />
+            </label>
+          )}
         </div>
-        <button className="ns-btn ns-btn--primary">+ Create event</button>
       </div>
 
-      <div className="ns-two-col">
-        {/* Events list */}
-        <div className="ns-card">
-          <div className="ns-card__label" style={{ marginBottom: 12 }}>Upcoming events</div>
-          {EVENTS.map((ev, i) => (
-            <div key={i} className="ns-event-row">
-              <div className="ns-event-row__date">
-                <div className="ns-event-row__month">{ev.month}</div>
-                <div className="ns-event-row__day">{ev.day}</div>
-              </div>
-              <div className="ns-event-row__body">
-                <div className="ns-event-row__name">{ev.name}</div>
-                <div className="ns-event-row__meta">{ev.meta}</div>
-              </div>
-              <div className="ns-event-row__cap">
-                {ev.cap}
-                <span
-                  className={`ns-badge ns-badge--${ev.capAmber ? 'amber' : 'green'}`}
-                  style={{ marginLeft: 6 }}
-                >
-                  {ev.status}
-                </span>
-              </div>
-              <button className="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
-            </div>
+      {/* Coming soon */}
+      <div className="ns-card" style={{ textAlign: 'center', padding: '52px 32px' }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'var(--ns-forest-light)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 20px',
+          color: 'var(--ns-forest)',
+        }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M8 2v4M16 2v4"/>
+            <circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div style={{ fontFamily: 'var(--ns-font-serif)', fontSize: 20, color: 'var(--ns-ink)', marginBottom: 10 }}>
+          Events management is coming
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--ns-ink-4)', lineHeight: 1.7, maxWidth: '42ch', margin: '0 auto' }}>
+          This is where you&rsquo;ll create and manage in-person gatherings — Sunday Circles, quiet evenings, city-based events — with registrations and automated follow-ups.
+        </div>
+        <div style={{ marginTop: 24, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {['Create events', 'Registrations', 'Waitlists', 'Reminders', 'Post-event flow'].map((label) => (
+            <span key={label} className="ns-badge ns-badge--gray">{label}</span>
           ))}
         </div>
-
-        {/* Right column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Mini metrics */}
-          <div className="ns-card">
-            <div className="ns-card__label" style={{ marginBottom: 12 }}>Event registrations</div>
-            <div className="ns-two-col" style={{ gap: 12 }}>
-              <div>
-                <div className="ns-card__label">This month</div>
-                <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--ns-ink)' }}>47</div>
-                <div style={{ fontSize: 11, color: 'var(--ns-ink-4)' }}>registrations</div>
-              </div>
-              <div>
-                <div className="ns-card__label">Waitlisted</div>
-                <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--ns-amber)' }}>8</div>
-                <div style={{ fontSize: 11, color: 'var(--ns-ink-4)' }}>Chennai event</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Post-event flow */}
-          <div className="ns-card">
-            <div className="ns-card__label" style={{ marginBottom: 12 }}>Post-event flow</div>
-            {POST_EVENT_TOGGLES.map((t, i) => (
-              <div key={i} className="ns-toggle-row">
-                <div className="ns-toggle-row__info">
-                  <div className="ns-toggle-row__title">{t.title}</div>
-                  <div className="ns-toggle-row__desc">{t.desc}</div>
-                </div>
-                <label className="ns-toggle">
-                  <input type="checkbox" defaultChecked={t.on} />
-                  <div className="ns-toggle__track" />
-                  <div className="ns-toggle__thumb" />
-                </label>
-              </div>
-            ))}
-          </div>
+        <div style={{ marginTop: 28, fontSize: 12, color: 'var(--ns-ink-4)', opacity: 0.65, fontStyle: 'italic' }}>
+          For now, use the toggle above to control user visibility.
         </div>
       </div>
     </>
-  );
+  )
 }

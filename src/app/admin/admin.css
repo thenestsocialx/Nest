@@ -543,6 +543,10 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .ns-toggle input:checked ~ .ns-toggle__thumb { transform: translateX(16px); }
+/* globals.css also defines .ns-toggle via ::after — suppress that within admin so the
+   __track/__thumb structure renders without a ghost circle in the enabled state */
+.ns-admin-shell .ns-toggle { background: transparent; }
+.ns-admin-shell .ns-toggle::after { display: none; }
 
 /* ── BUTTONS ── */
 .ns-btn {

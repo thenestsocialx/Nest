@@ -17,7 +17,7 @@ const PATCHABLE_FIELDS = new Set<string>([
   'session_formats', 'session_durations', 'session_price', 'intro_price',
   'max_clients_per_week', 'buffer_minutes', 'availability',
   'visibility_search', 'visibility_bookings', 'visibility_matching', 'visibility_featured',
-  'zoho_service_id', 'pricing_tier',
+  'zoho_service_id',
   'admin_notes', 'doc_agreement_status',
   'match_weights', 'sort_priority', 'manual_priority_score',
   'onboarding_step', 'onboarding_status',

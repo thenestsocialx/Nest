@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 const STEP_LABELS = [
   { label: 'Identity',  sub: 'Name, photo, bio'   },
   { label: 'Expertise', sub: 'Skills & approach'  },
-  { label: 'Sessions',  sub: 'Format & pricing'   },
+  { label: 'Sessions',  sub: 'Zoho service'         },
   { label: 'Documents', sub: 'Verification'        },
   { label: 'Matching',  sub: 'Engine config'       },
 ];
@@ -32,12 +32,6 @@ const MODALITIES = [
 const AGE_GROUPS = ['18-24','25-34','35-45','45+'];
 const GENDERS    = ['Any gender','Women preferred','Men preferred'];
 const TONES      = ['Warm & nurturing','Structured & goal-driven','Exploratory & open','Solution-focused','Quiet & reflective'];
-const FORMATS    = ['🎥 Online','📍 In-person'];
-const DURATIONS  = ['45min','60min','90min'];
-const TIER_PRICES = { spark: 499, glow: 799, radiance: 1299 } as const;
-type PricingTier  = keyof typeof TIER_PRICES | '';
-const AVAIL_ROWS = ['Morning (9AM–12PM)','Afternoon (12–4PM)','Evening (4–9PM)'];
-const AVAIL_COLS = ['Mon–Wed','Thu–Fri','Sat','Sun'];
 
 const MATCH_WEIGHTS_DEF = [
   { label: 'Loneliness & disconnection',     tag: 'Primary',   key: 'loneliness', def: 90 },
@@ -61,7 +55,6 @@ const DOC_DEFS = [
 /* ══════════════════════════════════════════════════════════════
    TYPES
 ══════════════════════════════════════════════════════════════ */
-type Availability  = Record<string, boolean>;
 type DocUploadStatus = 'pending' | 'uploading' | 'uploaded' | 'error';
 interface DocState { status: DocUploadStatus; file_name?: string; file_url?: string; error?: string; }
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -73,6 +66,7 @@ interface ZohoServiceRow {
   pre_buffer_mins:     number;
   post_buffer_mins:    number;
   effective_slot_mins: number;
+  price_zoho:          number | null;
   session_format:      string[];
 }
 
@@ -100,11 +94,9 @@ function validateStep2(f: { primaryRole:string; specialties:string[]; ageGroups:
   if (f.genderPrefs.length === 0)  e.genderPrefs = 'Select at least one gender preference';
   return { valid: Object.keys(e).length === 0, errors: e };
 }
-function validateStep3(f: { zohoServiceId:string; pricingTier:string; formats:string[] }) {
+function validateStep3(f: { zohoServiceId:string }) {
   const e: Record<string,string> = {};
-  if (!f.zohoServiceId)         e.zohoServiceId = 'Please select a Zoho service';
-  if (!f.pricingTier)           e.pricingTier   = 'Please select a pricing tier';
-  if (f.formats.length === 0)   e.formats       = 'Select at least one session format';
+  if (!f.zohoServiceId) e.zohoServiceId = 'Please select a Zoho service';
   return { valid: Object.keys(e).length === 0, errors: e };
 }
 
@@ -192,28 +184,18 @@ export default function OnboardAllyPage() {
   const [userVibes,     setUserVibes]     = useState<string[]>([]);
 
   /* ── Step 3 ── */
-  const [formats,    setFormats]    = useState<string[]>(['🎥 Online']);
-  const [durations,  setDurations]  = useState<string[]>(['60min']);
   const [price,      setPrice]      = useState(1200);
   const [introPrice, setIntroPrice] = useState('');
-  const [maxClients, setMaxClients] = useState(12);
-  const [bufferMin,  setBufferMin]  = useState('15');
-  const [avail,      setAvail]      = useState<Availability>({
-    'Morning (9AM–12PM)_Mon–Wed': true,
-    'Afternoon (12–4PM)_Thu–Fri': true,
-    'Evening (4–9PM)_Mon–Wed':    true,
-  });
   const [visibility, setVisibility] = useState({
     search: false, bookings: false, matching: true, featured: false,
   });
 
-  /* ── Zoho service & pricing tier (Step 3) ── */
+  /* ── Zoho service (Step 3) ── */
   const [zohoServices,    setZohoServices]    = useState<ZohoServiceRow[]>([]);
   const [servicesLoading, setServicesLoading] = useState(false);
   const [serviceSyncing,  setServiceSyncing]  = useState(false);
   const [zohoServiceId,   setZohoServiceId]   = useState('');
   const [selectedService, setSelectedService] = useState<ZohoServiceRow | null>(null);
-  const [pricingTier,     setPricingTier]     = useState<PricingTier>('');
 
   /* ── Step 4 ── */
   const [docs, setDocs] = useState<Record<string, DocState>>(
@@ -270,16 +252,10 @@ export default function OnboardAllyPage() {
         if ((ally as Record<string,unknown>).user_vibes && Array.isArray((ally as Record<string,unknown>).user_vibes))
           setUserVibes((ally as Record<string,unknown>).user_vibes as string[]);
         // Step 3
-        if (ally.session_formats?.length)    setFormats(ally.session_formats);
-        if (ally.session_durations?.length)  setDurations(ally.session_durations);
         if (ally.session_price != null)      setPrice(ally.session_price);
         if (ally.intro_price != null)        setIntroPrice(String(ally.intro_price));
-        if (ally.max_clients_per_week != null) setMaxClients(ally.max_clients_per_week);
-        if (ally.buffer_minutes != null)     setBufferMin(String(ally.buffer_minutes));
-        if (ally.availability && Object.keys(ally.availability).length) setAvail(ally.availability);
         const allyAny = ally as Record<string, unknown>;
         if (allyAny.zoho_service_id) setZohoServiceId(allyAny.zoho_service_id as string);
-        if (allyAny.pricing_tier)    setPricingTier(allyAny.pricing_tier as PricingTier);
         setVisibility({
           search:   ally.visibility_search   ?? false,
           bookings: ally.visibility_bookings ?? false,
@@ -348,19 +324,16 @@ export default function OnboardAllyPage() {
     approach_style:             approachStyle.trim() || null,
     session_tones:              sessionTones,
     user_vibes:                 userVibes,
-    session_formats:            formats,
-    session_durations:          selectedService ? [`${selectedService.duration_mins}min`] : durations,
-    session_price:              pricingTier ? TIER_PRICES[pricingTier as keyof typeof TIER_PRICES] : price,
+    session_formats:            selectedService?.session_format ?? [],
+    session_durations:          selectedService ? [`${selectedService.duration_mins}min`] : [],
+    session_price:              selectedService?.price_zoho != null ? Math.round(selectedService.price_zoho) : price,
     intro_price:                null,
-    max_clients_per_week:       maxClients,
-    buffer_minutes:             Number(bufferMin),
-    availability:               avail,
+
     visibility_search:          visibility.search,
     visibility_bookings:        visibility.bookings,
     visibility_matching:        visibility.matching,
     visibility_featured:        visibility.featured,
     zoho_service_id:            zohoServiceId || null,
-    pricing_tier:               pricingTier   || null,
     admin_notes:                adminNotes.trim() || null,
     match_weights:              weights,
     sort_priority:              sortPriority,
@@ -372,8 +345,8 @@ export default function OnboardAllyPage() {
     primaryRole, experience, qualification, licenseNo, extraCerts,
     specialties, modalities, ageGroups, genderPrefs, langSpoken, langTherapy,
     approachStyle, sessionTones, userVibes,
-    formats, durations, price, introPrice, maxClients, bufferMin, avail, visibility,
-    zohoServiceId, selectedService, pricingTier,
+    price, visibility,
+    zohoServiceId, selectedService,
     adminNotes, weights, sortPriority, priorityScore, step,
   ]);
 
@@ -529,16 +502,8 @@ export default function OnboardAllyPage() {
 
   const handleServiceSelect = useCallback((serviceId: string) => {
     setZohoServiceId(serviceId);
-    const svc = zohoServices.find(s => s.zoho_service_id === serviceId);
-    if (svc) {
-      const fmts: string[] = [];
-      if (svc.session_format.includes('online'))   fmts.push('🎥 Online');
-      if (svc.session_format.includes('inperson')) fmts.push('📍 In-person');
-      setFormats(fmts.length > 0 ? fmts : ['🎥 Online']);
-      setBufferMin(svc.post_buffer_mins > 0 ? String(svc.post_buffer_mins) : '15');
-    }
     scheduleAutoSave();
-  }, [zohoServices, scheduleAutoSave]);
+  }, [scheduleAutoSave]);
 
   const handleSyncServices = useCallback(async () => {
     setServiceSyncing(true);
@@ -567,13 +532,13 @@ export default function OnboardAllyPage() {
     let result = { valid: true, errors: {} as Record<string,string> };
     if (step === 1) result = validateStep1({ fullName, pronouns, location, email, phone, tagline, ownWords });
     if (step === 2) result = validateStep2({ primaryRole, specialties, ageGroups, genderPrefs });
-    if (step === 3) result = validateStep3({ zohoServiceId, pricingTier, formats });
+    if (step === 3) result = validateStep3({ zohoServiceId });
     if (!result.valid) { setErrors(result.errors); return; }
     setErrors({});
     try { await flushSave(); } catch { /* toast already shown */ }
     setStep(n);
   }, [step, fullName, pronouns, location, email, phone, tagline, ownWords,
-      primaryRole, specialties, ageGroups, genderPrefs, formats, durations, price, zohoServiceId, pricingTier, flushSave]);
+      primaryRole, specialties, ageGroups, genderPrefs, price, zohoServiceId, flushSave]);
 
   /* ═══════════════════════════════════════════
      FINAL SUBMIT
@@ -1016,38 +981,41 @@ export default function OnboardAllyPage() {
                 <>
                   <div className="ob-panel-header">
                     <div className="ob-panel-header__eyebrow">Step 3 of 5</div>
-                    <div className="ob-panel-header__title">Session Format &amp; Pricing</div>
+                    <div className="ob-panel-header__title">Sessions</div>
                     <div className="ob-panel-header__sub">
-                      Select a Zoho service, set the pricing tier, and configure capacity. This controls what clients see on the booking card.
+                      Map this ally to a Zoho Bookings service and configure their session capacity. Pricing and duration are pulled directly from the service.
                     </div>
                   </div>
 
-                  {/* ── Section 0: Zoho Service selector ── */}
+                  {/* ── Section 0: Zoho Service ── */}
                   <div className="ob-form-section">
-                    <div className="ob-section-title">Zoho service</div>
-                    <div className="ob-field">
-                      <label className="ob-field__label">
-                        Select service <span style={{color:'var(--ob-terra)'}}>*</span>
-                      </label>
-                      <p className="ob-field__hint">Services are synced from your Zoho Bookings workspace.</p>
-                      {servicesLoading ? (
-                        <div style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:'var(--ob-moss)',opacity:0.6,padding:'8px 0'}}>
-                          <div className="ob-spinner" style={{width:14,height:14,borderWidth:2}}/>
-                          Loading services…
+                    <div className="ob-section-title">
+                      Zoho service
+                      <span style={{color:'var(--ob-terra)',fontSize:10,marginLeft:4,textTransform:'none',letterSpacing:0}}>*</span>
+                    </div>
+                    <p className="ob-field__hint" style={{marginBottom:12}}>
+                      Select the service already created in your Zoho Bookings workspace. The service defines the session duration and booking slot for this ally.
+                    </p>
+
+                    {servicesLoading ? (
+                      <div style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:'var(--ob-moss)',opacity:0.6,padding:'8px 0'}}>
+                        <div className="ob-spinner" style={{width:14,height:14,borderWidth:2}}/>
+                        Loading services…
+                      </div>
+                    ) : zohoServices.length === 0 ? (
+                      <div className="ob-notice ob-notice--warn">
+                        <svg className="ob-notice__icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--ob-terra)" strokeWidth="1.2" strokeLinecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3M8 10v.5"/></svg>
+                        <div className="ob-notice__body">
+                          No services found. Go to{' '}
+                          <a href="/admin/integrations" style={{color:'var(--ob-dp)',fontWeight:500}}>
+                            Integrations → Zoho Bookings
+                          </a>
+                          {' '}to sync your services first.
                         </div>
-                      ) : zohoServices.length === 0 ? (
-                        <div className="ob-notice ob-notice--warn" style={{marginTop:4}}>
-                          <svg className="ob-notice__icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--ob-terra)" strokeWidth="1.2" strokeLinecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3M8 10v.5"/></svg>
-                          <div className="ob-notice__body">
-                            No services found. Go to{' '}
-                            <a href="/admin/integrations" style={{color:'var(--ob-dp)',fontWeight:500}}>
-                              Integrations → Zoho Bookings
-                            </a>
-                            {' '}to sync your services.
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4,flexWrap:'wrap'}}>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                           <select
                             className="ob-field__select"
                             value={zohoServiceId}
@@ -1069,234 +1037,66 @@ export default function OnboardAllyPage() {
                               : '↻ Refresh services'}
                           </button>
                         </div>
-                      )}
-                      {errors.zohoServiceId && <div className="ob-field__error">⚠ {errors.zohoServiceId}</div>}
-                    </div>
-                  </div>
 
-                  {/* ── Section 1: Format & Duration ── */}
-                  <div className="ob-form-section">
-                    <div className="ob-section-title">Format &amp; duration</div>
-                    <div className="ob-grid-2">
-                      <div className="ob-field">
-                        <label className="ob-field__label">
-                          Session format <span style={{color:'var(--ob-terra)'}}>*</span>
-                        </label>
-                        <p className="ob-field__hint">Pre-filled from service. Editable.</p>
-                        {errors.formats && <div className="ob-field__error">⚠ {errors.formats}</div>}
-                        <div className="ob-chip-group" style={{padding:10}}>
-                          {FORMATS.map(f => (
-                            <button key={f} type="button"
-                              className={`ob-chip-opt${formats.includes(f)?' selected':''}`}
-                              onClick={() => { toggleChip(formats, setFormats, f); scheduleAutoSave(); }}>
-                              {f}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="ob-field">
-                        <label className="ob-field__label">Session duration</label>
-                        <p className="ob-field__hint">Read from selected Zoho service. Not editable per ally.</p>
-                        <div style={{
-                          display:'flex',alignItems:'center',gap:14,padding:'14px 18px',marginTop:2,
-                          background:'var(--ob-pine-t)',
-                          border:`1.5px solid ${selectedService ? 'var(--ob-moss)' : 'var(--ob-hm)'}`,
-                          borderRadius:10,
-                        }}>
-                          {selectedService ? (
-                            <>
-                              <div>
-                                <div style={{fontSize:32,fontWeight:300,color:'var(--ob-dp)',lineHeight:1,letterSpacing:'-0.02em'}}>
-                                  {selectedService.duration_mins}
-                                </div>
-                                <div style={{fontSize:13,color:'var(--ob-moss)',opacity:0.7,marginTop:4}}>minutes</div>
-                              </div>
-                              <div style={{flex:1,paddingLeft:4}}>
-                                <div style={{fontSize:12,color:'var(--ob-dp)',fontWeight:500,marginBottom:3}}>{selectedService.name}</div>
-                                <div style={{fontSize:11,color:'var(--ob-moss)',opacity:0.6,lineHeight:1.5}}>
-                                  Effective slot: {selectedService.effective_slot_mins} min
-                                  {selectedService.pre_buffer_mins + selectedService.post_buffer_mins > 0 &&
-                                    ` (incl. ${selectedService.pre_buffer_mins + selectedService.post_buffer_mins} min buffer)`}
-                                </div>
-                              </div>
-                              <span style={{
-                                display:'inline-flex',alignItems:'center',gap:5,padding:'4px 10px',
-                                borderRadius:50,background:'var(--ob-dp)',color:'var(--ob-cream)',
-                                fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',fontWeight:500,marginLeft:'auto',flexShrink:0,
-                              }}>
-                                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                Fixed
-                              </span>
-                            </>
-                          ) : (
-                            <div style={{fontSize:12,color:'var(--ob-moss)',opacity:0.55}}>
-                              — Select a service above to set duration
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── Section 2: Pricing Tier ── */}
-                  <div className="ob-form-section">
-                    <div className="ob-section-title">
-                      Session pricing tier
-                      <span style={{color:'var(--ob-terra)',fontSize:10,marginLeft:4,textTransform:'none',letterSpacing:0}}>*</span>
-                    </div>
-                    <div className="ob-notice ob-notice--info" style={{marginBottom:20}}>
-                      <svg className="ob-notice__icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#5C7A66" strokeWidth="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#5C7A66" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                      <p className="ob-notice__body">
-                        <strong style={{color:'var(--ob-dp)'}}>One tier per ally.</strong> The tier and price will be shown on the ally card as ₹X,XXX / session. Tiers reflect seniority and platform positioning — not Zoho&apos;s service price.
-                      </p>
-                    </div>
-                    {errors.pricingTier && <div className="ob-field__error" style={{marginBottom:8}}>⚠ {errors.pricingTier}</div>}
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
-                      {([
-                        {
-                          key: 'spark' as const, name: 'Spark', price: 499,
-                          band: 'linear-gradient(90deg,#E8C8A0,#d4b48a)',
-                          dotColor: '#C49A5A',
-                          features: ['Entry-level access','Trained listener or peer ally','Online'],
-                        },
-                        {
-                          key: 'glow' as const, name: 'Glow', price: 799,
-                          band: 'linear-gradient(90deg,#5C7A66,#4a6454)',
-                          dotColor: '#5C7A66',
-                          features: ['Counsellor · mid-level','3–7 years experience','Online or in-person'],
-                        },
-                        {
-                          key: 'radiance' as const, name: 'Radiance', price: 1299,
-                          band: 'linear-gradient(90deg,#2F4C3A,#9B6651)',
-                          dotColor: '#2F4C3A',
-                          features: ['Senior counsellor / psychologist','7+ years · RCI registered','Online or in-person'],
-                        },
-                      ]).map(tier => {
-                        const sel = pricingTier === tier.key;
-                        return (
-                          <div
-                            key={tier.key}
-                            role="radio" aria-checked={sel} tabIndex={0}
-                            onClick={() => { setPricingTier(tier.key); scheduleAutoSave(); }}
-                            onKeyDown={e => { if (e.key==='Enter'||e.key===' ') { setPricingTier(tier.key); scheduleAutoSave(); } }}
-                            style={{
-                              position:'relative',display:'flex',flexDirection:'column',
-                              border:`${sel?2:1.5}px solid ${sel?'var(--ob-dp)':'var(--ob-hm)'}`,
-                              borderRadius:14,background:'var(--ob-cream)',cursor:'pointer',
-                              overflow:'hidden',userSelect:'none',
-                              boxShadow:sel?'0 4px 20px rgba(47,76,58,0.14)':'none',
-                              transition:'border-color 200ms,box-shadow 200ms',
+                        {selectedService ? (
+                          <div style={{
+                            display:'flex',alignItems:'center',gap:16,
+                            marginTop:12,padding:'14px 18px',
+                            background:'var(--ob-pine-t)',
+                            border:'1.5px solid var(--ob-moss)',
+                            borderRadius:10,
+                          }}>
+                            <div style={{
+                              width:38,height:38,borderRadius:'50%',
+                              background:'var(--ob-dp)',flexShrink:0,
+                              display:'flex',alignItems:'center',justifyContent:'center',
                             }}>
-                            <div style={{height:5,background:tier.band,flexShrink:0}}/>
-                            <div style={{padding:'20px 18px 0',display:'flex',flexDirection:'column',gap:10,flex:1}}>
-                              <span style={{fontSize:15,fontWeight:500,color:'var(--ob-dp)'}}>{tier.name}</span>
-                              <div style={{display:'flex',alignItems:'baseline',gap:3,marginTop:2}}>
-                                <span style={{fontSize:13,color:'var(--ob-moss)',opacity:0.7}}>₹</span>
-                                <span style={{fontSize:26,fontWeight:300,color:'var(--ob-dp)',letterSpacing:'-0.02em',lineHeight:1}}>
-                                  {tier.price.toLocaleString('en-IN')}
-                                </span>
-                                <span style={{fontSize:11,color:'var(--ob-moss)',opacity:0.5,marginLeft:2}}>/ session</span>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ob-cream)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                              </svg>
+                            </div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:13,fontWeight:500,color:'var(--ob-dp)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                                {selectedService.name}
                               </div>
-                              <div style={{height:1,background:'var(--ob-hm)',margin:'4px 0'}}/>
-                              <div style={{display:'flex',flexDirection:'column',gap:5,marginBottom:18}}>
-                                {tier.features.map(f => (
-                                  <div key={f} style={{display:'flex',alignItems:'flex-start',gap:7,fontSize:11,color:'var(--ob-moss)',lineHeight:1.45,opacity:0.8}}>
-                                    <span style={{width:4,height:4,borderRadius:'50%',background:tier.dotColor,flexShrink:0,marginTop:4}}/>
-                                    {f}
-                                  </div>
-                                ))}
+                              <div style={{fontSize:11,color:'var(--ob-moss)',opacity:0.7,marginTop:3,lineHeight:1.5}}>
+                                {selectedService.duration_mins} min
+                                {selectedService.pre_buffer_mins + selectedService.post_buffer_mins > 0 &&
+                                  <> · {selectedService.effective_slot_mins} min slot (incl. {selectedService.pre_buffer_mins + selectedService.post_buffer_mins} min buffer)</>}
+                                {selectedService.price_zoho != null &&
+                                  <> · ₹{Math.round(selectedService.price_zoho).toLocaleString('en-IN')} / session</>}
                               </div>
                             </div>
-                            {sel && (
-                              <>
-                                <div style={{
-                                  position:'absolute',top:14,right:14,width:20,height:20,borderRadius:'50%',
-                                  background:'var(--ob-dp)',display:'flex',alignItems:'center',justifyContent:'center',
-                                }}>
-                                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#F8F0E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                </div>
-                                <div style={{
-                                  padding:'8px 18px',background:'var(--ob-dp)',
-                                  fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',
-                                  color:'var(--ob-cream)',fontWeight:500,textAlign:'center',
-                                }}>Selected</div>
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* ── Section 3: Session Capacity ── */}
-                  <div className="ob-form-section">
-                    <div className="ob-section-title">Session capacity</div>
-                    <div className="ob-grid-2">
-                      <div className="ob-field">
-                        <label className="ob-field__label" htmlFor="max-sessions-wk">Max sessions per week</label>
-                        <p className="ob-field__hint">Caps auto-booking. Prevents burnout.</p>
-                        <div style={{marginTop:8}}>
-                          <div className="ob-range-row">
-                            <input id="max-sessions-wk" type="range" min={1} max={30} value={maxClients}
-                              onChange={e => { setMaxClients(Number(e.target.value)); scheduleAutoSave(); }}/>
-                            <span style={{fontSize:15,fontWeight:500,color:'var(--ob-dp)',minWidth:48,textAlign:'right'}}>
-                              {maxClients}
+                            <span style={{
+                              display:'inline-flex',alignItems:'center',gap:5,
+                              padding:'5px 12px',borderRadius:50,
+                              background:'var(--ob-dp)',color:'var(--ob-cream)',
+                              fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',fontWeight:500,
+                              flexShrink:0,
+                            }}>
+                              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              Mapped
                             </span>
                           </div>
-                          <div style={{marginTop:8,fontSize:11,color:'var(--ob-moss)',opacity:0.55,padding:'8px 12px',background:'var(--ob-pine-t)',borderRadius:7}}>
-                            {maxClients} sessions · ~{Math.round(maxClients * (selectedService?.duration_mins ?? 55) / 60)} hrs / week
+                        ) : (
+                          <div style={{
+                            marginTop:12,padding:'14px 18px',
+                            background:'var(--ob-pine-t)',
+                            border:'1.5px dashed var(--ob-hm)',
+                            borderRadius:10,
+                            fontSize:12,color:'var(--ob-moss)',opacity:0.55,
+                            textAlign:'center',
+                          }}>
+                            Select a service above to map it to this ally
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="ob-field">
-                        <label className="ob-field__label" htmlFor="buffer-sel">Buffer between sessions</label>
-                        <p className="ob-field__hint">Pre-filled from Zoho service post-buffer.</p>
-                        <select id="buffer-sel" className="ob-field__select" value={bufferMin} style={{marginTop:8}}
-                          onChange={e => { setBufferMin(e.target.value); scheduleAutoSave(); }}>
-                          <option value="0">No buffer</option>
-                          <option value="5">5 minutes</option>
-                          <option value="10">10 minutes</option>
-                          <option value="15">15 minutes</option>
-                          <option value="30">30 minutes</option>
-                          <option value="45">45 minutes</option>
-                        </select>
-                        <p className="ob-field__hint" style={{marginTop:6}}>
-                          Effective slot: {selectedService ? selectedService.duration_mins : '—'} min + {bufferMin} min buffer = <strong style={{color:'var(--ob-dp)'}}>{selectedService ? selectedService.duration_mins + Number(bufferMin) : '—'} min</strong> per booking.
-                        </p>
-                      </div>
-                    </div>
+                        )}
+                      </>
+                    )}
+                    {errors.zohoServiceId && <div className="ob-field__error" style={{marginTop:8}}>⚠ {errors.zohoServiceId}</div>}
                   </div>
 
-                  {/* ── Availability grid (unchanged) ── */}
-                  <div className="ob-form-section">
-                    <div className="ob-section-title">Typical weekly availability</div>
-                    <div className="ob-avail-grid">
-                      <div className="ob-avail-cell header"/>
-                      {AVAIL_COLS.map(col => <div key={col} className="ob-avail-cell header">{col}</div>)}
-                      {AVAIL_ROWS.map(row => (
-                        <>
-                          <div key={`${row}-lbl`} className="ob-avail-cell day-header">{row}</div>
-                          {AVAIL_COLS.map(col => {
-                            const key = `${row}_${col}`;
-                            return (
-                              <div key={key}
-                                className={`ob-avail-cell${avail[key] ? ' selected' : ''}`}
-                                onClick={() => {
-                                  setAvail(prev => ({ ...prev, [key]: !prev[key] }));
-                                  scheduleAutoSave();
-                                }}>
-                                {avail[key] ? '✓ Available' : 'Tap to add'}
-                              </div>
-                            );
-                          })}
-                        </>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ── Section 4: Visibility toggles (unchanged) ── */}
+                  {/* ── Section 2: Visibility toggles ── */}
                   <div className="ob-form-section">
                     <div className="ob-section-title">Platform visibility settings</div>
                     <div style={{display:'flex',flexDirection:'column',gap:10}}>
@@ -1661,16 +1461,16 @@ export default function OnboardAllyPage() {
                 <div className="ob-preview-divider"/>
                 <div className="ob-preview-row">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M8 5v4M6 9h4"/></svg>
-                  {selectedService ? `${selectedService.duration_mins} min` : (durations[0] ?? '—')}
+                  {selectedService ? `${selectedService.duration_mins} min` : '—'}
                 </div>
                 <div className="ob-preview-row">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><path d="M8 2a4 4 0 0 1 4 4c0 5-4 8-4 8S4 11 4 6a4 4 0 0 1 4-4z"/><circle cx="8" cy="6" r="1.5"/></svg>
-                  {formats[0]?.replace('🎥 ','').replace('📍 ','') ?? 'Online'}
+                  {selectedService?.session_format?.[0] ?? 'Online'}
                 </div>
                 <div className="ob-preview-row">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-                  {pricingTier
-                    ? `₹${TIER_PRICES[pricingTier as keyof typeof TIER_PRICES].toLocaleString('en-IN')}/session`
+                  {selectedService?.price_zoho != null
+                    ? `₹${Math.round(selectedService.price_zoho).toLocaleString('en-IN')}/session`
                     : `₹${price.toLocaleString('en-IN')}/session`}
                 </div>
               </div>

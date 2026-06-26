@@ -26,7 +26,7 @@ export async function GET() {
     .from('zoho_services')
     .select(
       'zoho_service_id, name, duration_mins, pre_buffer_mins, post_buffer_mins, ' +
-      'effective_slot_mins, session_format, is_active, last_synced_at',
+      'effective_slot_mins, price_zoho, session_format, is_active, last_synced_at',
     )
     .eq('is_active', true)
     .order('name');

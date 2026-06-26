@@ -52,14 +52,16 @@ export async function POST(
     console.log('[POST /approve] reusing existing zoho_staff_id:', zohoStaffId);
   } else {
     try {
+      const allyAny = ally as Record<string, unknown>;
       const result = await addZohoStaff({
-        name:            ally.full_name,
-        email:           ally.email,
-        gender:          genderFromPronouns(ally.pronouns),
-        role:            'Staff',
-        phone:           ally.phone        ?? undefined,
-        designation:     ally.primary_role ?? undefined,
-        additional_info: ally.bio          ?? undefined,
+        name:              ally.full_name,
+        email:             ally.email,
+        gender:            genderFromPronouns(ally.pronouns),
+        role:              'Staff',
+        phone:             ally.phone        ?? undefined,
+        designation:       ally.primary_role ?? undefined,
+        additional_info:   ally.bio          ?? undefined,
+        assigned_services: allyAny.zoho_service_id ? [allyAny.zoho_service_id as string] : undefined,
       });
       zohoStaffId = result.id;
       console.log('[POST /approve] Zoho staff created:', zohoStaffId);

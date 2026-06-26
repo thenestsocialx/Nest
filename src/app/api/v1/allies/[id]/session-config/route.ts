@@ -4,12 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const TIER_PRICES: Record<string, number> = {
-  spark:    499,
-  glow:     799,
-  radiance: 1299,
-};
-
 async function requireAdmin() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,23 +48,15 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const zohoServiceId     = body.zoho_service_id  as string | null | undefined;
-  const pricingTier       = body.pricing_tier     as string | null | undefined;
-  const sessionFormat     = body.session_format   as string[] | null | undefined;
-  const bufferMins        = body.buffer_mins      as number | null | undefined;
-  const maxSessionsWeek   = body.max_sessions_week as number | null | undefined;
-  const visibilitySearch  = body.visibility_search  as boolean | null | undefined;
+  const zohoServiceId      = body.zoho_service_id   as string | null | undefined;
+  const priceInr           = body.price_inr         as number | null | undefined;
+  const sessionFormat      = body.session_format    as string[] | null | undefined;
+  const bufferMins         = body.buffer_mins       as number | null | undefined;
+  const maxSessionsWeek    = body.max_sessions_week as number | null | undefined;
+  const visibilitySearch   = body.visibility_search   as boolean | null | undefined;
   const visibilityBookings = body.visibility_bookings as boolean | null | undefined;
   const visibilityMatching = body.visibility_matching as boolean | null | undefined;
   const visibilityFeatured = body.visibility_featured as boolean | null | undefined;
-
-  // pricing_tier is required
-  if (!pricingTier || !TIER_PRICES[pricingTier]) {
-    return NextResponse.json(
-      { error: { code: 'MISSING_TIER', message: 'pricing_tier is required and must be spark, glow, or radiance.' } },
-      { status: 422 },
-    );
-  }
 
   const admin = createAdminClient();
 
@@ -91,17 +77,15 @@ export async function PUT(
     }
   }
 
-  const priceInr = TIER_PRICES[pricingTier];
-
   const upsertPayload = {
     ally_id:             id,
-    zoho_service_id:     zohoServiceId     ?? null,
-    pricing_tier:        pricingTier,
-    price_inr:           priceInr,
-    session_format:      sessionFormat     ?? ['online'],
-    buffer_mins:         bufferMins        ?? 15,
-    max_sessions_week:   maxSessionsWeek   ?? 10,
-    visibility_search:   visibilitySearch  ?? false,
+    zoho_service_id:     zohoServiceId      ?? null,
+    pricing_tier:        null,
+    price_inr:           priceInr           ?? null,
+    session_format:      sessionFormat      ?? ['online'],
+    buffer_mins:         bufferMins         ?? 15,
+    max_sessions_week:   maxSessionsWeek    ?? 10,
+    visibility_search:   visibilitySearch   ?? false,
     visibility_bookings: visibilityBookings ?? false,
     visibility_matching: visibilityMatching ?? true,
     visibility_featured: visibilityFeatured ?? false,
@@ -118,10 +102,10 @@ export async function PUT(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Also mirror zoho_service_id and pricing_tier on the allies row for quick joins
+  // Mirror zoho_service_id on the allies row for quick joins
   await admin
     .from('allies')
-    .update({ zoho_service_id: zohoServiceId ?? null, pricing_tier: pricingTier })
+    .update({ zoho_service_id: zohoServiceId ?? null, pricing_tier: null })
     .eq('id', id);
 
   return NextResponse.json({ ok: true, ...data });

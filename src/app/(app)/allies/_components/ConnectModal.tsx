@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getAvatarGradient, getInitials } from '@/lib/findAllies'
 import type { AllyPublicProfile } from '@/types/findAllies'
+
+const REACH_TIMEOUT_MS = 25_000
 
 interface Props {
   ally: AllyPublicProfile | null
@@ -11,9 +13,46 @@ interface Props {
 
 export default function ConnectModal({ ally, onClose }: Props) {
   const [frameReady, setFrameReady] = useState(false)
+  const [frameError, setFrameError] = useState<string | null>(null)
+  const [urlOk,      setUrlOk]      = useState<boolean | null>(null)
+  const controllerRef               = useRef<AbortController | null>(null)
 
   useEffect(() => {
-    if (ally) setFrameReady(false)
+    setFrameReady(false)
+    setFrameError(null)
+    setUrlOk(null)
+
+    if (!ally?.zoho_embed_url) return
+
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+    let cancelled = false
+
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) controller.abort()
+    }, REACH_TIMEOUT_MS)
+
+    fetch(ally.zoho_embed_url, { mode: 'no-cors', signal: controller.signal })
+      .then(() => {
+        if (cancelled) return
+        clearTimeout(timeoutId)
+        setUrlOk(true)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        clearTimeout(timeoutId)
+        const msg = (err as Error).name === 'AbortError'
+          ? 'The booking page is taking too long to respond.'
+          : "We couldn’t connect to the booking page."
+        setFrameError(msg)
+      })
+
+    return () => {
+      cancelled = true
+      controller.abort()
+      clearTimeout(timeoutId)
+    }
   }, [ally?.id])
 
   useEffect(() => {
@@ -26,9 +65,9 @@ export default function ConnectModal({ ally, onClose }: Props) {
 
   if (!ally) return null
 
-  const initials  = getInitials(ally.display_name)
-  const gradient  = getAvatarGradient(ally.id)
-  const roleLine  = ally.primary_role
+  const initials = getInitials(ally.display_name)
+  const gradient = getAvatarGradient(ally.id)
+  const roleLine = ally.primary_role
     ? `${ally.primary_role}${ally.years_experience > 0 ? ` · ${ally.years_experience} yrs` : ''}`
     : null
 
@@ -46,7 +85,7 @@ export default function ConnectModal({ ally, onClose }: Props) {
     >
       <div className="bk-modal">
 
-        {/* ── Slim header ── */}
+        {/* ── Header ── */}
         <div className="bk-header">
           <div className="bk-avatar" style={{ background: ally.photo_url ? undefined : gradient }}>
             {ally.photo_url
@@ -57,34 +96,65 @@ export default function ConnectModal({ ally, onClose }: Props) {
             <div className="bk-ally-name">{ally.display_name}</div>
             {roleLine && <div className="bk-ally-role">{roleLine}</div>}
           </div>
-          <button
-            type="button"
-            className="bk-close"
-            onClick={onClose}
-            aria-label="Close booking"
-          >
+          <button type="button" className="bk-close" onClick={onClose} aria-label="Close booking">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
 
-        {/* ── Zoho iframe or fallback ── */}
+        {/* ── Body ── */}
         {ally.zoho_embed_url ? (
           <div className="bk-frame-wrap">
-            {!frameReady && (
+
+            {/* Loading */}
+            {urlOk === null && !frameError && (
               <div className="bk-frame-loader">
                 <SpinnerIcon />
                 <span>Loading calendar…</span>
               </div>
             )}
-            <iframe
-              src={ally.zoho_embed_url}
-              title={`Book a session with ${ally.display_name}`}
-              onLoad={() => setFrameReady(true)}
-              style={{ opacity: frameReady ? 1 : 0 }}
-              allowFullScreen
-            />
+
+            {/* Error screen */}
+            {frameError && (
+              <div className="bk-error-view">
+                <div className="bk-error-icon-ring">
+                  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.6"/>
+                    <path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                    <path d="M9.5 13.5l5 5M14.5 13.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <h2 className="bk-error-heading">Booking page unavailable</h2>
+                <p className="bk-error-desc">
+                  {frameError}<br/>
+                  Please try again after some time.
+                </p>
+                <button type="button" className="bk-error-btn" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            )}
+
+            {/* Iframe — only mount once URL is confirmed reachable */}
+            {urlOk && (
+              <>
+                {!frameReady && (
+                  <div className="bk-frame-loader">
+                    <SpinnerIcon />
+                    <span>Loading calendar…</span>
+                  </div>
+                )}
+                <iframe
+                  src={ally.zoho_embed_url}
+                  title={`Book a session with ${ally.display_name}`}
+                  onLoad={() => setFrameReady(true)}
+                  style={{ opacity: frameReady ? 1 : 0 }}
+                  allowFullScreen
+                />
+              </>
+            )}
+
           </div>
         ) : (
           <div className="bk-no-url">
@@ -103,11 +173,8 @@ export default function ConnectModal({ ally, onClose }: Props) {
 
 function SpinnerIcon() {
   return (
-    <svg
-      width="22" height="22" viewBox="0 0 14 14" fill="none"
-      style={{ animation: 'spin 0.7s linear infinite' }}
-      aria-hidden="true"
-    >
+    <svg width="22" height="22" viewBox="0 0 14 14" fill="none"
+      style={{ animation: 'spin 0.7s linear infinite' }} aria-hidden="true">
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" opacity="0.2"/>
       <path d="M7 1.5A5.5 5.5 0 0112.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

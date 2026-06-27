@@ -6,11 +6,12 @@ import type { AllyPublicProfile, MatchQuality } from '@/types/findAllies'
 interface Props {
   ally: AllyPublicProfile
   quality: MatchQuality
+  showNext: boolean
   onNext: () => void
   onConnect: (ally: AllyPublicProfile) => void
 }
 
-export default function ProfileCard({ ally, quality, onNext, onConnect }: Props) {
+export default function ProfileCard({ ally, quality, showNext, onNext, onConnect }: Props) {
   const initials  = getInitials(ally.display_name)
   const gradient  = getAvatarGradient(ally.id)
   const isGreat   = quality === 'great'
@@ -79,12 +80,14 @@ export default function ProfileCard({ ally, quality, onNext, onConnect }: Props)
 
       {/* Actions */}
       <div className="fa-card-actions">
-        <button type="button" className="fa-btn-skip" onClick={onNext} aria-label="See next ally">
-          <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-          </svg>
-          Next
-        </button>
+        {showNext && (
+          <button type="button" className="fa-btn-skip" onClick={onNext} aria-label="See next ally">
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
+            Next
+          </button>
+        )}
         <button type="button" className="fa-btn-connect" onClick={() => onConnect(ally)}>
           <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
             <path d="M9 3s-5 3.5-5 7a5 5 0 0010 0c0-3.5-5-7-5-7z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>

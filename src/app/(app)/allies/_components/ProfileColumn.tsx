@@ -94,6 +94,7 @@ export default function ProfileColumn({
                 key={currentAlly.id}
                 ally={currentAlly}
                 quality={getMatchQuality(currentAlly, selectedTopic, selectedVibe)}
+                showNext={total > 1}
                 onNext={() => onNavigate(1)}
                 onConnect={onConnect}
               />

@@ -18,9 +18,8 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
   const [selectedVibe,  setSelectedVibe]  = useState<VibeId  | null>(null)
   const [currentIdx,    setCurrentIdx]    = useState(0)
   const [hasSplit,      setHasSplit]      = useState(false)
-  const [connectAlly,   setConnectAlly]   = useState<AllyPublicProfile | null>(null)
+  const [bookingAlly,   setBookingAlly]   = useState<AllyPublicProfile | null>(null)
 
-  // Derived filtered list
   const filteredAllies = useMemo(
     () => filterAllies(allies, selectedTopic, selectedVibe),
     [allies, selectedTopic, selectedVibe],
@@ -28,7 +27,6 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
 
   const hasSelections = !!(selectedTopic || selectedVibe)
 
-  // Trigger split once on first selection (one-way latch)
   function triggerSplit() {
     if (!hasSplit) setHasSplit(true)
   }
@@ -59,7 +57,7 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
     })
   }, [filteredAllies.length])
 
-  // Keyboard navigation (Arrow keys)
+  // Keyboard navigation
   useEffect(() => {
     if (!hasSplit) return
     function onKey(e: KeyboardEvent) {
@@ -78,9 +76,6 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
     }
   }, [filteredAllies.length, currentIdx])
 
-  // ── Animated split style ─────────────────────────────────────
-  // gridTemplateRows: '1fr' forces the single row to fill all available height
-  // minHeight: 0 allows the flex item to shrink below content size
   const workspaceStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: hasSplit ? '25fr 75fr' : '1fr 0fr',
@@ -117,7 +112,6 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
       {/* Workspace */}
       <div style={workspaceStyle}>
 
-        {/* Filter column */}
         <FilterColumn
           selectedTopic={selectedTopic}
           selectedVibe={selectedVibe}
@@ -128,7 +122,6 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
           onClearAll={handleClearAll}
         />
 
-        {/* Profile column — always mounted, opacity/pointer-events controlled by isSplit */}
         <ProfileColumn
           filteredAllies={filteredAllies}
           currentIdx={currentIdx}
@@ -137,15 +130,15 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
           hasSelections={hasSelections}
           isSplit={hasSplit}
           onNavigate={handleNavigate}
-          onConnect={setConnectAlly}
+          onBook={setBookingAlly}
         />
 
       </div>
 
-      {/* Connect modal */}
+      {/* Booking modal */}
       <ConnectModal
-        ally={connectAlly}
-        onClose={() => setConnectAlly(null)}
+        ally={bookingAlly}
+        onClose={() => setBookingAlly(null)}
       />
     </>
   )

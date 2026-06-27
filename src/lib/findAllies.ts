@@ -12,14 +12,29 @@ export const TOPIC_FILTERS: TopicFilter[] = [
     iconInner: '<circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M9 3v1.5M9 13.5V15M3 9h1.5M13.5 9H15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   },
   {
-    id: 'grief',
-    label: 'Grief',
-    iconInner: '<path d="M9 14s-6-3.5-6-7.5a6 6 0 0112 0c0 4-6 7.5-6 7.5z" stroke="currentColor" stroke-width="1.4"/>',
+    id: 'heartbreak',
+    label: 'Heartbreak',
+    iconInner: '<path d="M9 14s-6-3.5-6-7a5 5 0 0112 0c0 .5-.05 1-.14 1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M11 10l1.5 1.5L15 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/><path d="M9 14s-6-3.5-6-7a5 5 0 0112 0" stroke="currentColor" stroke-width="1.4"/>',
   },
   {
     id: 'loneliness',
     label: 'Loneliness',
     iconInner: '<circle cx="9" cy="6.5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 15c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".45"/>',
+  },
+  {
+    id: 'family',
+    label: 'Family pressure',
+    iconInner: '<circle cx="9" cy="5" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="4.5" cy="8" r="1.5" stroke="currentColor" stroke-width="1.4"/><circle cx="13.5" cy="8" r="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 14c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M2 14c0-1.1.7-2 1.7-2.3M14.3 11.7c1 .3 1.7 1.2 1.7 2.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>',
+  },
+  {
+    id: 'identity',
+    label: 'Identity',
+    iconInner: '<circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M9 6v4M9 12v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  },
+  {
+    id: 'grief',
+    label: 'Grief',
+    iconInner: '<path d="M9 14s-6-3.5-6-7.5a6 6 0 0112 0c0 4-6 7.5-6 7.5z" stroke="currentColor" stroke-width="1.4"/>',
   },
   {
     id: 'relationships',
@@ -35,6 +50,46 @@ export const TOPIC_FILTERS: TopicFilter[] = [
     id: 'self-esteem',
     label: 'Self-worth',
     iconInner: '<path d="M9 2l1.5 4.5L15 8l-4.5 1.5L9 14l-1.5-4.5L3 8l4.5-1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  },
+  {
+    id: 'career',
+    label: 'Career',
+    iconInner: '<rect x="3" y="7" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 7V5.5a3 3 0 016 0V7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+  },
+  {
+    id: 'trauma',
+    label: 'Trauma',
+    iconInner: '<path d="M9 3L3 14h12L9 3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 8v2.5M9 12.5v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  },
+  {
+    id: 'depression',
+    label: 'Depression',
+    iconInner: '<path d="M3 7c2-3 7-3 9 0s7 0 9-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" transform="scale(0.6) translate(3,4)"/><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4" opacity=".3"/><path d="M6.5 11c.5-.5 1.5-.8 2.5-.8s2 .3 2.5.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+  },
+  {
+    id: 'communication',
+    label: 'Communication',
+    iconInner: '<path d="M3 4.5h8a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5H6l-3 2V6a1.5 1.5 0 011.5-1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 7.5h.5A1.5 1.5 0 0114 9v2.5l2 1.5v-5A1.5 1.5 0 0014.5 6H12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>',
+  },
+  {
+    id: 'confidence',
+    label: 'Confidence',
+    iconInner: '<path d="M9 2l1.8 4L15 7l-3 3 .7 4.2L9 12l-3.7 2.2L6 10 3 7l4.2-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  },
+  {
+    id: 'cultural',
+    label: 'Cultural',
+    iconInner: '<circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 9h12M9 2.5c-2 2-3 4-3 6.5s1 4.5 3 6.5M9 2.5c2 2 3 4 3 6.5s-1 4.5-3 6.5" stroke="currentColor" stroke-width="1.4"/>',
+  },
+  {
+    id: 'lgbtq+',
+    label: 'LGBTQ+',
+    iconInner: '<path d="M5 13l2-4 2 2 2-4 2 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.4" opacity=".5"/>',
+  },
+  {
+    id: 'anger management',
+    label: 'Anger',
+    iconInner: '<path d="M3 9c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M6 12l1.5-2 1.5 2 1.5-2 1.5 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
   },
 ];
 

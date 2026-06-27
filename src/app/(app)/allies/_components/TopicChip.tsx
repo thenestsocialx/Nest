@@ -22,14 +22,14 @@ export default function TopicChip({ topic, selected, compact, onClick }: Props) 
       aria-pressed={selected}
     >
       <svg
-        width={compact ? 13 : 14}
-        height={compact ? 13 : 14}
+        width={compact ? 14 : 16}
+        height={compact ? 14 : 16}
         viewBox="0 0 18 18"
         fill="none"
         aria-hidden="true"
         dangerouslySetInnerHTML={{ __html: topic.iconInner }}
       />
-      {topic.label}
+      <span>{topic.label}</span>
     </button>
   )
 }

@@ -13,7 +13,7 @@ interface Props {
   hasSelections: boolean
   isSplit: boolean
   onNavigate: (dir: -1 | 1) => void
-  onConnect: (ally: AllyPublicProfile) => void
+  onBook: (ally: AllyPublicProfile) => void
 }
 
 export default function ProfileColumn({
@@ -24,13 +24,12 @@ export default function ProfileColumn({
   hasSelections,
   isSplit,
   onNavigate,
-  onConnect,
+  onBook,
 }: Props) {
-  const safeIdx   = Math.min(currentIdx, Math.max(0, filteredAllies.length - 1))
+  const safeIdx     = Math.min(currentIdx, Math.max(0, filteredAllies.length - 1))
   const currentAlly = filteredAllies[safeIdx] ?? null
-  const total = filteredAllies.length
+  const total       = filteredAllies.length
 
-  // Results header text
   const titleText = !hasSelections
     ? 'Select a filter to begin'
     : selectedTopic
@@ -96,7 +95,7 @@ export default function ProfileColumn({
                 quality={getMatchQuality(currentAlly, selectedTopic, selectedVibe)}
                 showNext={total > 1}
                 onNext={() => onNavigate(1)}
-                onConnect={onConnect}
+                onBook={onBook}
               />
             ) : null}
           </div>

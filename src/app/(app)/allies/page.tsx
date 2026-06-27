@@ -29,11 +29,9 @@ export default async function AlliesPage() {
   const initial = firstName[0]?.toUpperCase() ?? 'A';
 
   // ── Fetch active browsable allies ────────────────────────────
-  // RLS policy (public_read_allies) permits SELECT on is_active=true AND deleted_at IS NULL.
-  // We additionally filter on onboarding_status and visibility_search.
   const { data: rawAllies } = await supabase
     .from('allies')
-    .select('id,display_name,primary_role,years_experience,bio,tagline,specialties,user_vibes,modalities,approach_style,photo_url,session_price,intro_price,location,manual_priority_score')
+    .select('id,display_name,primary_role,years_experience,bio,tagline,quote,pronouns,specialties,user_vibes,modalities,approach_style,photo_url,session_price,intro_price,session_durations,session_formats,languages_spoken,location,manual_priority_score,zoho_embed_url')
     .eq('is_active', true)
     .eq('onboarding_status', 'active')
     .eq('visibility_search', true)
@@ -47,6 +45,8 @@ export default async function AlliesPage() {
     years_experience: a.years_experience ?? 0,
     bio: a.bio ?? null,
     tagline: a.tagline ?? null,
+    quote: a.quote ?? null,
+    pronouns: a.pronouns ?? null,
     specialties: a.specialties ?? [],
     user_vibes: a.user_vibes ?? [],
     modalities: a.modalities ?? [],
@@ -54,8 +54,12 @@ export default async function AlliesPage() {
     photo_url: a.photo_url ?? null,
     session_price: a.session_price ?? 0,
     intro_price: a.intro_price ?? null,
+    session_durations: a.session_durations ?? [],
+    session_formats: a.session_formats ?? [],
+    languages_spoken: a.languages_spoken ?? null,
     location: a.location ?? null,
     manual_priority_score: a.manual_priority_score ?? 5,
+    zoho_embed_url: a.zoho_embed_url ?? null,
   }));
 
   return (

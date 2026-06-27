@@ -43,7 +43,7 @@ export default function FilterColumn({
 
       {/* Topics */}
       <div className="fa-section">
-        <div className="fa-section-label">I&rsquo;m dealing with</div>
+        <div className="fa-section-label">What&rsquo;s on your mind</div>
         <div className={`fa-chip-group${isSplit ? ' fa-chip-group--compact' : ''}`}>
           {TOPIC_FILTERS.map(t => (
             <TopicChip
@@ -59,7 +59,7 @@ export default function FilterColumn({
 
       {/* Vibes */}
       <div className="fa-section">
-        <div className="fa-section-label">My vibe</div>
+        <div className="fa-section-label">What kind of support helps</div>
         <div className={`fa-vibe-group${isSplit ? ' fa-vibe-group--compact' : ''}`}>
           {VIBE_FILTERS.map(v => (
             <VibeTile

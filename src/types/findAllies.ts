@@ -8,7 +8,18 @@ export type TopicId =
   | 'loneliness'
   | 'relationships'
   | 'burnout'
-  | 'self-esteem';
+  | 'self-esteem'
+  | 'heartbreak'
+  | 'family'
+  | 'identity'
+  | 'career'
+  | 'trauma'
+  | 'depression'
+  | 'communication'
+  | 'confidence'
+  | 'cultural'
+  | 'lgbtq+'
+  | 'anger management';
 
 export type VibeId = 'vent' | 'tools' | 'gentle' | 'direct';
 
@@ -34,6 +45,8 @@ export interface AllyPublicProfile {
   years_experience: number;
   bio: string | null;
   tagline: string | null;
+  quote: string | null;
+  pronouns: string | null;
   specialties: string[];
   user_vibes: string[];
   modalities: string[];
@@ -41,6 +54,10 @@ export interface AllyPublicProfile {
   photo_url: string | null;
   session_price: number;
   intro_price: number | null;
+  session_durations: string[];
+  session_formats: string[];
+  languages_spoken: string | null;
   location: string | null;
   manual_priority_score: number;
+  zoho_embed_url: string | null;
 }

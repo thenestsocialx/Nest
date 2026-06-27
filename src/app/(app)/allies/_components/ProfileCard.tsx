@@ -130,6 +130,36 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
           </div>
         )}
 
+        {/* Intro price callout */}
+        {ally.intro_price && ally.intro_price < ally.session_price && (
+          <div className="ac-intro-offer">
+            <svg width="13" height="13" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M9 2l1.8 4.8L16 8l-3.5 3.5.9 5L9 14l-4.4 2.5.9-5L2 8l5.2-1.2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+            </svg>
+            <span>First session · <strong>₹{ally.intro_price.toLocaleString('en-IN')}</strong></span>
+            <span className="ac-intro-offer__sub">— a softer start</span>
+          </div>
+        )}
+
+        {/* What to expect */}
+        <div className="ac-expect">
+          <div className="ac-expect__label">What to expect</div>
+          <div className="ac-expect__steps">
+            <div className="ac-expect__step">
+              <span className="ac-expect__dot"/>
+              Choose a time slot that works for you
+            </div>
+            <div className="ac-expect__step">
+              <span className="ac-expect__dot"/>
+              They confirm within a few hours
+            </div>
+            <div className="ac-expect__step">
+              <span className="ac-expect__dot"/>
+              Payment happens before the session — not now
+            </div>
+          </div>
+        </div>
+
         {/* Session info grid */}
         <div className="ac-session">
           <div className="ac-srow">

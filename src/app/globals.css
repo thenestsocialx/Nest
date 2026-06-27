@@ -963,6 +963,20 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 }
 .ns-plan-card--featured .ns-plan-card__check { background: var(--deep-pine); border-color: var(--deep-pine); color: var(--cream); }
 .ns-plan-card__current { display: inline-block; font-size: 11px; color: var(--moss); opacity: 0.6; text-align: center; padding: 10px 0 0; width: 100%; }
+.ns-plan-card__current-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.ns-plan-card__sub-mgmt { width: 100%; margin-top: 12px; border-top: 1px solid rgba(224,213,197,0.6); padding-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ns-plan-card__sub-detail { font-size: 11px; color: var(--moss); opacity: 0.65; margin: 0; text-align: center; }
+.ns-plan-card__cancel-btn { background: none; border: 1px solid rgba(155,102,81,0.35); border-radius: 6px; color: var(--terracotta); font-size: 11px; padding: 5px 14px; cursor: pointer; font-family: inherit; transition: all var(--t-fast) var(--ease); }
+.ns-plan-card__cancel-btn:hover:not(:disabled) { background: rgba(155,102,81,0.06); border-color: var(--terracotta); }
+.ns-plan-card__cancel-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ns-plan-card__cancel-notice { font-size: 11px; color: var(--terracotta); opacity: 0.8; margin: 0; text-align: center; }
+.ns-plan-card__cancel-msg { font-size: 11px; color: var(--moss); opacity: 0.75; margin: 0; text-align: center; line-height: 1.5; max-width: 22ch; }
+.ns-plan-card__notice { display: flex; align-items: flex-start; gap: 8px; background: rgba(155,102,81,0.07); border: 1px solid rgba(155,102,81,0.22); border-radius: 7px; padding: 9px 10px 9px 12px; margin-top: 10px; }
+.ns-plan-card__notice-icon { flex-shrink: 0; color: var(--terracotta); margin-top: 1px; }
+.ns-plan-card__notice-text { flex: 1; font-size: 11px; color: var(--terracotta); line-height: 1.55; }
+.ns-plan-card__notice-close { flex-shrink: 0; background: none; border: none; color: var(--terracotta); opacity: 0.45; font-size: 17px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; margin-top: -2px; transition: opacity var(--t-fast) var(--ease); }
+.ns-plan-card__notice-close:hover { opacity: 1; }
+.ns-plans__success { width: 100%; max-width: 880px; background: rgba(47,76,58,0.08); border: 1px solid rgba(47,76,58,0.2); border-radius: 8px; padding: 12px 20px; font-size: 13px; color: var(--deep-pine); text-align: center; margin-bottom: 8px; }
 
 .ns-trust-line { font-size: 13px; color: var(--moss); opacity: 0.6; text-align: center; margin: 0 0 52px; font-style: italic; }
 

@@ -13,7 +13,7 @@ interface PlanRow {
   features: string[]
   cta: string
   is_featured: boolean
-  stripe_price_id: string | null
+  razorpay_plan_id: string | null
   display_order: number
 }
 
@@ -24,7 +24,7 @@ interface PlanEdits {
   features: string
   cta: string
   is_featured: boolean
-  stripe_price_id: string
+  razorpay_plan_id: string
 }
 
 type ActiveTab = 'pricing' | 'limits' | 'wallet' | 'dunning'
@@ -62,15 +62,18 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Both plans and nest_config are readable by authenticated users via RLS
     const supabase = createClient()
     Promise.all([
-      supabase.from('plans').select('*').order('display_order'),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from('plans').select('*').order('display_order'),
       supabase.from('nest_config').select('key, value').in('key', CONFIG_KEYS),
     ]).then(([plansRes, configRes]) => {
-      if (plansRes.data) {
-        setPlans(plansRes.data as PlanRow[])
+      const plansData = plansRes.data as PlanRow[] | null
+      if (plansData) {
+        setPlans(plansData)
         const edits: Record<string, PlanEdits> = {}
-        ;(plansRes.data as PlanRow[]).forEach((p) => {
+        plansData.forEach((p) => {
           edits[p.id] = {
             name: p.name,
             price_inr: String(p.price_inr),
@@ -78,7 +81,7 @@ export default function PricingPage() {
             features: (p.features as string[]).join('\n'),
             cta: p.cta,
             is_featured: p.is_featured,
-            stripe_price_id: p.stripe_price_id ?? '',
+            razorpay_plan_id: p.razorpay_plan_id ?? '',
           }
         })
         setPlanEdits(edits)
@@ -133,7 +136,7 @@ export default function PricingPage() {
         features: e.features.split('\n').map((f) => f.trim()).filter(Boolean),
         cta: e.cta.trim(),
         is_featured: e.is_featured,
-        stripe_price_id: e.stripe_price_id.trim() || null,
+        razorpay_plan_id: e.razorpay_plan_id.trim() || null,
       })
       if (r.error) return r
       if (plan.id !== 'free') {
@@ -162,7 +165,7 @@ export default function PricingPage() {
       edits[p.id] = {
         name: p.name, price_inr: String(p.price_inr), tag: p.tag,
         features: (p.features as string[]).join('\n'), cta: p.cta,
-        is_featured: p.is_featured, stripe_price_id: p.stripe_price_id ?? '',
+        is_featured: p.is_featured, razorpay_plan_id: p.razorpay_plan_id ?? '',
       }
     })
     setPlanEdits(edits)
@@ -236,8 +239,16 @@ export default function PricingPage() {
                       <div className={`plan-dot dot-${plan.id}`} />
                       <span className="plan-name">{e.name || plan.id}</span>
                     </div>
-                    <span className="stripe-badge" title={e.stripe_price_id || undefined}>
-                      {plan.id === 'free' ? 'No Stripe product' : (e.stripe_price_id ? e.stripe_price_id.substring(0, 14) + (e.stripe_price_id.length > 14 ? '…' : '') : 'Not set')}
+                    <span
+                      className="stripe-badge"
+                      title={e.razorpay_plan_id || undefined}
+                      style={{ background: e.razorpay_plan_id ? 'rgba(47,76,58,0.08)' : undefined }}
+                    >
+                      {plan.id === 'free'
+                        ? 'No Razorpay plan'
+                        : e.razorpay_plan_id
+                          ? e.razorpay_plan_id.substring(0, 16) + (e.razorpay_plan_id.length > 16 ? '…' : '')
+                          : 'Not linked'}
                     </span>
                   </div>
 
@@ -302,12 +313,12 @@ export default function PricingPage() {
                     </div>
                     {plan.id !== 'free' && (
                       <div className="compact-field">
-                        <label className="field-label" style={{ marginBottom: 0 }}>Stripe Price ID</label>
+                        <label className="field-label" style={{ marginBottom: 0 }}>Razorpay Plan ID</label>
                         <input
                           className="compact-inp"
-                          value={e.stripe_price_id}
-                          placeholder="price_… (env fallback if empty)"
-                          onChange={(ev) => setPE(plan.id, 'stripe_price_id', ev.target.value)}
+                          value={e.razorpay_plan_id}
+                          placeholder="plan_… (from Razorpay Dashboard → Subscriptions → Plans)"
+                          onChange={(ev) => setPE(plan.id, 'razorpay_plan_id', ev.target.value)}
                         />
                       </div>
                     )}
@@ -386,7 +397,6 @@ export default function PricingPage() {
                     <div className="row-label">Messages per period</div>
                     <div className="row-hint">Hard limit before the upgrade nudge appears</div>
                   </td>
-                  {/* Free — always numeric */}
                   <td>
                     <input
                       className="lim-input"
@@ -395,7 +405,6 @@ export default function PricingPage() {
                       onChange={(ev) => setCfg('nila.free_daily_message_limit', ev.target.value)}
                     />
                   </td>
-                  {/* Core — ∞ toggle */}
                   <td>
                     {isUnlimited('nila.core_message_limit') ? (
                       <button className="inf-toggle inf-on" onClick={() => setCfg('nila.core_message_limit', '50')}>
@@ -413,7 +422,6 @@ export default function PricingPage() {
                       </div>
                     )}
                   </td>
-                  {/* Premium — ∞ toggle */}
                   <td>
                     {isUnlimited('nila.premium_message_limit') ? (
                       <button className="inf-toggle inf-on" onClick={() => setCfg('nila.premium_message_limit', '50')}>
@@ -596,7 +604,7 @@ export default function PricingPage() {
         <div>
           <div className="section-head">
             <div className="section-title">Grace period &amp; dunning</div>
-            <div className="section-sub">Controls what happens when a subscription payment fails. Stripe handles retries — this defines fallback behaviour after retries are exhausted.</div>
+            <div className="section-sub">Controls what happens when a subscription payment fails. Razorpay handles retries — this defines fallback behaviour after retries are exhausted and the subscription is halted.</div>
           </div>
 
           <div className="dunning-grid">
@@ -627,7 +635,7 @@ export default function PricingPage() {
 
             <div className="form-card">
               <div className="form-card-title">Downgrade behaviour</div>
-              <div className="form-card-sub">What happens when the grace period expires without a successful payment retry.</div>
+              <div className="form-card-sub">What happens when Razorpay halts the subscription after exhausting retries.</div>
               <div className="form-row">
                 <label className="form-label">Downgrade to</label>
                 <select className="form-select" disabled>

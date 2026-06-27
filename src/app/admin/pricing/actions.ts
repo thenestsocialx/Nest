@@ -21,7 +21,7 @@ export async function savePlan(
     features: string[]
     cta: string
     is_featured: boolean
-    stripe_price_id: string | null
+    razorpay_plan_id: string | null
   },
 ): Promise<{ error?: string }> {
   try {
@@ -31,7 +31,8 @@ export async function savePlan(
   }
 
   const admin = createAdminClient()
-  const { error } = await admin
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin as any)
     .from('plans')
     .update({ ...data, updated_at: new Date().toISOString() })
     .eq('id', id)

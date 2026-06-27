@@ -17,6 +17,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { addZohoStaff, genderFromPronouns } from '@/lib/zoho/addStaff';
 import { createAllyServices } from '@/lib/zoho/addService';
+import { fetchZohoStaff } from '@/lib/zoho/fetchStaff';
 import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(
@@ -91,6 +92,20 @@ export async function POST(
     }
   }
 
+  // ── Step 1.5: Fetch staff from Zoho — verify + capture embed_url ─────────────
+  let zohoEmbedUrl: string | null = null;
+  try {
+    const staffData = await fetchZohoStaff(zohoStaffId);
+    zohoEmbedUrl = staffData.embed_url;
+    console.log('[POST /approve-and-activate] zoho embed_url captured');
+  } catch (err) {
+    // Non-fatal: staff already exists in Zoho; embed_url can be back-filled later
+    console.warn(
+      '[POST /approve-and-activate] fetchZohoStaff failed (non-fatal):',
+      err instanceof Error ? err.message : err,
+    );
+  }
+
   // ── Step 2: Zoho services ────────────────────────────────────────────────────
   let zohoServiceIds: Record<string, string> =
     (ally.zoho_service_ids as Record<string, string> | null) ?? {};
@@ -133,11 +148,12 @@ export async function POST(
     .update({
       zoho_staff_id:     zohoStaffId,
       zoho_service_ids:  zohoServiceIds,
+      zoho_embed_url:    zohoEmbedUrl,
       onboarding_status: 'active',
       is_active:         true,
     })
     .eq('id', id)
-    .select('id, full_name, is_active, onboarding_status, zoho_staff_id, zoho_service_ids')
+    .select('id, full_name, is_active, onboarding_status, zoho_staff_id, zoho_service_ids, zoho_embed_url')
     .single();
 
   if (updateError) {

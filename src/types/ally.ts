@@ -100,11 +100,12 @@ export interface AllyRow {
   // ── Zoho ─────────────────────────────────────────────────────
   zoho_staff_id: string | null;
   zoho_service_ids: Record<string, string> | null;
+  zoho_embed_url: string | null;
 }
 
 /** Fields the PATCH endpoint accepts (excludes immutable/Zoho-managed fields) */
 export type AllyPatchPayload = Partial<
-  Omit<AllyRow, 'id' | 'created_at' | 'zoho_staff_id' | 'zoho_service_ids' | 'deleted_at' | 'user_id'>
+  Omit<AllyRow, 'id' | 'created_at' | 'zoho_staff_id' | 'zoho_service_ids' | 'zoho_embed_url' | 'deleted_at' | 'user_id'>
 >;
 
 export interface ZohoStaffInput {

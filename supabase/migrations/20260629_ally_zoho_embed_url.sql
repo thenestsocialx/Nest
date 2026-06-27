@@ -1,0 +1,2 @@
+ALTER TABLE allies
+  ADD COLUMN IF NOT EXISTS zoho_embed_url TEXT;

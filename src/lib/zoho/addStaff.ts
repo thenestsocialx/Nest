@@ -7,6 +7,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getValidAccessToken } from './tokenManager';
 import { ZohoAPIError } from './types';
+import { findZohoStaffByEmail } from './fetchStaff';
 import type { ZohoTokenRow } from './types';
 import type { ZohoStaffInput, ZohoStaffResult } from '@/types/ally';
 
@@ -147,10 +148,21 @@ export async function addZohoStaff(staff: ZohoStaffInput): Promise<ZohoStaffResu
   }
 
   if (!result.id && result.status !== 'success') {
-    throw new ZohoAPIError(
-      0,
-      result.message ?? `Zoho staff creation failed with status: ${result.status}`,
-    );
+    const message = result.message ?? `Zoho staff creation failed with status: ${result.status}`;
+
+    // Staff already exists in Zoho — fetch them by email and reuse their ID
+    if (/already exist|duplicate|already registered/i.test(message)) {
+      console.log('[addZohoStaff] staff already exists, fetching by email:', staff.email);
+      const existing = await findZohoStaffByEmail(staff.email);
+      return {
+        id:     existing.id,
+        name:   existing.name  ?? staff.name,
+        email:  existing.email ?? staff.email,
+        status: 'success',
+      };
+    }
+
+    throw new ZohoAPIError(0, message);
   }
 
   return result;

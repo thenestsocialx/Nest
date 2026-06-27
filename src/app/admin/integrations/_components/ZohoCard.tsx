@@ -7,8 +7,6 @@ import type { ZohoServiceRow } from '@/types/zoho';
 
 interface ZohoCardProps {
   connected: boolean;
-  expiresAt: string | null;
-  lastUpdated: string | null;
   orgId: string | null;
   workspaceId: string | null;
   workspaceName: string | null;
@@ -16,8 +14,6 @@ interface ZohoCardProps {
 
 export default function ZohoCard({
   connected,
-  expiresAt,
-  lastUpdated,
   orgId,
   workspaceId,
   workspaceName,
@@ -105,14 +101,6 @@ export default function ZohoCard({
     );
   }
 
-  const formattedExpiry = expiresAt
-    ? new Date(expiresAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
-    : '—';
-
-  const formattedUpdated = lastUpdated
-    ? new Date(lastUpdated).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
-    : '—';
-
   const showSelector = !workspaceId || showChangeWorkspace;
 
   // ── Connected ─────────────────────────────────────────────────────────────
@@ -172,53 +160,25 @@ export default function ZohoCard({
         </div>
       )}
 
-      {/* Meta grid */}
-      <div className="ns-oauth-meta">
-        <div className="ns-oauth-meta__item">
-          <div className="ns-oauth-meta__label">Client ID source</div>
-          <div className="ns-oauth-meta__val">Environment variable</div>
-        </div>
-        <div className="ns-oauth-meta__item">
-          <div className="ns-oauth-meta__label">Client Secret source</div>
-          <div className="ns-oauth-meta__val">Environment variable</div>
-        </div>
-        <div className="ns-oauth-meta__item">
-          <div className="ns-oauth-meta__label">Last updated</div>
-          <div className="ns-oauth-meta__val">{formattedUpdated}</div>
-        </div>
-        <div className="ns-oauth-meta__item">
-          <div className="ns-oauth-meta__label">Token expires</div>
-          <div className="ns-oauth-meta__val">{formattedExpiry}</div>
-        </div>
-
-        <div className="ns-oauth-meta__item" style={{ gridColumn: '1 / -1' }}>
-          <div className="ns-oauth-meta__label">Active workspace</div>
-          <div className="ns-oauth-meta__val" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {workspaceId ? (
-              <>
-                <span>{workspaceName ?? workspaceId}</span>
-                {!showChangeWorkspace && (
-                  <button
-                    className="ns-btn ns-btn--ghost ns-btn--sm"
-                    style={{ padding: '1px 8px', fontSize: 11 }}
-                    onClick={() => setShowChangeWorkspace(true)}
-                  >
-                    Change
-                  </button>
-                )}
-              </>
-            ) : (
-              <span style={{ color: 'var(--ns-muted, #888)' }}>Not selected</span>
+      {/* Active workspace */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 12, color: 'var(--ns-muted, #888)', fontWeight: 500 }}>Workspace:</span>
+        {workspaceId ? (
+          <>
+            <span style={{ fontSize: 12, color: 'var(--ns-forest, #2F4C3A)', fontWeight: 500 }}>{workspaceName ?? workspaceId}</span>
+            {!showChangeWorkspace && (
+              <button
+                className="ns-btn ns-btn--ghost ns-btn--sm"
+                style={{ padding: '1px 8px', fontSize: 11 }}
+                onClick={() => setShowChangeWorkspace(true)}
+              >
+                Change
+              </button>
             )}
-          </div>
-        </div>
-
-        <div className="ns-oauth-meta__item" style={{ gridColumn: '1 / -1' }}>
-          <div className="ns-oauth-meta__label">Webhook endpoint</div>
-          <div className="ns-oauth-meta__val" style={{ fontFamily: 'monospace', fontSize: 11 }}>
-            /api/v1/webhooks/zoho
-          </div>
-        </div>
+          </>
+        ) : (
+          <span style={{ fontSize: 12, color: 'var(--ns-muted, #888)' }}>Not selected</span>
+        )}
       </div>
 
       {showSelector && (
@@ -281,8 +241,7 @@ export default function ZohoCard({
         </div>
       )}
 
-      {/* Suppress unused orgId warning */}
-      {orgId && false && <span>{orgId}</span>}
+      {orgId && null}
     </div>
   );
 }

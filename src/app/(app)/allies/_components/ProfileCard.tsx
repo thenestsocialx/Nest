@@ -97,36 +97,36 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
 
           {/* Credential row */}
           {(ally.highest_qualification || ally.session_count > 0) && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {ally.highest_qualification && (
                 <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  fontSize: '0.6875rem', fontWeight: 500,
-                  color: 'var(--deep-pine)',
-                  background: 'rgba(47,76,58,0.08)',
-                  border: '1px solid rgba(47,76,58,0.14)',
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontSize: '0.6875rem', fontWeight: 600,
+                  color: 'var(--cream)',
+                  background: 'var(--deep-pine)',
                   borderRadius: 'var(--r-pill)',
-                  padding: '3px 9px',
+                  padding: '4px 10px',
+                  letterSpacing: '0.01em',
                 }}>
                   <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M8 2L15 6v2l-7 4-7-4V6l7-4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-                    <path d="M3 8.5v4l5 2 5-2v-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 2L15 6v2l-7 4-7-4V6l7-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                    <path d="M3 8.5v4l5 2 5-2v-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   {ally.highest_qualification}
                 </span>
               )}
               {ally.session_count > 0 && (
                 <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  fontSize: '0.6875rem', fontWeight: 500,
-                  color: 'var(--moss)',
-                  background: 'rgba(92,122,102,0.10)',
-                  border: '1px solid rgba(92,122,102,0.16)',
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontSize: '0.6875rem', fontWeight: 600,
+                  color: 'var(--cream)',
+                  background: 'var(--moss)',
                   borderRadius: 'var(--r-pill)',
-                  padding: '3px 9px',
+                  padding: '4px 10px',
+                  letterSpacing: '0.01em',
                 }}>
                   <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   {ally.session_count} {ally.session_count === 1 ? 'session' : 'sessions'}
                 </span>

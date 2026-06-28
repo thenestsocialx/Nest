@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
@@ -9,6 +10,10 @@ export const metadata = {
   title: 'Home — Nest',
 }
 
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+// Maps mood_index 0-4 to bar height %
+const MOOD_HEIGHT = [18, 36, 52, 72, 92]
+
 function getGreeting() {
   const hour = new Date().getUTCHours()
   if (hour < 12) return 'Good morning'
@@ -16,15 +21,33 @@ function getGreeting() {
   return 'Good evening'
 }
 
-const WEEK_BARS = [
-  { day: 'M', h: 60, logged: true,  hi: false },
-  { day: 'T', h: 40, logged: true,  hi: false },
-  { day: 'W', h: 72, logged: true,  hi: true  },
-  { day: 'T', h: 82, logged: true,  hi: false },
-  { day: 'F', h: 0,  logged: false, hi: false },
-  { day: 'S', h: 66, logged: true,  hi: true  },
-  { day: 'S', h: 0,  logged: false, hi: false },
-]
+function buildWeekBars(entries: { logged_date: string; mood_index: number }[]) {
+  const today = new Date()
+  const bars = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    const dateStr = d.toISOString().slice(0, 10)
+    const entry = entries.find(e => e.logged_date === dateStr)
+    bars.push({
+      day: DAY_LABELS[d.getDay()],
+      h: entry ? MOOD_HEIGHT[entry.mood_index] : 0,
+      logged: !!entry,
+      hi: entry ? entry.mood_index >= 3 : false,
+    })
+  }
+  return bars
+}
+
+function moodCaption(bars: ReturnType<typeof buildWeekBars>): string {
+  const logged = bars.filter(b => b.logged)
+  if (logged.length === 0) return 'No mood entries this week yet.'
+  const settled = logged.filter(b => b.hi).length
+  if (settled >= 4) return 'A strong week — mostly settled and okay.'
+  if (settled >= 2) return `${settled} settled ${settled === 1 ? 'day' : 'days'} this week. That's something.`
+  if (logged.length <= 2) return 'Just getting started — keep checking in.'
+  return 'Some harder days in there. You showed up anyway.'
+}
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -34,11 +57,24 @@ export default async function HomePage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, display_name')
-    .eq('id', user.id)
-    .maybeSingle()
+  const admin = createAdminClient()
+
+  const [profileResult, moodResult] = await Promise.all([
+    supabase.from('profiles').select('full_name, display_name').eq('id', user.id).maybeSingle(),
+    admin.from('mood_entries')
+      .select('logged_date, mood_index')
+      .eq('user_id', user.id)
+      .gte('logged_date', (() => { const d = new Date(); d.setDate(d.getDate() - 6); return d.toISOString().slice(0, 10) })())
+      .order('logged_date', { ascending: true }),
+  ])
+
+  const profile = profileResult.data
+  const moodEntries = (moodResult.data ?? []) as { logged_date: string; mood_index: number }[]
+
+  const today = new Date().toISOString().slice(0, 10)
+  const todayEntry = moodEntries.find(e => e.logged_date === today)
+  const weekBars = buildWeekBars(moodEntries)
+  const loggedCount = weekBars.filter(b => b.logged).length
 
   const firstName = profile?.display_name ?? profile?.full_name?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'there'
   const initial = firstName[0]?.toUpperCase() ?? 'A'
@@ -73,7 +109,7 @@ export default async function HomePage() {
 
         {/* Content */}
         <div className="ns-content">
-          <MoodSelector />
+          <MoodSelector initialMood={todayEntry?.mood_index ?? null} />
 
           <div className="ns-dash-grid">
             {/* LEFT column */}
@@ -181,10 +217,10 @@ export default async function HomePage() {
               <article className="ns-card">
                 <div className="ns-card__head">
                   <div className="ns-card__eyebrow">This week</div>
-                  <div className="ns-trend__note">5 of 7 days</div>
+                  <div className="ns-trend__note">{loggedCount} of 7 days</div>
                 </div>
                 <div className="ns-trend">
-                  {WEEK_BARS.map((b, i) => (
+                  {weekBars.map((b, i) => (
                     <div key={i} className="ns-trend__col">
                       <div className="ns-trend__track">
                         <div
@@ -197,7 +233,7 @@ export default async function HomePage() {
                   ))}
                 </div>
                 <p className="ns-trend__caption">
-                  <em>Two settled days this week. That&rsquo;s something.</em>
+                  <em>{moodCaption(weekBars)}</em>
                 </p>
               </article>
             </div>

@@ -50,6 +50,7 @@ function buildSystemPrompt(
   userEmail: string,
   language = 'english',
   assessmentContext?: AssessmentContext,
+  hasUnacknowledgedSession?: boolean,
 ): string {
   const contextWindow = mode === 'figure_it_out' ? 20 : 10
   const timeOfDay = getTimeOfDay()
@@ -57,6 +58,10 @@ function buildSystemPrompt(
   const assessmentBlock = assessmentContext
     ? `\nUser context: When they came to Nest, they were working through ${assessmentContext.branch}.${assessmentContext.summary ? ` Their snapshot: "${assessmentContext.summary}"` : ''}
 Keep this in the background — don't reference it directly unless the user brings it up.`
+    : ''
+
+  const followUpBlock = hasUnacknowledgedSession
+    ? `\nSession follow-up: The user recently completed a session with one of their allies. Open gently with a check-in like "How did your session go?" — but only if they haven't brought it up already. Don't force it if they arrive with something urgent.`
     : ''
 
   const base = `You are Nila — an AI emotional companion on Nest, a platform that helps people going through loneliness, breakups, relationship issues, anxiety, stress, depression, and trust issues.
@@ -77,7 +82,7 @@ CONVERSATION MEMORY: You receive the last ${contextWindow} messages as context.
 
 Current user: ${userEmail}
 Time of day: ${timeOfDay}
-${language !== 'english' ? `Language preference: Respond in ${language}. Mirror the language the user writes in.` : ''}${assessmentBlock}`
+${language !== 'english' ? `Language preference: Respond in ${language}. Mirror the language the user writes in.` : ''}${assessmentBlock}${followUpBlock}`
 
   if (mode === 'rant') return base + '\n\n' + RANT_BLOCK
   if (mode === 'figure_it_out') return base + '\n\n' + FIGUREOUT_BLOCK
@@ -124,14 +129,27 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Plan-aware, period-aware limit check + assessment context
-  const { data: profileData } = await admin
-    .from('profiles')
-    .select('plan, last_assessment_branch, last_assessment_at, last_assessment_summary')
-    .eq('id', user.id)
-    .maybeSingle()
+  // Plan-aware, period-aware limit check + assessment context + session follow-up
+  const [profileResult, completedSessionResult] = await Promise.all([
+    admin
+      .from('profiles')
+      .select('plan, last_assessment_branch, last_assessment_at, last_assessment_summary')
+      .eq('id', user.id)
+      .maybeSingle(),
+    admin
+      .from('sessions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .eq('nila_followup_sent', false)
+      .limit(1),
+  ])
 
+  const profileData = profileResult.data
   const userPlan = (profileData?.plan ?? 'free') as string
+
+  const unacknowledgedSessions = completedSessionResult.data ?? []
+  const hasUnacknowledgedSession = unacknowledgedSessions.length > 0
 
   // Only use assessment context if taken within the last 90 days
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000
@@ -150,7 +168,7 @@ export async function POST(req: NextRequest) {
     :                        'nila.free_daily_message_limit'
 
   const [limitStr, resetPeriod] = await Promise.all([
-    getConfig(limitKey, userPlan === 'free' ? '10' : '999'),
+    getConfig(limitKey, userPlan === 'free' ? '20' : '999'),
     getConfig('nila.limit_reset_period', 'daily'),
   ])
 
@@ -182,6 +200,15 @@ export async function POST(req: NextRequest) {
       content: message,
       mode,
     })
+
+    // Mark any completed sessions as follow-up acknowledged
+    if (hasUnacknowledgedSession) {
+      const sessionIds = unacknowledgedSessions.map((s: { id: string }) => s.id)
+      await admin
+        .from('sessions')
+        .update({ nila_followup_sent: true })
+        .in('id', sessionIds)
+    }
 
     const { count: userMsgCount } = await admin
       .from('nila_messages')
@@ -227,7 +254,7 @@ export async function POST(req: NextRequest) {
         const claudeStream = await client.messages.stream({
           model: 'claude-sonnet-4-6',
           max_tokens: 512,
-          system: buildSystemPrompt(mode, user.email ?? '', language, assessmentContext),
+          system: buildSystemPrompt(mode, user.email ?? '', language, assessmentContext, hasUnacknowledgedSession),
           messages: contextMessages,
         })
 

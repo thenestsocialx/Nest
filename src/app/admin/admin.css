@@ -1694,3 +1694,160 @@ a.ns-metric {
   flex-direction: column;
   gap: 0;
 }
+
+/* ── AUDIT PAGE ──────────────────────────────────────────────────────────── */
+
+/* Filter bar — single-row layout */
+.ns-audit-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+/* Auto-refresh icon-button */
+.ns-audit-autorefresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+.ns-audit-autorefresh-btn:hover { background: var(--ns-cream-2); }
+
+/* Clear ✕ inside search input */
+.ns-audit-clear-x {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ns-ink-4);
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 4px;
+  transition: color 0.1s;
+}
+.ns-audit-clear-x:hover { color: var(--ns-ink); }
+
+/* Active filter chips */
+.ns-audit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ns-border);
+  background: var(--ns-cream);
+  color: var(--ns-ink-2);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.ns-audit-chip:hover {
+  border-color: var(--ns-forest-3);
+  background: var(--ns-forest-light);
+  color: var(--ns-forest);
+}
+
+/* Severity stripe — dedicated first-cell colored bar */
+.ns-audit-stripe {
+  width: 4px !important;
+  padding: 0 !important;
+  min-width: 4px;
+}
+.ns-audit-row--critical .ns-audit-stripe { background: var(--ns-red) !important; }
+.ns-audit-row--warning  .ns-audit-stripe { background: var(--ns-amber) !important; }
+.ns-audit-row--positive .ns-audit-stripe { background: var(--ns-teal) !important; }
+.ns-audit-row--info     .ns-audit-stripe { background: var(--ns-forest-3) !important; }
+.ns-audit-row--neutral  .ns-audit-stripe { background: var(--ns-border) !important; }
+
+/* Alternating rows */
+.ns-audit-row--even:not(:hover) { background: rgba(248, 240, 229, 0.38); }
+
+/* Open / expanded row */
+.ns-audit-row--open,
+.ns-audit-row--open:hover { background: var(--ns-cream) !important; }
+
+/* Detail panel row */
+.ns-audit-detail-row td {
+  background: var(--ns-cream);
+  border-top: 1px solid var(--ns-border-soft);
+}
+
+/* Diff side-by-side grid */
+.ns-audit-diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .ns-audit-diff-grid { grid-template-columns: 1fr; }
+}
+
+/* Diff column labels */
+.ns-audit-diff-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.ns-audit-diff-label--before { color: var(--ns-red); }
+.ns-audit-diff-label--after  { color: var(--ns-teal); }
+
+/* Diff pre blocks */
+.ns-audit-diff-pre {
+  margin: 0;
+  font-size: 0.72rem;
+  border-radius: var(--ns-radius-sm);
+  border: 1px solid var(--ns-border-soft);
+  padding: 8px 10px;
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+  color: var(--ns-ink);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  line-height: 1.55;
+  white-space: pre;
+  background: var(--ns-cream-2);
+}
+.ns-audit-diff-pre--before { background: var(--ns-red-light); }
+.ns-audit-diff-pre--after  { background: var(--ns-teal-light); }
+
+/* Pagination numbered buttons */
+.ns-audit-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: var(--ns-radius-sm);
+  border: 1px solid var(--ns-border-soft);
+  background: transparent;
+  color: var(--ns-ink-2);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.ns-audit-page-btn:hover { background: var(--ns-cream); border-color: var(--ns-border); }
+.ns-audit-page-btn--active {
+  background: var(--ns-forest);
+  border-color: var(--ns-forest);
+  color: #fff;
+  font-weight: 600;
+}
+.ns-audit-page-btn--active:hover { background: var(--ns-forest-2); border-color: var(--ns-forest-2); }

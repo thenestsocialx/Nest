@@ -33,7 +33,7 @@ export default async function AlliesPage({ searchParams }: { searchParams: Promi
   // ── Fetch active browsable allies ────────────────────────────
   const { data: rawAllies } = await supabase
     .from('allies')
-    .select('id,display_name,primary_role,years_experience,bio,tagline,quote,pronouns,specialties,user_vibes,modalities,approach_style,photo_url,session_price,intro_price,session_durations,session_formats,languages_spoken,location,manual_priority_score,zoho_embed_url')
+    .select('id,display_name,primary_role,years_experience,bio,tagline,quote,pronouns,specialties,user_vibes,modalities,approach_style,photo_url,session_price,intro_price,session_durations,session_formats,languages_spoken,location,manual_priority_score,zoho_embed_url,highest_qualification,session_count')
     .eq('is_active', true)
     .eq('onboarding_status', 'active')
     .eq('visibility_search', true)
@@ -62,6 +62,8 @@ export default async function AlliesPage({ searchParams }: { searchParams: Promi
     location: a.location ?? null,
     manual_priority_score: a.manual_priority_score ?? 5,
     zoho_embed_url: a.zoho_embed_url ?? null,
+    highest_qualification: a.highest_qualification ?? null,
+    session_count: a.session_count ?? 0,
   }));
 
   return (

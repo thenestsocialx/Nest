@@ -33,7 +33,9 @@ const ALLY_SELECT = `
   languages_spoken,
   location,
   manual_priority_score,
-  zoho_embed_url
+  zoho_embed_url,
+  highest_qualification,
+  session_count
 `.trim()
 
 export async function GET(req: NextRequest) {

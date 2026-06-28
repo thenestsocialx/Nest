@@ -60,4 +60,6 @@ export interface AllyPublicProfile {
   location: string | null;
   manual_priority_score: number;
   zoho_embed_url: string | null;
+  highest_qualification: string | null;
+  session_count: number;
 }

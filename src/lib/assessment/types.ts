@@ -60,6 +60,8 @@ export interface RecommendedAlly {
   session_price: number
   tagline: string | null
   quote: string | null
+  highest_qualification: string | null
+  session_count: number
 }
 
 export interface AssessmentState {

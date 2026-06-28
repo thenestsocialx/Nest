@@ -13,12 +13,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let isPaymentHalted = false
   if (user) {
-    const { data: sub } = await supabase
+    const { data: subs } = await supabase
       .from('subscriptions')
       .select('status')
       .eq('user_id', user.id)
-      .maybeSingle()
-    isPaymentHalted = sub?.status === 'halted'
+      .order('updated_at', { ascending: false })
+      .limit(5)
+    isPaymentHalted = (subs ?? []).some((s: { status: string }) => s.status === 'halted')
   }
 
   return (

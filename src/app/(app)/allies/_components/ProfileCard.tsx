@@ -119,9 +119,9 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
                   fontSize: '0.6875rem', fontWeight: 500,
-                  color: 'var(--moss)',
-                  background: 'rgba(92,122,102,0.12)',
-                  border: '1px solid rgba(92,122,102,0.32)',
+                  color: '#7A5020',
+                  background: 'rgba(232,200,160,0.45)',
+                  border: '1px solid rgba(200,160,100,0.55)',
                   borderRadius: 'var(--r-pill)',
                   padding: '4px 10px',
                 }}>

@@ -50,6 +50,18 @@ export interface ResultData {
   pathwayReason: string
 }
 
+export interface RecommendedAlly {
+  id: string
+  display_name: string
+  primary_role: string | null
+  photo_url: string | null
+  specialties: string[]
+  intro_price: number | null
+  session_price: number
+  tagline: string | null
+  quote: string | null
+}
+
 export interface AssessmentState {
   phase: Phase
   currentQuestionId: string
@@ -60,4 +72,5 @@ export interface AssessmentState {
   result: ResultData | null
   error: string | null
   crisisFlag: boolean
+  recommendedAllies: RecommendedAlly[]
 }

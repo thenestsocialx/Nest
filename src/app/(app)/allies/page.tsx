@@ -8,7 +8,9 @@ export const metadata = {
   title: 'Find your ally — Nest',
 };
 
-export default async function AlliesPage() {
+export default async function AlliesPage({ searchParams }: { searchParams: Promise<{ highlight?: string }> }) {
+  const params = await searchParams
+  const highlightId = params.highlight ?? null
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -70,6 +72,7 @@ export default async function AlliesPage() {
           allies={allies}
           userName={firstName}
           userInitial={initial}
+          highlightId={highlightId}
         />
       </main>
     </div>

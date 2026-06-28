@@ -11,14 +11,16 @@ interface Props {
   allies: AllyPublicProfile[]
   userName: string
   userInitial: string
+  highlightId?: string | null
 }
 
-export default function FindAlliesShell({ allies, userName, userInitial }: Props) {
+export default function FindAlliesShell({ allies, userName, userInitial, highlightId }: Props) {
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null)
   const [selectedVibe,  setSelectedVibe]  = useState<VibeId  | null>(null)
   const [currentIdx,    setCurrentIdx]    = useState(0)
   const [hasSplit,      setHasSplit]      = useState(false)
   const [bookingAlly,   setBookingAlly]   = useState<AllyPublicProfile | null>(null)
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
 
   const filteredAllies = useMemo(
     () => filterAllies(allies, selectedTopic, selectedVibe),
@@ -76,6 +78,18 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
     }
   }, [filteredAllies.length, currentIdx])
 
+  // Scroll to and highlight an ally arriving from assessment recommendations
+  useEffect(() => {
+    if (!highlightId) return
+    const idx = allies.findIndex(a => a.id === highlightId)
+    if (idx === -1) return
+    setCurrentIdx(idx)
+    setHasSplit(true)
+    setHighlightedId(highlightId)
+    const timer = setTimeout(() => setHighlightedId(null), 3000)
+    return () => clearTimeout(timer)
+  }, [highlightId, allies])
+
   const workspaceStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: hasSplit ? '25fr 75fr' : '1fr 0fr',
@@ -103,10 +117,37 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
           <div className="fa-topbar-breadcrumb">connect</div>
           <h1 className="fa-topbar-title">Find your ally</h1>
         </div>
-        <a href="/profile" className="fa-user-chip" aria-label={`View profile for ${userName}`}>
-          <span style={{ fontSize: 13, color: 'var(--moss)', opacity: 0.8 }}>{userName}</span>
-          <div className="fa-avatar" aria-hidden="true">{userInitial}</div>
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a
+            href="/sessions"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 500,
+              color: 'var(--moss)',
+              border: '1.5px solid var(--honey-mute)',
+              borderRadius: 'var(--r-pill)',
+              padding: '6px 14px',
+              textDecoration: 'none',
+              letterSpacing: '0.01em',
+              transition: 'border-color 150ms, color 150ms',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--moss)'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--deep-pine)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--honey-mute)'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--moss)' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 2V4M11 2V4M2 6.5H14M5 9.5L7 11.5L11 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            My Sessions
+          </a>
+          <a href="/profile" className="fa-user-chip" aria-label={`View profile for ${userName}`}>
+            <span style={{ fontSize: 13, color: 'var(--moss)', opacity: 0.8 }}>{userName}</span>
+            <div className="fa-avatar" aria-hidden="true">{userInitial}</div>
+          </a>
+        </div>
       </header>
 
       {/* Workspace */}
@@ -129,6 +170,7 @@ export default function FindAlliesShell({ allies, userName, userInitial }: Props
           selectedVibe={selectedVibe}
           hasSelections={hasSelections}
           isSplit={hasSplit}
+          isHighlighted={!!(highlightedId && filteredAllies[currentIdx]?.id === highlightedId)}
           onNavigate={handleNavigate}
           onBook={setBookingAlly}
         />

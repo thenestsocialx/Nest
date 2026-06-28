@@ -1,9 +1,51 @@
-// POST /api/v1/sessions — Create a session connection request (authenticated users only)
+// GET  /api/v1/sessions — Fetch the authenticated user's sessions (upcoming + past)
+// POST /api/v1/sessions — Create a session connection request
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logAuditEvent } from '@/lib/audit';
+
+export async function GET(_req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const admin = createAdminClient();
+
+  const { data: rows, error } = await admin
+    .from('sessions')
+    .select(`
+      id,
+      status,
+      created_at,
+      zoho_booking_id,
+      request_message,
+      allies (
+        id,
+        display_name,
+        primary_role,
+        photo_url,
+        tagline,
+        zoho_embed_url
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[GET /api/v1/sessions]', error);
+    return NextResponse.json({ error: 'Failed to fetch sessions' }, { status: 500 });
+  }
+
+  const UPCOMING_STATUSES = new Set(['pending', 'requested', 'confirmed']);
+  const upcoming = (rows ?? []).filter(r => UPCOMING_STATUSES.has(r.status));
+  const past     = (rows ?? []).filter(r => !UPCOMING_STATUSES.has(r.status));
+
+  return NextResponse.json({ upcoming, past });
+}
 
 const bodySchema = z.object({
   ally_id: z.string().uuid(),

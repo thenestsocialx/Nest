@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useReducer } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AssessmentState, AnswerRecord, ResultData, BranchId, NextTarget } from '@/lib/assessment/types'
+import type { AssessmentState, AnswerRecord, ResultData, BranchId, NextTarget, RecommendedAlly } from '@/lib/assessment/types'
 import { QUESTION_TREE, BRANCH_START_MAP, ESTIMATED_TOTAL_STEPS } from '@/config/questions'
 import ProgressBar from './ProgressBar'
 import QuestionScreen from './QuestionScreen'
@@ -37,6 +37,7 @@ type Action =
   | { type: 'ADVANCE_TO_CRISIS'; payload: AnswerRecord }
   | { type: 'CONTINUE_FROM_CRISIS' }
   | { type: 'SET_RESULT'; payload: ResultData }
+  | { type: 'SET_RECOMMENDED_ALLIES'; payload: RecommendedAlly[] }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'RETRY' }
   | { type: 'BACK' }
@@ -51,6 +52,7 @@ const initialState: AssessmentState = {
   result: null,
   error: null,
   crisisFlag: false,
+  recommendedAllies: [],
 }
 
 function reducer(state: AssessmentState, action: Action): AssessmentState {
@@ -120,6 +122,9 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 
     case 'SET_RESULT':
       return { ...state, phase: 'result', result: action.payload }
+
+    case 'SET_RECOMMENDED_ALLIES':
+      return { ...state, recommendedAllies: action.payload }
 
     case 'SET_ERROR':
       return { ...state, error: action.payload }
@@ -211,25 +216,37 @@ export default function AssessmentShell() {
     const timeout    = setTimeout(() => controller.abort(), 30_000)
 
     try {
-      const res = await fetch('/api/assessment/result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          branch: state.branch,
-          answers: allAnswers.map(a => ({
-            questionId:   a.questionId,
-            questionText: a.questionText,
-            answer:       a.answer,
-          })),
+      const [res, alliesRes] = await Promise.all([
+        fetch('/api/assessment/result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            branch: state.branch,
+            answers: allAnswers.map(a => ({
+              questionId:   a.questionId,
+              questionText: a.questionText,
+              answer:       a.answer,
+            })),
+          }),
+          signal: controller.signal,
         }),
-        signal: controller.signal,
-      })
+        state.branch
+          ? fetch(`/api/v1/allies/recommended?branch=${encodeURIComponent(state.branch)}&limit=3`)
+          : Promise.resolve(null),
+      ])
 
       const data: ResultData = await res.json()
       if (!res.ok) throw new Error('Result generation failed')
 
       sessionStorage.setItem(RESULT_KEY, JSON.stringify(data))
       dispatch({ type: 'SET_RESULT', payload: data })
+
+      if (alliesRes?.ok) {
+        const { allies } = await alliesRes.json()
+        if (Array.isArray(allies) && allies.length > 0) {
+          dispatch({ type: 'SET_RECOMMENDED_ALLIES', payload: allies })
+        }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong'
       dispatch({ type: 'SET_ERROR', payload: message })
@@ -475,7 +492,7 @@ export default function AssessmentShell() {
       )}
 
       {state.phase === 'result' && (
-        <ResultScreen result={state.result} onSave={handleSave} />
+        <ResultScreen result={state.result} onSave={handleSave} recommendedAllies={state.recommendedAllies} />
       )}
 
       {/* Error overlay */}

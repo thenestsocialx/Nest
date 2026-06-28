@@ -12,6 +12,7 @@ interface Props {
   selectedVibe: VibeId | null
   hasSelections: boolean
   isSplit: boolean
+  isHighlighted?: boolean
   onNavigate: (dir: -1 | 1) => void
   onBook: (ally: AllyPublicProfile) => void
 }
@@ -23,6 +24,7 @@ export default function ProfileColumn({
   selectedVibe,
   hasSelections,
   isSplit,
+  isHighlighted,
   onNavigate,
   onBook,
 }: Props) {
@@ -85,7 +87,7 @@ export default function ProfileColumn({
             </svg>
           </button>
 
-          <div className="fa-card-slot">
+          <div className="fa-card-slot" style={isHighlighted ? { outline: '2.5px solid var(--deep-pine, #2F4C3A)', outlineOffset: '4px', borderRadius: '20px', transition: 'outline 300ms' } : undefined}>
             {!hasSelections ? null : total === 0 ? (
               <EmptyState />
             ) : currentAlly ? (

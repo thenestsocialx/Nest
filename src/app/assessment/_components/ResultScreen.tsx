@@ -1,9 +1,77 @@
-import type { ResultData } from '@/lib/assessment/types'
+import type { ResultData, RecommendedAlly } from '@/lib/assessment/types'
 import styles from './ResultScreen.module.css'
 
 interface ResultScreenProps {
   result: ResultData | null
   onSave: () => void
+  recommendedAllies?: RecommendedAlly[]
+}
+
+function AllyRecommendationCard({ ally }: { ally: RecommendedAlly }) {
+  const initials = ally.display_name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+  const priceLabel = ally.intro_price && ally.intro_price < ally.session_price
+    ? `First session · ₹${ally.intro_price.toLocaleString('en-IN')}`
+    : ally.session_price > 0
+      ? `₹${ally.session_price.toLocaleString('en-IN')} / session`
+      : null
+  const tag = ally.specialties[0]
+
+  return (
+    <a
+      href={`/allies?highlight=${ally.id}`}
+      style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+      aria-label={`Book a session with ${ally.display_name}`}
+    >
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
+        padding: '14px 16px',
+        background: 'rgba(255,255,255,0.55)',
+        border: '1px solid rgba(224,213,197,0.7)',
+        borderRadius: '14px',
+        cursor: 'pointer',
+        transition: 'border-color 150ms',
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          overflow: 'hidden', background: '#D6E8DC',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '0.8125rem', fontWeight: 600, color: '#2F4C3A',
+        }}>
+          {ally.photo_url
+            ? <img src={ally.photo_url} alt={ally.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : initials}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--deep-pine, #2F4C3A)', marginBottom: '2px' }}>
+            {ally.display_name}
+          </div>
+          {ally.primary_role && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--moss, #5C7A66)', marginBottom: '4px' }}>
+              {ally.primary_role}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {tag && (
+              <span style={{
+                fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '999px',
+                background: 'rgba(92,122,102,0.12)', color: '#3A5C47',
+              }}>{tag}</span>
+            )}
+            {priceLabel && (
+              <span style={{ fontSize: '0.6875rem', color: '#7A6040', fontWeight: 500 }}>
+                {priceLabel}
+              </span>
+            )}
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px', opacity: 0.4 }}>
+          <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+    </a>
+  )
 }
 
 function SkeletonBlock({ width = '100%', height = '1.2em', style = {} }: { width?: string; height?: string; style?: React.CSSProperties }) {
@@ -55,7 +123,7 @@ function PathwayIcon({ type }: { type: 'ally' | 'sai' | 'resources' | 'events' }
   )
 }
 
-export default function ResultScreen({ result, onSave }: ResultScreenProps) {
+export default function ResultScreen({ result, onSave, recommendedAllies = [] }: ResultScreenProps) {
   const isLoading = result === null
 
   return (
@@ -166,12 +234,22 @@ export default function ResultScreen({ result, onSave }: ResultScreenProps) {
                     </div>
                   </div>
                 </div>
-                <p className={styles.pathPrimaryBody}>
-                  A warm, trained human who&rsquo;s been through hard things too. Not therapy — more like having someone in your corner who actually listens. You set the pace entirely.
-                </p>
-                <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull}`} aria-label="Find your Ally">
-                  Find your Ally →
-                </button>
+
+                {recommendedAllies.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                    {recommendedAllies.map(ally => (
+                      <AllyRecommendationCard key={ally.id} ally={ally} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.pathPrimaryBody}>
+                    A warm, trained human who&rsquo;s been through hard things too. Not therapy — more like having someone in your corner who actually listens. You set the pace entirely.
+                  </p>
+                )}
+
+                <a href="/allies" className={`${styles.btn} ${styles.btnPrimary} ${styles.btnFull}`} style={{ display: 'block', textDecoration: 'none', textAlign: 'center' }}>
+                  {recommendedAllies.length > 0 ? 'See all allies →' : 'Find your Ally →'}
+                </a>
               </div>
 
               {/* Secondary cards */}

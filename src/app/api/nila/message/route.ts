@@ -39,9 +39,25 @@ FIGURE IT OUT RULES:
 - When you've heard enough, share one honest read. One.
 - Return the decision to them. Always.`
 
-function buildSystemPrompt(mode: NilaMode, userEmail: string, language = 'english'): string {
+interface AssessmentContext {
+  branch: string
+  summary: string | null
+  assessedAt: string
+}
+
+function buildSystemPrompt(
+  mode: NilaMode,
+  userEmail: string,
+  language = 'english',
+  assessmentContext?: AssessmentContext,
+): string {
   const contextWindow = mode === 'figure_it_out' ? 20 : 10
   const timeOfDay = getTimeOfDay()
+
+  const assessmentBlock = assessmentContext
+    ? `\nUser context: When they came to Nest, they were working through ${assessmentContext.branch}.${assessmentContext.summary ? ` Their snapshot: "${assessmentContext.summary}"` : ''}
+Keep this in the background — don't reference it directly unless the user brings it up.`
+    : ''
 
   const base = `You are Nila — an AI emotional companion on Nest, a platform that helps people going through loneliness, breakups, relationship issues, anxiety, stress, depression, and trust issues.
 
@@ -61,7 +77,7 @@ CONVERSATION MEMORY: You receive the last ${contextWindow} messages as context.
 
 Current user: ${userEmail}
 Time of day: ${timeOfDay}
-${language !== 'english' ? `Language preference: Respond in ${language}. Mirror the language the user writes in.` : ''}`
+${language !== 'english' ? `Language preference: Respond in ${language}. Mirror the language the user writes in.` : ''}${assessmentBlock}`
 
   if (mode === 'rant') return base + '\n\n' + RANT_BLOCK
   if (mode === 'figure_it_out') return base + '\n\n' + FIGUREOUT_BLOCK
@@ -108,14 +124,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Plan-aware, period-aware limit check
+  // Plan-aware, period-aware limit check + assessment context
   const { data: profileData } = await admin
     .from('profiles')
-    .select('plan')
+    .select('plan, last_assessment_branch, last_assessment_at, last_assessment_summary')
     .eq('id', user.id)
     .maybeSingle()
 
   const userPlan = (profileData?.plan ?? 'free') as string
+
+  // Only use assessment context if taken within the last 90 days
+  const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000
+  const assessedAt = profileData?.last_assessment_at
+  const assessmentContext: AssessmentContext | undefined =
+    profileData?.last_assessment_branch && assessedAt && (Date.now() - new Date(assessedAt).getTime()) < NINETY_DAYS_MS
+      ? {
+          branch:     profileData.last_assessment_branch,
+          summary:    profileData.last_assessment_summary ?? null,
+          assessedAt,
+        }
+      : undefined
   const limitKey =
     userPlan === 'premium' ? 'nila.premium_message_limit'
     : userPlan === 'core'  ? 'nila.core_message_limit'
@@ -199,7 +227,7 @@ export async function POST(req: NextRequest) {
         const claudeStream = await client.messages.stream({
           model: 'claude-sonnet-4-6',
           max_tokens: 512,
-          system: buildSystemPrompt(mode, user.email ?? '', language),
+          system: buildSystemPrompt(mode, user.email ?? '', language, assessmentContext),
           messages: contextMessages,
         })
 

@@ -62,5 +62,17 @@ export async function POST(request: Request) {
     )
   }
 
+  // Denormalize latest assessment onto profile for fast Nila context lookup
+  if (body.branch) {
+    await admin
+      .from('profiles')
+      .update({
+        last_assessment_branch:  body.branch,
+        last_assessment_at:      new Date().toISOString(),
+        last_assessment_summary: body.result.headline ?? null,
+      })
+      .eq('id', user.id)
+  }
+
   return NextResponse.json({ id: data.id })
 }

@@ -40,11 +40,15 @@ const CONFIG_KEYS = [
   'plan.dunning.max_retries',
   'plan.price_inr_annual.core',
   'plan.price_inr_annual.premium',
+  'plan.nila_modes.free',
+  'plan.nila_modes.core',
+  'plan.nila_modes.premium',
 ]
 
 const LIMIT_KEYS     = ['nila.free_daily_message_limit', 'nila.core_message_limit', 'nila.premium_message_limit', 'nila.limit_reset_period']
 const ALLY_KEYS      = ['plan.ally_sessions.core', 'plan.ally_sessions.premium']
-const ALL_LIMIT_KEYS = [...LIMIT_KEYS, ...ALLY_KEYS]
+const MODE_KEYS      = ['plan.nila_modes.free', 'plan.nila_modes.core', 'plan.nila_modes.premium']
+const ALL_LIMIT_KEYS = [...LIMIT_KEYS, ...ALLY_KEYS, ...MODE_KEYS]
 const DUNNING_KEYS   = ['plan.dunning.grace_period_days', 'plan.dunning.max_retries']
 
 export default function PricingPage() {
@@ -104,6 +108,18 @@ export default function PricingPage() {
   }
   function isDirty(key: string) { return configEdits[key] !== savedConfig[key] }
   function isUnlimited(key: string) { return parseInt(configEdits[key] || '0', 10) >= 999 }
+
+  function getModes(planId: string): string[] {
+    const raw = configEdits[`plan.nila_modes.${planId}`] ?? 'normal'
+    return raw.split(',').map((m) => m.trim()).filter(Boolean)
+  }
+  function toggleMode(planId: string, modeVal: string, enabled: boolean) {
+    const current = getModes(planId)
+    const next = enabled
+      ? [...new Set([...current, modeVal])]
+      : current.filter((m) => m !== modeVal)
+    setCfg(`plan.nila_modes.${planId}`, next.filter(Boolean).join(',') || 'normal')
+  }
 
   // Annual price helpers
   function annualKey(planId: string) { return `plan.price_inr_annual.${planId}` }
@@ -497,6 +513,79 @@ export default function PricingPage() {
                   <td><span className="locked-badge">No access</span></td>
                   <td><span className="standard-badge">Standard</span></td>
                   <td><span className="priority-badge">Priority</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Nila conversation modes */}
+          <div className="limits-card">
+            <div className="limits-card-header">
+              <div>
+                <div className="limits-card-title">Nila conversation modes</div>
+                <div className="limits-card-sub">Control which emotional modes each plan can access. At least one mode must remain enabled per plan.</div>
+              </div>
+            </div>
+            <table className="limits-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '46%' }}>Mode</th>
+                  <th><div className="th-plan"><div className="th-dot dot-free" />Free</div></th>
+                  <th><div className="th-plan"><div className="th-dot dot-core" />Core</div></th>
+                  <th><div className="th-plan"><div className="th-dot dot-premium" />Premium</div></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div className="row-label">Normal (Guide)</div>
+                    <div className="row-hint">Warm listening mode — the baseline conversation style</div>
+                  </td>
+                  {(['free', 'core', 'premium'] as const).map((p) => (
+                    <td key={p}>
+                      <input
+                        type="checkbox"
+                        className="mode-checkbox"
+                        checked={getModes(p).includes('normal')}
+                        disabled={getModes(p).length === 1 && getModes(p).includes('normal')}
+                        onChange={(e) => toggleMode(p, 'normal', e.target.checked)}
+                      />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>
+                    <div className="row-label">Rant (Vent)</div>
+                    <div className="row-hint">Short validating responses, no advice, mirrors intensity</div>
+                  </td>
+                  {(['free', 'core', 'premium'] as const).map((p) => (
+                    <td key={p}>
+                      <input
+                        type="checkbox"
+                        className="mode-checkbox"
+                        checked={getModes(p).includes('rant')}
+                        disabled={getModes(p).length === 1 && getModes(p).includes('rant')}
+                        onChange={(e) => toggleMode(p, 'rant', e.target.checked)}
+                      />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>
+                    <div className="row-label">Figure It Out (Reflect)</div>
+                    <div className="row-hint">One-question-at-a-time exploration of a decision</div>
+                  </td>
+                  {(['free', 'core', 'premium'] as const).map((p) => (
+                    <td key={p}>
+                      <input
+                        type="checkbox"
+                        className="mode-checkbox"
+                        checked={getModes(p).includes('figure_it_out')}
+                        disabled={getModes(p).length === 1 && getModes(p).includes('figure_it_out')}
+                        onChange={(e) => toggleMode(p, 'figure_it_out', e.target.checked)}
+                      />
+                    </td>
+                  ))}
                 </tr>
               </tbody>
             </table>

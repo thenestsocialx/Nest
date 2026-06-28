@@ -13,9 +13,10 @@ interface Props {
   nudgeTime: string
   onClose: () => void
   onSettingChange?: (field: string, value: string | boolean) => void
+  enabledModes: NilaMode[]
 }
 
-const MODES: { value: NilaMode; label: string }[] = [
+const ALL_MODES: { value: NilaMode; label: string }[] = [
   { value: 'normal',        label: 'Guide' },
   { value: 'rant',          label: 'Vent' },
   { value: 'figure_it_out', label: 'Reflect' },
@@ -39,6 +40,7 @@ export default function NilaSettingsPanel({
   nudgeTime,
   onClose,
   onSettingChange,
+  enabledModes,
 }: Props) {
   const [mode, setMode]       = useState<NilaMode>(defaultMode)
   const [lang, setLang]       = useState(language.toLowerCase())
@@ -213,7 +215,7 @@ export default function NilaSettingsPanel({
               Nila opens in this mode every new session
             </p>
             <div className="ns-seg">
-              {MODES.map((m) => (
+              {ALL_MODES.filter((m) => enabledModes.includes(m.value)).map((m) => (
                 <button
                   key={m.value}
                   type="button"

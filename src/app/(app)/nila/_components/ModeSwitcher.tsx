@@ -6,18 +6,20 @@ interface ModeSwitcherProps {
   mode: NilaMode
   disabled: boolean
   onChange: (mode: NilaMode) => void
+  enabledModes: NilaMode[]
 }
 
-const MODES: { value: NilaMode; label: string; variant?: string }[] = [
+const ALL_MODES: { value: NilaMode; label: string; variant?: string }[] = [
   { value: 'normal', label: 'Normal' },
   { value: 'rant', label: 'Rant', variant: 'rant' },
   { value: 'figure_it_out', label: 'Figure It Out', variant: 'figureout' },
 ]
 
-export default function ModeSwitcher({ mode, disabled, onChange }: ModeSwitcherProps) {
+export default function ModeSwitcher({ mode, disabled, onChange, enabledModes }: ModeSwitcherProps) {
+  const visibleModes = ALL_MODES.filter(({ value }) => enabledModes.includes(value))
   return (
     <div className="ns-mode-strip" role="group" aria-label="Conversation mode">
-      {MODES.map(({ value, label, variant }) => (
+      {visibleModes.map(({ value, label, variant }) => (
         <button
           key={value}
           type="button"

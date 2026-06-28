@@ -84,6 +84,7 @@ interface ChatShellProps {
   nilaNudgeEnabled: boolean
   nilaNudgeTime: string
   initialSession: RestoredConversation | null
+  enabledModes: NilaMode[]
 }
 
 function formatTime(date: Date): string {
@@ -202,6 +203,7 @@ export default function ChatShell({
   nilaNudgeEnabled,
   nilaNudgeTime,
   initialSession,
+  enabledModes,
 }: ChatShellProps) {
   const router = useRouter()
 
@@ -741,6 +743,7 @@ export default function ChatShell({
             mode={mode}
             disabled={inputDisabled}
             onChange={handleModeSwitch}
+            enabledModes={enabledModes}
           />
           <div className={`ns-chat__input${inputModeClass}${inputDisabled ? ' ns-chat__input--disabled' : ''}`}>
             <input
@@ -784,6 +787,7 @@ export default function ChatShell({
           nudgeTime={currentNudgeTime}
           onClose={() => setShowSettings(false)}
           onSettingChange={handleSettingChange}
+          enabledModes={enabledModes}
         />
       )}
 

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getConfig, getPeriodStart } from '@/lib/nila-config'
+import { getConfig, getPeriodStart, getEnabledModesForPlan } from '@/lib/nila-config'
 import type { NilaMode, ConversationMessage } from '@/actions/nila'
 
 // Re-export the system prompt builder logic inline so the route handler is
@@ -147,6 +147,15 @@ export async function POST(req: NextRequest) {
 
   const profileData = profileResult.data
   const userPlan = (profileData?.plan ?? 'free') as string
+
+  // Mode access guard — prevents using a mode not enabled for this plan
+  const enabledModes = await getEnabledModesForPlan(userPlan)
+  if (!enabledModes.includes(mode)) {
+    return new Response(
+      JSON.stringify({ error: 'mode_not_available', conversationId: activeConversationId }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
 
   const unacknowledgedSessions = completedSessionResult.data ?? []
   const hasUnacknowledgedSession = unacknowledgedSessions.length > 0

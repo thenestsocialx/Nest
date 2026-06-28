@@ -34,6 +34,18 @@ export function invalidateConfig(key?: string): void {
   }
 }
 
+export async function getEnabledModesForPlan(plan: string): Promise<string[]> {
+  const fallbacks: Record<string, string> = {
+    free:    'normal',
+    core:    'normal,rant',
+    premium: 'normal,rant,figure_it_out',
+  }
+  const raw = await getConfig(`plan.nila_modes.${plan}`, fallbacks[plan] ?? 'normal')
+  const modes = raw.split(',').map((m) => m.trim()).filter(Boolean)
+  // Ultimate fallback: if config is empty/corrupt, normal is always available
+  return modes.length > 0 ? modes : ['normal']
+}
+
 export function getPeriodStart(period: string): Date {
   const now = new Date()
   if (period === 'weekly') {

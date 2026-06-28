@@ -97,17 +97,9 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
 
           {/* Credential row */}
           {(ally.highest_qualification || ally.session_count > 0) && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+            <div className="ac-badges" style={{ marginTop: 6 }}>
               {ally.highest_qualification && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontSize: '0.6875rem', fontWeight: 500,
-                  color: 'var(--deep-pine)',
-                  background: 'rgba(47,76,58,0.10)',
-                  border: '1px solid rgba(47,76,58,0.28)',
-                  borderRadius: 'var(--r-pill)',
-                  padding: '4px 10px',
-                }}>
+                <span className="ac-badge" style={{ background: 'rgba(248,240,229,0.13)', borderColor: 'rgba(248,240,229,0.32)' }}>
                   <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M8 2L15 6v2l-7 4-7-4V6l7-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                     <path d="M3 8.5v4l5 2 5-2v-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -116,15 +108,7 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
                 </span>
               )}
               {ally.session_count > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontSize: '0.6875rem', fontWeight: 500,
-                  color: '#7A5020',
-                  background: 'rgba(232,200,160,0.45)',
-                  border: '1px solid rgba(200,160,100,0.55)',
-                  borderRadius: 'var(--r-pill)',
-                  padding: '4px 10px',
-                }}>
+                <span className="ac-badge" style={{ color: 'var(--honey)', background: 'rgba(232,200,160,0.13)', borderColor: 'rgba(232,200,160,0.35)' }}>
                   <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>

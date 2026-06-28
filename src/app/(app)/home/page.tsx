@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getFeatureFlags } from '@/lib/featureFlags'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
@@ -59,13 +60,14 @@ export default async function HomePage() {
 
   const admin = createAdminClient()
 
-  const [profileResult, moodResult] = await Promise.all([
+  const [profileResult, moodResult, flags] = await Promise.all([
     supabase.from('profiles').select('full_name, display_name').eq('id', user.id).maybeSingle(),
     admin.from('mood_entries')
       .select('logged_date, mood_index')
       .eq('user_id', user.id)
       .gte('logged_date', (() => { const d = new Date(); d.setDate(d.getDate() - 6); return d.toISOString().slice(0, 10) })())
       .order('logged_date', { ascending: true }),
+    getFeatureFlags(),
   ])
 
   const profile = profileResult.data
@@ -156,62 +158,66 @@ export default async function HomePage() {
                 </div>
               </article>
 
-              {/* Saved resources */}
-              <article className="ns-card">
-                <div className="ns-card__head">
-                  <div className="ns-card__eyebrow">Saved resources</div>
-                  <a href="/resources" className="ns-link ns-link--quiet">
-                    See all
-                  </a>
-                </div>
-                <ul className="ns-saved">
-                  <li className="ns-saved__item">
-                    <span className="ns-tag ns-tag--outline">Article</span>
-                    <div className="ns-saved__title">
-                      Why feeling lonely in a crowd is real
-                    </div>
-                    <span className="ns-saved__meta">4 min read</span>
-                  </li>
-                  <li className="ns-saved__item">
-                    <span className="ns-tag ns-tag--outline">Playlist</span>
-                    <div className="ns-saved__title">
-                      For nights when quiet feels too loud
-                    </div>
-                    <span className="ns-saved__meta">54 min</span>
-                  </li>
-                  <li className="ns-saved__item">
-                    <span className="ns-tag ns-tag--outline">Guide</span>
-                    <div className="ns-saved__title">
-                      Talking to someone you trust — how to start
-                    </div>
-                    <span className="ns-saved__meta">8 min read</span>
-                  </li>
-                </ul>
-              </article>
+              {/* Saved resources — only when resources feature is enabled */}
+              {flags.resources && (
+                <article className="ns-card">
+                  <div className="ns-card__head">
+                    <div className="ns-card__eyebrow">Saved resources</div>
+                    <a href="/resources" className="ns-link ns-link--quiet">
+                      See all
+                    </a>
+                  </div>
+                  <ul className="ns-saved">
+                    <li className="ns-saved__item">
+                      <span className="ns-tag ns-tag--outline">Article</span>
+                      <div className="ns-saved__title">
+                        Why feeling lonely in a crowd is real
+                      </div>
+                      <span className="ns-saved__meta">4 min read</span>
+                    </li>
+                    <li className="ns-saved__item">
+                      <span className="ns-tag ns-tag--outline">Playlist</span>
+                      <div className="ns-saved__title">
+                        For nights when quiet feels too loud
+                      </div>
+                      <span className="ns-saved__meta">54 min</span>
+                    </li>
+                    <li className="ns-saved__item">
+                      <span className="ns-tag ns-tag--outline">Guide</span>
+                      <div className="ns-saved__title">
+                        Talking to someone you trust — how to start
+                      </div>
+                      <span className="ns-saved__meta">8 min read</span>
+                    </li>
+                  </ul>
+                </article>
+              )}
             </div>
 
             {/* RIGHT column */}
             <div className="ns-dash-col ns-dash-col--narrow">
-              {/* Upcoming event */}
-              <article className="ns-card ns-event">
-                <div className="ns-event__poster" aria-hidden="true">
-                  <EventPosterSVG />
-                </div>
-                <div className="ns-event__body">
-                  <div className="ns-event__date">SAT 26 JULY · 6:00 PM</div>
-                  <h3 className="ns-card__title">Sunday Circle</h3>
-                  <div className="ns-event__loc">
-                    Indiranagar, Bangalore · 8 spots left
+              {/* Upcoming event — only when events feature is enabled */}
+              {flags.events && (
+                <article className="ns-card ns-event">
+                  <div className="ns-event__poster" aria-hidden="true">
+                    <EventPosterSVG />
                   </div>
-                  <a
-                    href="/events"
-                    className="ns-btn ns-btn--ghost ns-btn--full"
-                    style={{ marginTop: 16 }}
-                  >
-                    View details
-                  </a>
-                </div>
-              </article>
+                  <div className="ns-event__body">
+                    <div className="ns-event__date">SAT 26 JULY · 6:00 PM</div>
+                    <h3 className="ns-card__title">Sunday Circle</h3>
+                    <div className="ns-event__loc">
+                      Indiranagar, Bangalore · 8 spots left
+                    </div>
+                    <a
+                      href="/events"
+                      className="ns-btn ns-btn--ghost ns-btn--full"
+                      style={{ marginTop: 16 }}
+                    >
+                      View details
+                    </a>
+                  </div>
+                </article>
+              )}
 
               {/* Mood trend */}
               <article className="ns-card">

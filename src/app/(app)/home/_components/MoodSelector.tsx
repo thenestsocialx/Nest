@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 const MOODS = [
   { glyph: '😔', label: 'Low' },
@@ -15,12 +16,18 @@ interface Props {
 }
 
 export default function MoodSelector({ initialMood = null }: Props) {
+  const router = useRouter()
   const [selected, setSelected] = useState<number | null>(initialMood)
   const [saving, setSaving] = useState(false)
 
+  // Sync when server refreshes with a new saved value
+  useEffect(() => {
+    setSelected(initialMood ?? null)
+  }, [initialMood])
+
   async function handleSelect(i: number) {
     const next = i === selected ? null : i
-    setSelected(next)
+    setSelected(next)   // optimistic — updates chip immediately
     if (next === null) return
 
     setSaving(true)
@@ -30,6 +37,7 @@ export default function MoodSelector({ initialMood = null }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood_index: next }),
       })
+      router.refresh()  // re-fetch server data so trend bars update
     } finally {
       setSaving(false)
     }

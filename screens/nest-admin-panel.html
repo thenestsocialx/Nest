@@ -504,10 +504,6 @@ ul{list-style:none}
 
 /* ── divider ── */
 .ns-divider{height:1px;background:var(--border-soft);margin:18px 0}
-
-/* ── credit ── */
-.ns-credit-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
-.ns-credit-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -692,12 +688,7 @@ ul{list-style:none}
               <div class="ns-bar-chart__col"><div class="ns-bar-chart__bar" style="height:38%"></div><div class="ns-bar-chart__day">S</div></div>
             </div>
             <div class="ns-divider"></div>
-            <div class="ns-three-col" style="gap:12px;margin-top:0">
-              <div>
-                <div class="ns-card__label">Credit burn rate</div>
-                <div style="font-size:18px;font-weight:600;color:var(--ink);margin:4px 0">₹1,840<span style="font-size:12px;font-weight:400;color:var(--ink-4)">/day</span></div>
-                <div class="ns-progress"><div class="ns-progress__fill amber" style="width:62%"></div></div>
-              </div>
+            <div class="ns-two-col" style="gap:12px;margin-top:0">
               <div>
                 <div class="ns-card__label">Churn rate</div>
                 <div style="font-size:18px;font-weight:600;color:var(--ink);margin:4px 0">3.2%</div>
@@ -859,76 +850,38 @@ ul{list-style:none}
           </div>
         </div>
 
-        <div class="ns-two-col">
-          <!-- Nila message limits -->
-          <div class="ns-limit-card">
-            <div class="ns-card__label" style="margin-bottom:16px">Nila message limits <span class="ns-badge gray" style="margin-left:6px">Per day · per user</span></div>
-            <div class="ns-limit-row">
-              <div class="ns-limit-plan"><span class="ns-badge gray">Free</span></div>
-              <input type="range" class="ns-limit-bar" min="1" max="30" value="5" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=this.value"/>
-              <div class="ns-limit-val">5</div>
-            </div>
-            <div class="ns-limit-row">
-              <div class="ns-limit-plan"><span class="ns-badge forest">Core</span></div>
-              <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
-              <div class="ns-limit-val">∞</div>
-            </div>
-            <div class="ns-limit-row">
-              <div class="ns-limit-plan"><span class="ns-badge amber">Premium</span></div>
-              <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
-              <div class="ns-limit-val">∞</div>
-            </div>
-            <div class="ns-divider"></div>
-            <div class="ns-card__label" style="margin-bottom:10px">Voice note transcription</div>
-            <div class="ns-toggle-row">
-              <div class="ns-toggle-row__info">
-                <div class="ns-toggle-row__title">Allow voice on Free plan</div>
-                <div class="ns-toggle-row__desc">Consumes credits when used</div>
-              </div>
-              <label class="ns-toggle"><input type="checkbox"/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
-            </div>
-            <div class="ns-toggle-row">
-              <div class="ns-toggle-row__info">
-                <div class="ns-toggle-row__title">Allow voice on Core plan</div>
-                <div class="ns-toggle-row__desc">Included in plan allowance</div>
-              </div>
-              <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
-            </div>
+        <!-- Nila message limits -->
+        <div class="ns-limit-card">
+          <div class="ns-card__label" style="margin-bottom:16px">Nila message limits <span class="ns-badge gray" style="margin-left:6px">Per day · per user</span></div>
+          <div class="ns-limit-row">
+            <div class="ns-limit-plan"><span class="ns-badge gray">Free</span></div>
+            <input type="range" class="ns-limit-bar" min="1" max="30" value="5" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=this.value"/>
+            <div class="ns-limit-val">5</div>
           </div>
-
-          <!-- Credit wallet config -->
-          <div class="ns-card">
-            <div class="ns-card__label" style="margin-bottom:14px">Credit wallet config</div>
-            <div class="ns-field">
-              <label class="ns-label">Credits granted on signup</label>
-              <input type="number" class="ns-input" value="50"/>
-              <div class="ns-hint">Free credits for every new user</div>
+          <div class="ns-limit-row">
+            <div class="ns-limit-plan"><span class="ns-badge forest">Core</span></div>
+            <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
+            <div class="ns-limit-val">∞</div>
+          </div>
+          <div class="ns-limit-row">
+            <div class="ns-limit-plan"><span class="ns-badge amber">Premium</span></div>
+            <input type="range" class="ns-limit-bar" min="1" max="500" value="999" oninput="this.parentElement.querySelector('.ns-limit-val').textContent=(this.value>=499?'∞':this.value)"/>
+            <div class="ns-limit-val">∞</div>
+          </div>
+          <div class="ns-divider"></div>
+          <div class="ns-card__label" style="margin-bottom:10px">Voice note transcription</div>
+          <div class="ns-toggle-row">
+            <div class="ns-toggle-row__info">
+              <div class="ns-toggle-row__title">Allow voice on Free plan</div>
             </div>
-            <div class="ns-field">
-              <label class="ns-label">Credits per Nila message (Free plan)</label>
-              <input type="number" class="ns-input" value="1"/>
+            <label class="ns-toggle"><input type="checkbox"/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
+          </div>
+          <div class="ns-toggle-row">
+            <div class="ns-toggle-row__info">
+              <div class="ns-toggle-row__title">Allow voice on Core plan</div>
+              <div class="ns-toggle-row__desc">Included in plan allowance</div>
             </div>
-            <div class="ns-field">
-              <label class="ns-label">Credit expiry window (days)</label>
-              <input type="number" class="ns-input" value="90"/>
-            </div>
-            <div class="ns-divider"></div>
-            <div class="ns-card__label" style="margin-bottom:10px">Top-up packs</div>
-            <div class="ns-credit-row">
-              <span style="font-weight:500">100 credits</span>
-              <span class="muted" style="font-size:13px">₹49</span>
-              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
-            </div>
-            <div class="ns-credit-row">
-              <span style="font-weight:500">300 credits</span>
-              <span class="muted" style="font-size:13px">₹129</span>
-              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
-            </div>
-            <div class="ns-credit-row">
-              <span style="font-weight:500">1000 credits</span>
-              <span class="muted" style="font-size:13px">₹349</span>
-              <button class="ns-btn ns-btn--ghost ns-btn--sm">Edit</button>
-            </div>
+            <label class="ns-toggle"><input type="checkbox" checked/><div class="ns-toggle__track"></div><div class="ns-toggle__thumb"></div></label>
           </div>
         </div>
 
@@ -1421,7 +1374,7 @@ ul{list-style:none}
           <div class="ns-table-wrap">
             <table class="ns-table">
               <thead>
-                <tr><th>User</th><th>Plan</th><th>Joined</th><th>Last active</th><th>Nila msgs</th><th>Credits</th><th>Status</th><th></th></tr>
+                <tr><th>User</th><th>Plan</th><th>Joined</th><th>Last active</th><th>Nila msgs</th><th>Status</th><th></th></tr>
               </thead>
               <tbody>
                 <tr>
@@ -1430,7 +1383,6 @@ ul{list-style:none}
                   <td class="muted">Jul 12, 2025</td>
                   <td class="muted">2h ago</td>
                   <td>841</td>
-                  <td>128</td>
                   <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
                   <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
                 </tr>
@@ -1440,7 +1392,6 @@ ul{list-style:none}
                   <td class="muted">Mar 3, 2026</td>
                   <td class="muted">1d ago</td>
                   <td>34</td>
-                  <td>50</td>
                   <td><span class="ns-badge red"><span class="ns-badge__dot"></span>Payment failed</span></td>
                   <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
                 </tr>
@@ -1450,7 +1401,6 @@ ul{list-style:none}
                   <td class="muted">May 18, 2026</td>
                   <td class="muted">14m ago</td>
                   <td>7</td>
-                  <td>43</td>
                   <td><span class="ns-badge red"><span class="ns-badge__dot"></span>Safety flag</span></td>
                   <td><button class="ns-btn ns-btn--danger ns-btn--sm">Assign</button></td>
                 </tr>
@@ -1460,7 +1410,6 @@ ul{list-style:none}
                   <td class="muted">Jan 8, 2026</td>
                   <td class="muted">3h ago</td>
                   <td>2,140</td>
-                  <td>0</td>
                   <td><span class="ns-badge green"><span class="ns-badge__dot"></span>Active</span></td>
                   <td><button class="ns-btn ns-btn--ghost ns-btn--sm">View</button></td>
                 </tr>
@@ -1482,7 +1431,7 @@ ul{list-style:none}
 <script>
 const pageMeta = {
   dashboard:    { title: 'Dashboard',          sub: 'Platform overview · May 2026' },
-  pricing:      { title: 'Pricing & limits',   sub: 'Configure plans, message caps, credit wallet' },
+  pricing:      { title: 'Pricing & limits',   sub: 'Configure plans, message caps, and billing behaviour' },
   integrations: { title: 'Integrations',       sub: 'Connect and monitor third-party services' },
   resources:    { title: 'Resources',          sub: 'Manage content library and mood tags' },
   events:       { title: 'Weekend events',     sub: 'Create events, manage registrations' },

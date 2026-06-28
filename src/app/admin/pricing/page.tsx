@@ -27,7 +27,7 @@ interface PlanEdits {
   razorpay_plan_id: string
 }
 
-type ActiveTab = 'pricing' | 'limits' | 'wallet' | 'dunning'
+type ActiveTab = 'pricing' | 'limits' | 'dunning'
 
 const CONFIG_KEYS = [
   'nila.free_daily_message_limit',
@@ -36,9 +36,6 @@ const CONFIG_KEYS = [
   'nila.limit_reset_period',
   'plan.ally_sessions.core',
   'plan.ally_sessions.premium',
-  'plan.credits.signup_bonus',
-  'plan.credits.per_nila_message_free',
-  'plan.credits.expiry_days',
   'plan.dunning.grace_period_days',
   'plan.dunning.max_retries',
   'plan.price_inr_annual.core',
@@ -48,7 +45,6 @@ const CONFIG_KEYS = [
 const LIMIT_KEYS     = ['nila.free_daily_message_limit', 'nila.core_message_limit', 'nila.premium_message_limit', 'nila.limit_reset_period']
 const ALLY_KEYS      = ['plan.ally_sessions.core', 'plan.ally_sessions.premium']
 const ALL_LIMIT_KEYS = [...LIMIT_KEYS, ...ALLY_KEYS]
-const WALLET_KEYS    = ['plan.credits.signup_bonus', 'plan.credits.per_nila_message_free', 'plan.credits.expiry_days']
 const DUNNING_KEYS   = ['plan.dunning.grace_period_days', 'plan.dunning.max_retries']
 
 export default function PricingPage() {
@@ -185,7 +181,6 @@ export default function PricingPage() {
   const TABS: { id: ActiveTab; label: string }[] = [
     { id: 'pricing', label: 'Plan pricing' },
     { id: 'limits',  label: 'Usage limits' },
-    { id: 'wallet',  label: 'Credit wallet' },
     { id: 'dunning', label: 'Grace & dunning' },
   ]
 
@@ -526,74 +521,6 @@ export default function PricingPage() {
           {msgs['__limits__'] && (
             <div className={msgs['__limits__'] === 'Saved.' ? 'flash-ok' : 'flash-err'} style={{ marginTop: 8 }}>
               {msgs['__limits__']}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══════════════ WALLET PANE ══════════════ */}
-      {activeTab === 'wallet' && (
-        <div>
-          <div className="section-head">
-            <div className="section-title">Credit wallet defaults</div>
-            <div className="section-sub">Credits fund Nila messages on the Free plan. These are global defaults applied at account creation.</div>
-          </div>
-
-          <div className="wallet-grid">
-            <div className="wallet-card">
-              <div className="wallet-icon" style={{ background: 'rgba(47,76,58,0.07)' }}>🎁</div>
-              <div className="wallet-label">Credits on signup</div>
-              <input
-                className="wallet-inp"
-                type="number" min={0}
-                value={configEdits['plan.credits.signup_bonus'] ?? ''}
-                placeholder="50"
-                onChange={(ev) => setCfg('plan.credits.signup_bonus', ev.target.value)}
-              />
-            </div>
-            <div className="wallet-card">
-              <div className="wallet-icon" style={{ background: 'rgba(232,200,160,0.25)' }}>💬</div>
-              <div className="wallet-label">Credits / Nila message (Free plan)</div>
-              <input
-                className="wallet-inp"
-                type="number" min={0}
-                value={configEdits['plan.credits.per_nila_message_free'] ?? ''}
-                placeholder="1"
-                onChange={(ev) => setCfg('plan.credits.per_nila_message_free', ev.target.value)}
-              />
-            </div>
-            <div className="wallet-card">
-              <div className="wallet-icon" style={{ background: 'rgba(155,102,81,0.1)' }}>⏰</div>
-              <div className="wallet-label">Credit expiry (days)</div>
-              <input
-                className="wallet-inp"
-                type="number" min={1}
-                value={configEdits['plan.credits.expiry_days'] ?? ''}
-                placeholder="90"
-                onChange={(ev) => setCfg('plan.credits.expiry_days', ev.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="save-bar">
-            <div className="save-hint">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 5v2.5M7 9v.2"/></svg>
-              Expiry and bonus changes apply to newly issued credits only
-            </div>
-            <div className="save-actions">
-              <button className="btn-discard" onClick={() => discardTab(WALLET_KEYS)}>Discard changes</button>
-              <button
-                className="btn-save-tab"
-                disabled={!!saving['__wallet__'] || WALLET_KEYS.every((k) => !isDirty(k))}
-                onClick={() => handleSaveMany(WALLET_KEYS, '__wallet__')}
-              >
-                {saving['__wallet__'] ? 'Saving…' : 'Save wallet config'}
-              </button>
-            </div>
-          </div>
-          {msgs['__wallet__'] && (
-            <div className={msgs['__wallet__'] === 'Saved.' ? 'flash-ok' : 'flash-err'} style={{ marginTop: 8 }}>
-              {msgs['__wallet__']}
             </div>
           )}
         </div>

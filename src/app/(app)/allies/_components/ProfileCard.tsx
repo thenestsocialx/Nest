@@ -95,27 +95,31 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
             )}
           </div>
 
-          {/* Credential row */}
+          {/* Credentials — trust signals, visually separate from category badges */}
           {(ally.highest_qualification || ally.session_count > 0) && (
-            <div className="ac-badges" style={{ marginTop: 6 }}>
-              {ally.highest_qualification && (
-                <span className="ac-badge" style={{ background: 'rgba(248,240,229,0.13)', borderColor: 'rgba(248,240,229,0.32)' }}>
-                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M8 2L15 6v2l-7 4-7-4V6l7-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
-                    <path d="M3 8.5v4l5 2 5-2v-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  {ally.highest_qualification}
-                </span>
-              )}
-              {ally.session_count > 0 && (
-                <span className="ac-badge" style={{ color: 'var(--honey)', background: 'rgba(232,200,160,0.13)', borderColor: 'rgba(232,200,160,0.35)' }}>
-                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  {ally.session_count} {ally.session_count === 1 ? 'session' : 'sessions'}
-                </span>
-              )}
-            </div>
+            <>
+              <div style={{ height: 1, background: 'rgba(248,240,229,0.1)', margin: '10px 0 8px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {ally.highest_qualification && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.6875rem', color: 'rgba(248,240,229,0.72)', letterSpacing: '0.01em' }}>
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.8 }}>
+                      <path d="M8 2L15 6v2l-7 4-7-4V6l7-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                      <path d="M3 8.5v4l5 2 5-2v-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {ally.highest_qualification}
+                  </div>
+                )}
+                {ally.session_count > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: 'var(--honey)', opacity: 0.9 }}>
+                      <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span style={{ color: 'var(--honey)', fontWeight: 600 }}>{ally.session_count}</span>
+                    <span style={{ color: 'rgba(248,240,229,0.55)' }}>{ally.session_count === 1 ? 'session' : 'sessions'} completed</span>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

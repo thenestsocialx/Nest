@@ -23,6 +23,11 @@ interface AllySnap {
   onboarding_status: string;
 }
 
+interface WeekDay {
+  day: string;
+  cnt: number;
+}
+
 interface DashStats {
   totalUsers: number;
   activeSubscriptions: number;
@@ -32,6 +37,13 @@ interface DashStats {
   pendingApplications: number;
   recentAuditLogs: RecentLog[];
   allySnapshot: AllySnap[];
+  nilaMessagesToday: number;
+  weeklyActivity: WeekDay[];
+  sessionsTotal: number;
+  sessionsCompleted: number;
+  sessionsPending: number;
+  safetyFlagCount: number;
+  mrrInr: number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -56,6 +68,12 @@ function auditCategory(eventType: string): 'ally' | 'client' | 'system' | 'other
   if (eventType.startsWith('client.')) return 'client';
   if (eventType.startsWith('system.')) return 'system';
   return 'other';
+}
+
+function fmtInr(amount: number): string {
+  if (amount >= 100_000) return `₹${(amount / 100_000).toFixed(1)}L`;
+  if (amount >= 1_000)   return `₹${(amount / 1_000).toFixed(1)}K`;
+  return `₹${amount.toLocaleString('en-IN')}`;
 }
 
 const AUDIT_ICON_CLASS: Record<string, string> = {
@@ -174,6 +192,24 @@ function IconPayment() {
   );
 }
 
+function IconSessions() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <rect x="2" y="2" width="12" height="12" rx="2"/>
+      <path d="M5 8h6M8 5v6"/>
+    </svg>
+  );
+}
+
+function IconShield() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <path d="M8 1.5L2 4v4c0 3.5 2.7 6 6 7 3.3-1 6-3.5 6-7V4L8 1.5z"/>
+      <path d="M5.5 8l1.8 1.8L10.5 6"/>
+    </svg>
+  );
+}
+
 // Audit event icons
 function AuditIconAlly() {
   return (
@@ -267,7 +303,6 @@ function MetricCard({ variant = '', icon, label, value, delta, sub, href }: Metr
 }
 
 function AuditRow({ log }: { log: RecentLog }) {
-  // Derive a human-readable title from action or event_type
   const title = log.action || log.event_type.replace(/\./g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const sub = [log.actor_email, log.target_label].filter(Boolean).join(' · ');
 
@@ -303,6 +338,18 @@ export default function DashboardPage() {
 
   const s = stats;
 
+  // Compute real weekly chart bars from DB data
+  const weeklyBars = (() => {
+    if (!s || s.weeklyActivity.length === 0) return null;
+    const maxCnt = Math.max(...s.weeklyActivity.map(d => d.cnt), 1);
+    return s.weeklyActivity.map(d => ({
+      day: new Date(d.day).toLocaleDateString('en-IN', { weekday: 'narrow' }),
+      h:   `${Math.max(Math.round((d.cnt / maxCnt) * 100), 4)}%`,
+      hi:  d.cnt > 0 && d.cnt === maxCnt,
+      cnt: d.cnt,
+    }));
+  })();
+
   return (
     <>
       {/* ── Pending applications banner ───────────────────────────────────── */}
@@ -326,6 +373,35 @@ export default function DashboardPage() {
           </span>
           <Link href="/admin/allies/applications" className="ns-btn ns-btn--primary ns-btn--sm">
             Review now →
+          </Link>
+        </div>
+      )}
+
+      {/* ── Safety flag banner ────────────────────────────────────────────── */}
+      {!loading && s && s.safetyFlagCount > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '12px 16px',
+          background: 'rgba(196,75,58,0.07)',
+          border: '1px solid rgba(196,75,58,0.22)',
+          borderRadius: 'var(--ns-radius)',
+          marginBottom: 4,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--ns-red)" strokeWidth="1.4" strokeLinecap="round" style={{ flexShrink: 0 }}>
+            <path d="M8 1.5L1.5 4v4.5C1.5 12 4.5 14.7 8 15.5c3.5-.8 6.5-3.5 6.5-7V4L8 1.5z"/>
+            <path d="M8 6v3M8 10.5v.5"/>
+          </svg>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--ns-red)', fontWeight: 500 }}>
+            {s.safetyFlagCount} user{s.safetyFlagCount !== 1 ? 's' : ''} flagged for safety review
+          </span>
+          <Link href="/admin/users?flag=true" className="ns-btn ns-btn--sm" style={{
+            background: 'var(--ns-red)',
+            color: '#fff',
+            border: 'none',
+          }}>
+            Review →
           </Link>
         </div>
       )}
@@ -357,14 +433,14 @@ export default function DashboardPage() {
               variant="amber"
               icon={<IconMrr />}
               label="MRR"
-              value="₹2.4L"
-              sub="Estimate · billing data pending"
+              value={fmtInr(s.mrrInr)}
+              sub={s.mrrInr === 0 ? 'No active paid subscriptions' : `${s.activeSubscriptions} paid plans`}
             />
             <MetricCard
               icon={<IconMessage />}
               label="Nila Messages Today"
-              value="9,341"
-              sub="Avg 14 ms · 0.3 % error rate"
+              value={s.nilaMessagesToday.toLocaleString('en-IN')}
+              sub={s.nilaMessagesToday === 0 ? 'No messages yet today' : 'Messages sent today'}
             />
             <MetricCard
               icon={<IconAllies />}
@@ -388,62 +464,31 @@ export default function DashboardPage() {
       {/* ── 60/40: weekly chart + live audit feed ────────────────────────────── */}
       <div className="ns-60-40">
 
-        {/* Left — weekly activity chart (illustrative visual) */}
+        {/* Left — weekly Nila activity (real data) */}
         <div className="ns-card">
           <div className="ns-section-hd" style={{ marginBottom: 12 }}>
             <div className="ns-card__label">Weekly Nila activity</div>
             <div style={{ display: 'flex', gap: 6 }}>
               <span className="ns-badge ns-badge--forest">Messages</span>
-              <span className="ns-badge ns-badge--gray">Sessions</span>
             </div>
           </div>
 
-          <div className="ns-bar-chart" style={{ height: 80, gap: 8 }}>
-            {[
-              { day: 'M', h: '58%' },
-              { day: 'T', h: '72%', hi: true },
-              { day: 'W', h: '49%' },
-              { day: 'T', h: '88%', hi: true },
-              { day: 'F', h: '95%', hi: true },
-              { day: 'S', h: '64%' },
-              { day: 'S', h: '38%' },
-            ].map((b, i) => (
-              <div key={i} className="ns-bar-chart__col">
-                <div className={`ns-bar-chart__bar${b.hi ? ' ns-bar-chart__bar--hi' : ''}`} style={{ height: b.h }} />
-                <div className="ns-bar-chart__day">{b.day}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="ns-divider" style={{ margin: '16px 0 14px' }} />
-
-          <div className="ns-three-col" style={{ gap: 12 }}>
-            <div>
-              <div className="ns-card__label">Credit burn rate</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--ns-ink)', margin: '4px 0' }}>
-                ₹1,840<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ns-ink-4)' }}>/day</span>
-              </div>
-              <div className="ns-progress">
-                <div className="ns-progress__fill ns-progress__fill--amber" style={{ width: '62%' }} />
-              </div>
+          {!loading && weeklyBars ? (
+            <div className="ns-bar-chart" style={{ height: 80, gap: 8 }}>
+              {weeklyBars.map((b, i) => (
+                <div key={i} className="ns-bar-chart__col" title={`${b.cnt} messages`}>
+                  <div className={`ns-bar-chart__bar${b.hi ? ' ns-bar-chart__bar--hi' : ''}`} style={{ height: b.h }} />
+                  <div className="ns-bar-chart__day">{b.day}</div>
+                </div>
+              ))}
             </div>
-            <div>
-              <div className="ns-card__label">Churn rate</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--ns-ink)', margin: '4px 0' }}>3.2%</div>
-              <div className="ns-progress">
-                <div className="ns-progress__fill" style={{ width: '32%' }} />
-              </div>
+          ) : !loading ? (
+            <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ns-ink-4)', fontSize: 12 }}>
+              No messages in the last 7 days
             </div>
-            <div>
-              <div className="ns-card__label">Avg session mood</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--ns-ink)', margin: '4px 0' }}>
-                2.8<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ns-ink-4)' }}>/5</span>
-              </div>
-              <div className="ns-progress">
-                <div className="ns-progress__fill" style={{ width: '56%' }} />
-              </div>
-            </div>
-          </div>
+          ) : (
+            <div className="ns-skeleton" style={{ height: 80, borderRadius: 6 }} />
+          )}
         </div>
 
         {/* Right — live audit feed */}
@@ -477,6 +522,58 @@ export default function DashboardPage() {
                 <AuditRow key={log.id} log={log} />
               ))}
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Sessions overview ─────────────────────────────────────────────────── */}
+      <div className="ns-card">
+        <div className="ns-section-hd" style={{ marginBottom: 16 }}>
+          <div className="ns-card__label">Sessions overview</div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} style={{ padding: '12px 16px', background: 'var(--ns-surface)', borderRadius: 8 }}>
+                <div className="ns-skeleton" style={{ width: '50%', height: 9, borderRadius: 3, marginBottom: 10 }} />
+                <div className="ns-skeleton" style={{ width: '65%', height: 22, borderRadius: 4 }} />
+              </div>
+            ))
+          ) : (
+            <>
+              <div style={{ padding: '12px 16px', background: 'var(--ns-surface)', borderRadius: 8 }}>
+                <div className="ns-card__label" style={{ marginBottom: 6 }}>Total Booked</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--ns-ink)' }}>
+                    {s?.sessionsTotal.toLocaleString('en-IN') ?? '0'}
+                  </span>
+                  <IconSessions />
+                </div>
+              </div>
+              <div style={{ padding: '12px 16px', background: 'var(--ns-surface)', borderRadius: 8 }}>
+                <div className="ns-card__label" style={{ marginBottom: 6 }}>Completed</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--ns-teal)' }}>
+                    {s?.sessionsCompleted.toLocaleString('en-IN') ?? '0'}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--ns-ink-4)' }}>
+                    {s && s.sessionsTotal > 0
+                      ? `${Math.round((s.sessionsCompleted / s.sessionsTotal) * 100)}% of total`
+                      : 'sessions'}
+                  </span>
+                </div>
+              </div>
+              <div style={{ padding: '12px 16px', background: 'var(--ns-surface)', borderRadius: 8 }}>
+                <div className="ns-card__label" style={{ marginBottom: 6 }}>Pending / Active</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 22, fontWeight: 600, color: s && s.sessionsPending > 0 ? 'var(--ns-amber)' : 'var(--ns-ink)' }}>
+                    {s?.sessionsPending.toLocaleString('en-IN') ?? '0'}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--ns-ink-4)' }}>awaiting</span>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -548,8 +645,8 @@ export default function DashboardPage() {
                     {/* Specialties */}
                     <td>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {(ally.specialties ?? []).slice(0, 3).map(s => (
-                          <span key={s} className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>{s}</span>
+                        {(ally.specialties ?? []).slice(0, 3).map(sp => (
+                          <span key={sp} className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>{sp}</span>
                         ))}
                         {(ally.specialties ?? []).length > 3 && (
                           <span className="ns-badge ns-badge--gray" style={{ fontSize: 10 }}>
@@ -570,9 +667,9 @@ export default function DashboardPage() {
                       </span>
                     </td>
 
-                    {/* Action */}
+                    {/* Action — pass ally id so list page can highlight/scroll */}
                     <td>
-                      <Link href="/admin/allies" className="ns-btn ns-btn--ghost ns-btn--sm">
+                      <Link href={`/admin/allies?id=${ally.id}`} className="ns-btn ns-btn--ghost ns-btn--sm">
                         View
                       </Link>
                     </td>

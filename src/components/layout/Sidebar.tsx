@@ -63,9 +63,10 @@ function NavIcon({ id }: { id: string }) {
 interface SidebarProps {
   userName?: string
   userInitial?: string
+  avatarUrl?: string | null
 }
 
-export default function Sidebar({ userName = 'You', userInitial = 'Y' }: SidebarProps) {
+export default function Sidebar({ userName = 'You', userInitial = 'Y', avatarUrl }: SidebarProps) {
   const pathname = usePathname()
   const flags = useFeatureFlags()
 
@@ -112,7 +113,18 @@ export default function Sidebar({ userName = 'You', userInitial = 'Y' }: Sidebar
           className="ns-sidebar__profile-link"
           aria-label={`View profile for ${userName}`}
         >
-          <div className="ns-profile__avatar" aria-hidden="true">{userInitial}</div>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={userName}
+              className="ns-profile__avatar"
+              style={{ objectFit: 'cover', padding: 0 }}
+              aria-hidden="true"
+            />
+          ) : (
+            <div className="ns-profile__avatar" aria-hidden="true">{userInitial}</div>
+          )}
           <div style={{ minWidth: 0 }}>
             <div className="ns-profile__name">{userName}</div>
             <div className="ns-profile__role">Member</div>

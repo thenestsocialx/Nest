@@ -27,6 +27,16 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
     [allies, selectedTopic, selectedVibe],
   )
 
+  const availableTopicIds = useMemo(
+    () => new Set(allies.flatMap(a => a.specialties)) as Set<TopicId>,
+    [allies],
+  )
+
+  const availableVibeIds = useMemo(
+    () => new Set(allies.flatMap(a => a.user_vibes)) as Set<VibeId>,
+    [allies],
+  )
+
   const hasSelections = !!(selectedTopic || selectedVibe)
 
   function triggerSplit() {
@@ -156,6 +166,8 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
         <FilterColumn
           selectedTopic={selectedTopic}
           selectedVibe={selectedVibe}
+          availableTopicIds={availableTopicIds}
+          availableVibeIds={availableVibeIds}
           isSplit={hasSplit}
           hasSelections={hasSelections}
           onTopicPick={handleTopicPick}

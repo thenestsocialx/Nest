@@ -8,6 +8,8 @@ import VibeTile from './VibeTile'
 interface Props {
   selectedTopic: TopicId | null
   selectedVibe: VibeId | null
+  availableTopicIds: Set<TopicId>
+  availableVibeIds: Set<VibeId>
   isSplit: boolean
   hasSelections: boolean
   onTopicPick: (id: TopicId) => void
@@ -18,12 +20,17 @@ interface Props {
 export default function FilterColumn({
   selectedTopic,
   selectedVibe,
+  availableTopicIds,
+  availableVibeIds,
   isSplit,
   hasSelections,
   onTopicPick,
   onVibePick,
   onClearAll,
 }: Props) {
+  const visibleTopics = TOPIC_FILTERS.filter(t => availableTopicIds.has(t.id))
+  const visibleVibes  = VIBE_FILTERS.filter(v => availableVibeIds.has(v.id))
+
   return (
     <div className="fa-filter-col">
 
@@ -42,36 +49,41 @@ export default function FilterColumn({
       </div>
 
       {/* Topics */}
-      <div className="fa-section">
-        <div className="fa-section-label">What&rsquo;s on your mind</div>
-        <div className={`fa-chip-group${isSplit ? ' fa-chip-group--compact' : ''}`}>
-          {TOPIC_FILTERS.map(t => (
-            <TopicChip
-              key={t.id}
-              topic={t}
-              selected={selectedTopic === t.id}
-              compact={isSplit}
-              onClick={onTopicPick}
-            />
-          ))}
+      {visibleTopics.length > 0 && (
+        <div className="fa-section">
+          <div className="fa-section-label">What&rsquo;s on your mind</div>
+          <div className={`fa-chip-group${isSplit ? ' fa-chip-group--compact' : ''}`}>
+            {visibleTopics.map(t => (
+              <TopicChip
+                key={t.id}
+                topic={t}
+                selected={selectedTopic === t.id}
+                compact={isSplit}
+                onClick={onTopicPick}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Vibes */}
-      <div className="fa-section">
-        <div className="fa-section-label">What kind of support helps</div>
-        <div className={`fa-vibe-group${isSplit ? ' fa-vibe-group--compact' : ''}`}>
-          {VIBE_FILTERS.map(v => (
-            <VibeTile
-              key={v.id}
-              vibe={v}
-              selected={selectedVibe === v.id}
-              compact={isSplit}
-              onClick={onVibePick}
-            />
-          ))}
+      {visibleVibes.length > 0 && (
+        <div className="fa-section">
+          <div className="fa-section-label">What kind of support helps</div>
+          <div className={`fa-vibe-group${isSplit ? ' fa-vibe-group--compact' : ''}`}>
+            {visibleVibes.map(v => (
+              <VibeTile
+                key={v.id}
+                vibe={v}
+                selected={selectedVibe === v.id}
+                compact={isSplit}
+                onClick={onVibePick}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
 
       {/* Assessment nudge */}
       <div className={`fa-nudge${isSplit ? ' fa-nudge--compact' : ''}`}>

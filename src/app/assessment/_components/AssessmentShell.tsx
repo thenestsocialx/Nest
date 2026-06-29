@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useReducer } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AssessmentState, AnswerRecord, ResultData, BranchId, NextTarget, RecommendedAlly } from '@/lib/assessment/types'
+import type { FeatureFlags } from '@/lib/featureFlags'
 import { QUESTION_TREE, BRANCH_START_MAP, ESTIMATED_TOTAL_STEPS } from '@/config/questions'
 import ProgressBar from './ProgressBar'
 import QuestionScreen from './QuestionScreen'
@@ -168,7 +169,7 @@ function resolveNext(next: NextTarget, branch: BranchId | null): string | 'RESUL
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function AssessmentShell() {
+export default function AssessmentShell({ flags }: { flags: FeatureFlags }) {
   const router = useRouter()
   const [state, dispatch] = useReducer(reducer, initialState)
   const sessionIdRef   = useRef<string>('')
@@ -492,7 +493,7 @@ export default function AssessmentShell() {
       )}
 
       {state.phase === 'result' && (
-        <ResultScreen result={state.result} onSave={handleSave} recommendedAllies={state.recommendedAllies} />
+        <ResultScreen result={state.result} onSave={handleSave} recommendedAllies={state.recommendedAllies} flags={flags} />
       )}
 
       {/* Error overlay */}

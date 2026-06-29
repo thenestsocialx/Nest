@@ -1,10 +1,12 @@
 import type { ResultData, RecommendedAlly } from '@/lib/assessment/types'
+import type { FeatureFlags } from '@/lib/featureFlags'
 import styles from './ResultScreen.module.css'
 
 interface ResultScreenProps {
   result: ResultData | null
   onSave: () => void
   recommendedAllies?: RecommendedAlly[]
+  flags: FeatureFlags
 }
 
 function AllyRecommendationCard({ ally }: { ally: RecommendedAlly }) {
@@ -123,7 +125,7 @@ function PathwayIcon({ type }: { type: 'ally' | 'sai' | 'resources' | 'events' }
   )
 }
 
-export default function ResultScreen({ result, onSave, recommendedAllies = [] }: ResultScreenProps) {
+export default function ResultScreen({ result, onSave, recommendedAllies = [], flags }: ResultScreenProps) {
   const isLoading = result === null
 
   return (
@@ -269,12 +271,13 @@ export default function ResultScreen({ result, onSave, recommendedAllies = [] }:
                   </div>
                   <div className={styles.pathSecTitle}>Talk to Nila</div>
                   <div className={styles.pathSecDesc}>Whenever you&rsquo;re ready. No waiting, no booking.</div>
-                  <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ marginTop: '6px' }} aria-label="Chat with Nila">
+                  <a href="/nila" className={`${styles.btn} ${styles.btnSecondary}`} style={{ marginTop: '6px', display: 'block', textDecoration: 'none', textAlign: 'center' }} aria-label="Chat with Nila">
                     Chat with Nila
-                  </button>
+                  </a>
                 </div>
 
                 {/* Browse Resources */}
+                {flags.resources && (
                 <div
                   className={styles.pathSec}
                   style={{
@@ -288,12 +291,14 @@ export default function ResultScreen({ result, onSave, recommendedAllies = [] }:
                   </div>
                   <div className={styles.pathSecTitle}>Browse Resources</div>
                   <div className={styles.pathSecDesc}>Articles, audio — at your own pace.</div>
-                  <button className={`${styles.btn} ${styles.btnGhost}`} style={{ marginTop: '6px' }} aria-label="Browse Resources">
+                  <a href="/resources" className={`${styles.btn} ${styles.btnGhost}`} style={{ marginTop: '6px', display: 'block', textDecoration: 'none', textAlign: 'center' }} aria-label="Browse Resources">
                     Explore
-                  </button>
+                  </a>
                 </div>
+                )}
 
                 {/* Offline Events — full width */}
+                {flags.events && (
                 <div
                   className={`${styles.pathSec} ${styles.pathSecWide}`}
                   style={{
@@ -311,10 +316,11 @@ export default function ResultScreen({ result, onSave, recommendedAllies = [] }:
                       <div className={styles.pathSecDesc}>Quiet, in-person gatherings — for people who get it.</div>
                     </div>
                   </div>
-                  <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnFull}`} style={{ marginTop: '12px' }} aria-label="View upcoming offline events">
+                  <a href="/events" className={`${styles.btn} ${styles.btnGhost} ${styles.btnFull}`} style={{ marginTop: '12px', display: 'block', textDecoration: 'none', textAlign: 'center' }} aria-label="View upcoming offline events">
                     View upcoming events
-                  </button>
+                  </a>
                 </div>
+                )}
 
               </div>
             </>

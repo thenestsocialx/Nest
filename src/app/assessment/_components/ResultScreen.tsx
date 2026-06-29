@@ -259,7 +259,7 @@ export default function ResultScreen({ result, onSave, recommendedAllies = [], f
 
                 {/* Talk to Nila */}
                 <div
-                  className={styles.pathSec}
+                  className={!flags.resources && !flags.events ? `${styles.pathSec} ${styles.pathSecWide}` : styles.pathSec}
                   style={{
                     border: result.primaryPathway === 'sai'
                       ? '1.5px solid var(--moss)'

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { initiateSubscription, cancelSubscription } from '@/actions/razorpay'
+import { initiateSubscription, cancelSubscription, reactivateSubscription, resumeSubscription, pauseSubscription } from '@/actions/razorpay'
 
 export interface PlanConfig {
   id: string
@@ -16,6 +16,7 @@ export interface PlanConfig {
 
 export interface ActiveSub {
   id: string
+  status: 'active' | 'authenticated' | 'paused' | 'halted'
   periodEnd: string | null
   cancelAtEnd: boolean
 }
@@ -104,10 +105,14 @@ export default function PlanCard({
   activeSub,
 }: Props) {
   const router = useRouter()
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelMsg, setCancelMsg]   = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
+  const [cancelling, setCancelling]   = useState(false)
+  const [reactivating, setReactivating] = useState(false)
+  const [pausing, setPausing]     = useState(false)
+  const [resuming, setResuming]   = useState(false)
+  const [subMsg, setSubMsg]       = useState('')
+  const [subErr, setSubErr]       = useState('')
 
   const isCurrent = currentPlan === id
 
@@ -168,20 +173,59 @@ export default function PlanCard({
   }, [id, name, isCurrent, userEmail, router])
 
   const handleCancel = useCallback(async () => {
-    const confirmed = window.confirm(
-      'Cancel your subscription? You will keep full access until the end of the current billing period.',
-    )
-    if (!confirmed) return
-
+    if (!window.confirm('Cancel your subscription? You will keep full access until the end of the current billing period.')) return
     setCancelling(true)
-    setCancelMsg('')
+    setSubMsg('')
+    setSubErr('')
     const res = await cancelSubscription()
     setCancelling(false)
-
     if (res.error) {
-      setCancelMsg(res.error)
+      setSubErr(res.error)
     } else {
-      setCancelMsg('Cancellation scheduled. Your access continues until the billing period ends.')
+      setSubMsg('Cancellation scheduled. Your access continues until the billing period ends.')
+      router.refresh()
+    }
+  }, [router])
+
+  const handleReactivate = useCallback(async () => {
+    setReactivating(true)
+    setSubMsg('')
+    setSubErr('')
+    const res = await reactivateSubscription()
+    setReactivating(false)
+    if (res.error) {
+      setSubErr(res.error)
+    } else {
+      setSubMsg('Subscription reactivated — you\'ll be renewed as usual.')
+      router.refresh()
+    }
+  }, [router])
+
+  const handlePause = useCallback(async () => {
+    if (!window.confirm('Pause your subscription? Billing will be paused until you resume.')) return
+    setPausing(true)
+    setSubMsg('')
+    setSubErr('')
+    const res = await pauseSubscription()
+    setPausing(false)
+    if (res.error) {
+      setSubErr(res.error)
+    } else {
+      setSubMsg('Subscription paused. Resume anytime from your profile or here.')
+      router.refresh()
+    }
+  }, [router])
+
+  const handleResume = useCallback(async () => {
+    setResuming(true)
+    setSubMsg('')
+    setSubErr('')
+    const res = await resumeSubscription()
+    setResuming(false)
+    if (res.error) {
+      setSubErr(res.error)
+    } else {
+      setSubMsg('Subscription resumed.')
       router.refresh()
     }
   }, [router])
@@ -218,29 +262,69 @@ export default function PlanCard({
           {/* Subscription management — shown only on the user's active paid plan */}
           {activeSub && id !== 'free' && (
             <div className="ns-plan-card__sub-mgmt">
-              {activeSub.periodEnd && (
+              {/* Period / status line */}
+              {activeSub.status === 'paused' && (
+                <p className="ns-plan-card__sub-detail">Subscription paused — billing on hold</p>
+              )}
+              {activeSub.status === 'halted' && (
+                <p className="ns-plan-card__sub-detail" style={{ color: 'var(--terracotta, #9B6651)' }}>
+                  Payment retries failed — please update your payment method
+                </p>
+              )}
+              {(activeSub.status === 'active' || activeSub.status === 'authenticated') && activeSub.periodEnd && (
                 <p className="ns-plan-card__sub-detail">
                   {activeSub.cancelAtEnd
                     ? `Access ends ${formatDate(activeSub.periodEnd)}`
                     : `Renews ${formatDate(activeSub.periodEnd)}`}
                 </p>
               )}
-              {!activeSub.cancelAtEnd && (
+
+              {/* Actions */}
+              {activeSub.status === 'paused' && (
                 <button
                   type="button"
                   className="ns-plan-card__cancel-btn"
-                  disabled={cancelling}
-                  onClick={handleCancel}
+                  disabled={resuming}
+                  onClick={handleResume}
                 >
-                  {cancelling ? 'Cancelling…' : 'Cancel subscription'}
+                  {resuming ? 'Resuming…' : 'Resume subscription'}
                 </button>
               )}
+              {(activeSub.status === 'active' || activeSub.status === 'authenticated') && !activeSub.cancelAtEnd && (
+                <>
+                  <button
+                    type="button"
+                    className="ns-plan-card__cancel-btn"
+                    disabled={cancelling}
+                    onClick={handleCancel}
+                  >
+                    {cancelling ? 'Cancelling…' : 'Cancel subscription'}
+                  </button>
+                  <button
+                    type="button"
+                    className="ns-plan-card__cancel-btn"
+                    disabled={pausing}
+                    onClick={handlePause}
+                    style={{ marginTop: 4 }}
+                  >
+                    {pausing ? 'Pausing…' : 'Pause subscription'}
+                  </button>
+                </>
+              )}
               {activeSub.cancelAtEnd && (
-                <p className="ns-plan-card__cancel-notice">Cancellation scheduled</p>
+                <button
+                  type="button"
+                  className="ns-plan-card__cancel-btn"
+                  disabled={reactivating}
+                  onClick={handleReactivate}
+                >
+                  {reactivating ? 'Working…' : 'Keep my subscription'}
+                </button>
               )}
-              {cancelMsg && (
-                <p className="ns-plan-card__cancel-msg">{cancelMsg}</p>
-              )}
+
+              {/* Feedback */}
+              {subMsg && <p className="ns-plan-card__cancel-msg">{subMsg}</p>}
+              {subErr && <p className="ns-plan-card__cancel-msg" style={{ color: 'var(--terracotta, #9B6651)' }}>{subErr}</p>}
             </div>
           )}
         </div>

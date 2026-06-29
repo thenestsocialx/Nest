@@ -4,15 +4,25 @@
  * Env / backend wiring still needed:
  *   — "Request a copy of your information" → data export endpoint
  *   — "Delete my account" → Supabase admin deleteUser() call
- *   — "Manage billing" href → Stripe billing portal session URL
  *   — Avatar upload → Supabase Storage bucket + signed upload URL
  */
 
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, type ChangeEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { saveProfile, saveProfileSetting } from '@/actions/profile-settings'
 import { signOut } from '@/actions/auth'
+import { cancelSubscription, reactivateSubscription, resumeSubscription, pauseSubscription } from '@/actions/razorpay'
+import { deleteAccount } from '@/actions/account'
+import { uploadAvatar } from '@/actions/avatar'
+
+export interface ActiveSub {
+  id: string
+  status: 'active' | 'authenticated' | 'paused' | 'halted'
+  periodEnd: string | null
+  cancelAtEnd: boolean
+}
 
 interface ProfileData {
   full_name: string | null
@@ -38,11 +48,13 @@ interface Props {
   email: string
   userInitial: string
   firstName: string
+  activeSub: ActiveSub | null
 }
 
 type NilaTone = 'gentle' | 'direct' | 'balanced'
 
-export default function ProfileShell({ profile, email, userInitial, firstName }: Props) {
+export default function ProfileShell({ profile, email, userInitial, firstName, activeSub }: Props) {
+  const router = useRouter()
   /* ── Profile form state ── */
   const [fullName, setFullName] = useState(profile?.full_name ?? '')
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
@@ -82,10 +94,24 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
 
   /* ── Delete account ── */
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleting, startDelete] = useTransition()
 
   /* ── Sign out ── */
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const [signingOut, startSignOut] = useTransition()
+
+  /* ── Billing modal + actions ── */
+  const [billingModal, setBillingModal] = useState<BillingAction | null>(null)
+  const [billingMsg, setBillingMsg] = useState<string | null>(null)
+  const [billingError, setBillingError] = useState<string | null>(null)
+  const [billingPending, startBilling] = useTransition()
+
+  /* ── Avatar upload ── */
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url ?? null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   /* ── Derived ── */
   const displayedName = displayName.trim() || fullName.trim() || firstName
@@ -133,8 +159,76 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
     })
   }
 
+  function handleBillingConfirm() {
+    if (!billingModal) return
+    setBillingMsg(null)
+    setBillingError(null)
+    startBilling(async () => {
+      let res: { error?: string }
+      if (billingModal === 'cancel') res = await cancelSubscription()
+      else if (billingModal === 'pause') res = await pauseSubscription()
+      else if (billingModal === 'resume') res = await resumeSubscription()
+      else res = await reactivateSubscription()
+
+      setBillingModal(null)
+      if (res.error) {
+        setBillingError(res.error)
+      } else {
+        const msgs: Record<BillingAction, string> = {
+          cancel: 'Cancellation scheduled — access continues until the billing period ends.',
+          pause: 'Subscription paused. Billing is on hold.',
+          resume: 'Subscription resumed.',
+          reactivate: 'Subscription reactivated — you\'ll be renewed as usual.',
+        }
+        setBillingMsg(msgs[billingModal])
+        router.refresh()
+      }
+    })
+  }
+
+  function handleDeleteAccount() {
+    setDeleteError(null)
+    startDelete(async () => {
+      const res = await deleteAccount()
+      if (res.error) {
+        setDeleteError(res.error)
+      } else {
+        router.replace('/')
+      }
+    })
+  }
+
+  async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadError(null)
+    const fd = new FormData()
+    fd.append('avatar', file)
+    const res = await uploadAvatar(fd)
+    setUploading(false)
+    if (res.error) {
+      setUploadError(res.error)
+    } else if (res.avatarUrl) {
+      setAvatarUrl(res.avatarUrl)
+    }
+    // Reset so the same file can be re-selected after an error
+    e.target.value = ''
+  }
+
   return (
     <>
+      {/* Billing confirm modal */}
+      {billingModal && (
+        <BillingConfirmModal
+          action={billingModal}
+          activeSub={activeSub}
+          pending={billingPending}
+          onConfirm={handleBillingConfirm}
+          onClose={() => { if (!billingPending) setBillingModal(null) }}
+        />
+      )}
+
       {/* Sticky topbar */}
       <header className="ns-topbar ns-topbar--auth">
         <div className="ns-topbar__left">
@@ -155,16 +249,37 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
             <div className="ns-prof-layout">
               {/* ── Avatar column ── */}
               <div className="ns-prof-avatar-col">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarChange}
+                  aria-label="Upload profile photo"
+                />
                 <div className="ns-prof-avatar-circle" aria-hidden="true">
-                  {avatarInitial}
+                  {avatarUrl
+                    ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayedName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+                      />
+                    )
+                    : avatarInitial}
                 </div>
                 <button
                   className="ns-prof-avatar-change"
                   type="button"
                   aria-label="Change profile photo"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
                 >
-                  Change photo
+                  {uploading ? 'Uploading…' : 'Change photo'}
                 </button>
+                {uploadError && (
+                  <p className="ns-prof-save-error" style={{ textAlign: 'center', marginTop: 4 }}>{uploadError}</p>
+                )}
                 <div className="ns-prof-avatar-name">{displayedName}</div>
                 <span className="ns-prof-tier">{tierLabel}</span>
               </div>
@@ -441,13 +556,17 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
               {showDeleteConfirm && (
                 <div className="ns-prof-delete-confirm" role="alert">
                   <p className="ns-prof-delete-copy">
-                    We&rsquo;ll be sad to see you go. This can&rsquo;t be undone.
+                    We&rsquo;ll be sad to see you go. This can&rsquo;t be undone — your account and all data will be permanently removed.
                   </p>
+                  {deleteError && (
+                    <p className="ns-prof-save-error" role="alert" style={{ marginBottom: 8 }}>{deleteError}</p>
+                  )}
                   <div className="ns-prof-delete-actions">
                     <button
                       type="button"
                       className="ns-btn ns-btn--ghost ns-btn--sm"
-                      onClick={() => setShowDeleteConfirm(false)}
+                      onClick={() => { setShowDeleteConfirm(false); setDeleteError(null) }}
+                      disabled={deleting}
                     >
                       Cancel
                     </button>
@@ -455,8 +574,10 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                       type="button"
                       className="ns-btn ns-btn--sm"
                       style={{ background: 'rgba(155,102,81,0.14)', color: 'var(--terracotta)', border: '1px solid rgba(155,102,81,0.25)' }}
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
                     >
-                      Confirm deletion
+                      {deleting ? 'Deleting…' : 'Confirm deletion'}
                     </button>
                   </div>
                 </div>
@@ -474,29 +595,86 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
                   <div className="ns-prof-set-sub">
                     {plan === 'free'
                       ? 'Free · 20 messages per day'
-                      : tierLabel + ' plan'}
+                      : `${tierLabel} · ${subStatusLabel(activeSub)}`}
                   </div>
+                  {activeSub?.periodEnd && (
+                    <div className="ns-prof-set-sub" style={{ marginTop: 2 }}>
+                      {activeSub.cancelAtEnd
+                        ? `Access ends ${formatSubDate(activeSub.periodEnd)}`
+                        : activeSub.status === 'paused'
+                          ? 'Paused — billing on hold'
+                          : `Renews ${formatSubDate(activeSub.periodEnd)}`}
+                    </div>
+                  )}
                 </div>
                 <div className="ns-prof-set-ctrl">
                   {plan === 'free'
                     ? <a href="/plans" className="ns-link">Upgrade</a>
-                    : <span className="ns-prof-set-sub">{profile?.subscription_status}</span>
+                    : <a href="/plans" className="ns-link ns-link--quiet">View plans</a>
                   }
                 </div>
               </div>
 
-              {/* Billing */}
-              <div className="ns-prof-set-item">
-                <div className="ns-prof-set-body">
-                  <div className="ns-prof-set-label">Billing</div>
+              {/* Subscription management actions */}
+              {activeSub && plan !== 'free' && (
+                <div className="ns-prof-set-item">
+                  <div className="ns-prof-set-body">
+                    {billingMsg && (
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--deep-pine, #2F4C3A)' }} aria-live="polite">
+                        {billingMsg}
+                      </p>
+                    )}
+                    {billingError && (
+                      <p className="ns-prof-save-error" role="alert">{billingError}</p>
+                    )}
+                  </div>
+                  <div className="ns-prof-set-ctrl" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    {activeSub.status === 'active' && !activeSub.cancelAtEnd && (
+                      <>
+                        <button
+                          type="button"
+                          className="ns-link ns-link--quiet"
+                          disabled={billingPending}
+                          onClick={() => setBillingModal('pause')}
+                        >
+                          Pause
+                        </button>
+                        <button
+                          type="button"
+                          className="ns-prof-danger-link"
+                          disabled={billingPending}
+                          onClick={() => setBillingModal('cancel')}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {activeSub.cancelAtEnd && (
+                      <button
+                        type="button"
+                        className="ns-link"
+                        disabled={billingPending}
+                        onClick={() => setBillingModal('reactivate')}
+                      >
+                        Keep my subscription
+                      </button>
+                    )}
+                    {activeSub.status === 'paused' && !activeSub.cancelAtEnd && (
+                      <button
+                        type="button"
+                        className="ns-link"
+                        disabled={billingPending}
+                        onClick={() => setBillingModal('resume')}
+                      >
+                        Resume subscription
+                      </button>
+                    )}
+                    {activeSub.status === 'halted' && (
+                      <a href="/plans" className="ns-link">Update payment</a>
+                    )}
+                  </div>
                 </div>
-                <div className="ns-prof-set-ctrl">
-                  {/* href: Stripe billing portal URL — wire up later */}
-                  <a href="#" className="ns-link ns-link--quiet">
-                    Manage billing
-                  </a>
-                </div>
-              </div>
+              )}
 
               {/* Sign out */}
               <div className="ns-prof-signout-row">
@@ -542,6 +720,134 @@ export default function ProfileShell({ profile, email, userInitial, firstName }:
       </div>
     </>
   )
+}
+
+/* ── Billing types ── */
+
+type BillingAction = 'cancel' | 'pause' | 'resume' | 'reactivate'
+
+/* ── Billing confirm modal ── */
+
+interface BillingModalConfig {
+  icon: JSX.Element
+  title: string
+  body: string
+  note: ((sub: ActiveSub | null) => string | null) | null
+  confirmLabel: string
+  danger?: boolean
+}
+
+const BILLING_CONFIG: Record<BillingAction, BillingModalConfig> = {
+  cancel: {
+    icon: <CalendarXIcon />,
+    title: 'Cancel your subscription?',
+    body: "You'll keep full access to all features until the end of your current billing period. After that, your account reverts to the free plan.",
+    note: (sub) => sub?.periodEnd ? `Access continues until ${formatSubDate(sub.periodEnd)}` : null,
+    confirmLabel: 'Yes, cancel',
+    danger: true,
+  },
+  pause: {
+    icon: <PauseCircleIcon />,
+    title: 'Pause your subscription?',
+    body: "Billing pauses immediately. You'll retain access until your current period ends, then access pauses too.",
+    note: (sub) => sub?.periodEnd ? `Current period ends ${formatSubDate(sub.periodEnd)}` : null,
+    confirmLabel: 'Pause billing',
+  },
+  resume: {
+    icon: <PlayCircleIcon />,
+    title: 'Resume your subscription?',
+    body: "Billing resumes from today and you regain full access to all features immediately.",
+    note: null,
+    confirmLabel: 'Resume now',
+  },
+  reactivate: {
+    icon: <RefreshIcon />,
+    title: 'Keep your subscription?',
+    body: "Your scheduled cancellation will be removed. Billing continues as normal at the next renewal date.",
+    note: null,
+    confirmLabel: 'Keep my subscription',
+  },
+}
+
+function BillingConfirmModal({
+  action,
+  activeSub,
+  pending,
+  onConfirm,
+  onClose,
+}: {
+  action: BillingAction
+  activeSub: ActiveSub | null
+  pending: boolean
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  const cfg = BILLING_CONFIG[action]
+  const note = cfg.note?.(activeSub) ?? null
+
+  return (
+    <div
+      className="ns-billing-overlay"
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        className="ns-billing-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="billing-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={`ns-billing-modal__icon${cfg.danger ? ' ns-billing-modal__icon--warn' : ''}`}>
+          {cfg.icon}
+        </div>
+        <h2 id="billing-modal-title" className="ns-billing-modal__title">
+          {cfg.title}
+        </h2>
+        <p className="ns-billing-modal__body">{cfg.body}</p>
+        {note && (
+          <div className={`ns-billing-modal__note${cfg.danger ? ' ns-billing-modal__note--warn' : ''}`}>
+            <CalendarIcon />
+            {note}
+          </div>
+        )}
+        <div className="ns-billing-modal__actions">
+          <button
+            type="button"
+            className="ns-btn ns-btn--ghost"
+            onClick={onClose}
+            disabled={pending}
+          >
+            Not now
+          </button>
+          <button
+            type="button"
+            className={cfg.danger ? 'ns-billing-modal__btn--danger' : 'ns-btn ns-btn--primary'}
+            onClick={onConfirm}
+            disabled={pending}
+          >
+            {pending ? 'Working…' : cfg.confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Billing helpers ── */
+
+function subStatusLabel(sub: ActiveSub | null): string {
+  if (!sub) return 'Inactive'
+  if (sub.status === 'paused') return 'Paused'
+  if (sub.status === 'halted') return 'Payment failed'
+  if (sub.cancelAtEnd) return 'Active until period end'
+  return 'Active'
+}
+
+function formatSubDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  })
 }
 
 /* ── Sub-components ── */
@@ -601,6 +907,56 @@ function SignOutIcon() {
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M10 3 H12.5 Q13.5 3 13.5 4 V12 Q13.5 13 12.5 13 H10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       <path d="M7 8 H2.5 M2.5 8 L5 5.5 M2.5 8 L5 10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function CalendarXIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M9 15l6-4M9 11l6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PauseCircleIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M9.5 8.5v7M14.5 8.5v7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PlayCircleIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 8.5l6 3.5-6 3.5V8.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function RefreshIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12a8 8 0 0 1 14.4-4.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M20 12a8 8 0 0 1-14.4 4.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M17.8 6.5L18.5 7.8 20 7.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6.2 17.5L5.5 16.2 4 16.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1.5 7h13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M5 1.5v3M11 1.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   )
 }

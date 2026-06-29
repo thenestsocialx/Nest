@@ -1459,3 +1459,113 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   .ns-evt-vibe-card { flex-direction: row; align-items: flex-start; padding: 16px; gap: 12px; }
   .ns-evt-vibe-icon { margin-bottom: 0; }
 }
+
+/* ══════════════════════════════════════════════
+   BILLING CONFIRM MODAL
+══════════════════════════════════════════════ */
+.ns-billing-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(47, 76, 58, 0.38);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: nsFade 160ms var(--ease) both;
+}
+.ns-billing-modal {
+  background: var(--cream);
+  border-radius: var(--r-lg);
+  padding: 36px 32px 28px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(47, 76, 58, 0.2), 0 2px 12px rgba(47, 76, 58, 0.1);
+  animation: nsSlideUp 200ms var(--ease) both;
+}
+@keyframes nsSlideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.ns-billing-modal__icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--pine-tint);
+  border: 1.5px solid rgba(92, 122, 102, 0.28);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--moss);
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.ns-billing-modal__icon--warn {
+  background: rgba(155, 102, 81, 0.1);
+  border-color: rgba(155, 102, 81, 0.25);
+  color: var(--terracotta);
+}
+.ns-billing-modal__title {
+  font-size: 18px; font-weight: 500;
+  color: var(--deep-pine);
+  letter-spacing: -0.01em;
+  margin: 0 0 10px; line-height: 1.25;
+}
+.ns-billing-modal__body {
+  font-size: 13.5px;
+  color: var(--deep-pine);
+  opacity: 0.68;
+  line-height: 1.65;
+  margin: 0 0 0;
+}
+.ns-billing-modal__note {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: var(--pine-tint);
+  border: 1px solid rgba(92, 122, 102, 0.2);
+  border-radius: var(--r-md);
+  font-size: 13px; font-weight: 500;
+  color: var(--deep-pine);
+  width: 100%;
+  text-align: left;
+  display: flex; align-items: center; gap: 8px;
+}
+.ns-billing-modal__note--warn {
+  background: rgba(155, 102, 81, 0.07);
+  border-color: rgba(155, 102, 81, 0.2);
+  color: var(--terracotta);
+}
+.ns-billing-modal__actions {
+  display: flex; gap: 10px;
+  width: 100%;
+  margin-top: 24px;
+}
+.ns-billing-modal__actions .ns-btn {
+  flex: 1; justify-content: center;
+}
+.ns-billing-modal__btn--danger {
+  flex: 1;
+  background: rgba(155, 102, 81, 0.12);
+  color: var(--terracotta);
+  border: 1px solid rgba(155, 102, 81, 0.28);
+  border-radius: var(--r-md);
+  padding: 10px 20px;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+  justify-content: center;
+}
+.ns-billing-modal__btn--danger:hover:not(:disabled) { background: rgba(155, 102, 81, 0.18); }
+.ns-billing-modal__btn--danger:disabled { opacity: 0.45; cursor: not-allowed; }
+.ns-billing-modal__error {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--terracotta);
+  line-height: 1.5;
+  width: 100%;
+  text-align: center;
+}
+@media (max-width: 480px) {
+  .ns-billing-modal { padding: 28px 20px 24px; }
+  .ns-billing-modal__actions { flex-direction: column-reverse; }
+  .ns-billing-modal__btn--danger { display: block; width: 100%; }
+}

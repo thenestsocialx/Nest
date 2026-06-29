@@ -184,22 +184,34 @@ export async function POST(req: NextRequest) {
     }
 
     case 'subscription.paused': {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (admin as any).from('subscriptions').update({
-        status: 'paused',
-        raw_payload: entity,
-        updated_at: now,
-      }).eq('id', subId)
+      await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (admin as any).from('subscriptions').update({
+          status: 'paused',
+          raw_payload: entity,
+          updated_at: now,
+        }).eq('id', subId),
+        admin.from('profiles').update({
+          subscription_status: 'paused',
+          updated_at: now,
+        }).eq('id', sub.user_id),
+      ])
       break
     }
 
     case 'subscription.resumed': {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (admin as any).from('subscriptions').update({
-        status: 'active',
-        raw_payload: entity,
-        updated_at: now,
-      }).eq('id', subId)
+      await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (admin as any).from('subscriptions').update({
+          status: 'active',
+          raw_payload: entity,
+          updated_at: now,
+        }).eq('id', subId),
+        admin.from('profiles').update({
+          subscription_status: 'active',
+          updated_at: now,
+        }).eq('id', sub.user_id),
+      ])
       break
     }
 

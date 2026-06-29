@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════
 
 export type ClientPlan = 'free' | 'core' | 'premium';
-export type ClientSubscriptionStatus = 'active' | 'payment_failed' | 'cancelled';
+export type ClientSubscriptionStatus = 'active' | 'payment_failed' | 'cancelled' | 'paused';
 
 export interface ClientRow {
   id: string;

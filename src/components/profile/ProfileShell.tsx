@@ -9,7 +9,7 @@
 
 'use client'
 
-import { useState, useTransition, useRef, type ChangeEvent } from 'react'
+import { useState, useTransition, useRef, type ChangeEvent, type ReactElement } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveProfile, saveProfileSetting } from '@/actions/profile-settings'
 import { signOut } from '@/actions/auth'
@@ -729,7 +729,7 @@ type BillingAction = 'cancel' | 'pause' | 'resume' | 'reactivate'
 /* ── Billing confirm modal ── */
 
 interface BillingModalConfig {
-  icon: JSX.Element
+  icon: ReactElement
   title: string
   body: string
   note: ((sub: ActiveSub | null) => string | null) | null

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DM_Sans, DM_Serif_Display, Lora, Noto_Serif_Tamil } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body style={{ fontFamily: 'var(--font, DM Sans, sans-serif)' }}>
         {children}
         <Toaster position="top-center" richColors />
+        <Analytics />
       </body>
     </html>
   )

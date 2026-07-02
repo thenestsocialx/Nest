@@ -9,9 +9,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.zoho.com' },
     ],
   },
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
-  },
 };
 
 export default nextConfig;

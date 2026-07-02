@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Sidebar from '@/components/layout/Sidebar'
@@ -51,9 +52,10 @@ function AllyAvatar({ name, photoUrl }: { name: string; photoUrl: string | null 
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '0.875rem', fontWeight: 600, color: 'var(--honey)',
       letterSpacing: '0.03em',
+      position: 'relative',
     }}>
       {photoUrl
-        ? <img src={photoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ? <Image src={photoUrl} alt={name} fill sizes="52px" style={{ objectFit: 'cover' }} unoptimized />
         : initials}
     </div>
   )

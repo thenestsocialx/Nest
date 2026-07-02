@@ -44,6 +44,8 @@ html { height: 100%; overflow-x: hidden; }
 body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: var(--moss); -webkit-font-smoothing: antialiased; }
 
 @keyframes nsFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ns-spin { to { transform: rotate(360deg); } }
+.ns-page-spinner { width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid rgba(92,122,102,0.2); border-top-color: var(--deep-pine); animation: ns-spin 0.8s linear infinite; }
 
 /* ── SCROLL REVEAL (landing page) ── */
 [data-animate] { opacity: 0; transform: translateY(16px); transition: opacity 0.65s ease, transform 0.65s ease; }

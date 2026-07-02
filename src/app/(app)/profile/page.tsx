@@ -6,8 +6,6 @@ import BottomNav from '@/components/layout/BottomNav'
 import ProfileShell from '@/components/profile/ProfileShell'
 import type { ActiveSub } from '@/components/profile/ProfileShell'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata = {
   title: 'Profile & Settings — Nest',
 }

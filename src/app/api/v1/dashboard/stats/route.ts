@@ -177,5 +177,10 @@ export async function GET() {
     sessionsPending:     safeCount(sessionsPendingRes),
     safetyFlagCount:     safeCount(safetyFlagRes),
     mrrInr:              safeMrr(),
+  }, {
+    headers: {
+      // Cache in the admin's browser for 60s — 'private' prevents CDN caching of auth-gated data
+      'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+    },
   });
 }

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Sidebar from '@/components/layout/Sidebar'
@@ -6,7 +7,20 @@ import PlanCard from '@/components/plans/PlanCard'
 import type { PlanConfig, ActiveSub } from '@/components/plans/PlanCard'
 import PlanFAQ from '@/components/plans/PlanFAQ'
 
-export const dynamic = 'force-dynamic'
+// Plans are global config — cache server-side for 1 hour
+const getPlans = unstable_cache(
+  async () => {
+    const admin = createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (admin as any)
+      .from('plans')
+      .select('id, name, price_inr, tag, features, cta, is_featured')
+      .order('display_order')
+    return data ?? []
+  },
+  ['plans-list'],
+  { revalidate: 3600, tags: ['plans'] }
+)
 
 export const metadata = {
   title: 'Plans — Nest',
@@ -24,23 +38,15 @@ export default async function PlansPage({
   const params = await searchParams
   const showSuccess = params.success === '1'
 
-  // Fetch profile, plans, and active subscription in parallel.
-  // Plans and subscriptions use the admin client so we can query
-  // even if Supabase types don't yet include these tables locally.
-  const admin = createAdminClient()
-
-  const [{ data: profile }, { data: planRows }] = await Promise.all([
+  // Fetch user profile and cached plans list in parallel.
+  // Plans are global config served from server cache; profile is user-specific.
+  const [{ data: profile }, planRows] = await Promise.all([
     supabase
       .from('profiles')
       .select('plan, display_name, full_name, subscription_status')
       .eq('id', user.id)
       .maybeSingle(),
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (admin as any)
-      .from('plans')
-      .select('id, name, price_inr, tag, features, cta, is_featured')
-      .order('display_order'),
+    getPlans(),
   ])
 
   // Use user client — RLS allows authenticated users to read their own subscriptions

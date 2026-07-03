@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import { switchNilaMode, endNilaSession } from '@/actions/nila'
 import type { NilaMode, RestoredConversation } from '@/actions/nila'
@@ -498,10 +497,7 @@ export default function ChatShell({
 
   return (
     <div className="ns-chat-shell">
-      {/* COL 1 — Sidebar */}
-      <Sidebar userName={userName} userInitial={userInitial} />
-
-      {/* COL 2 — Session rail */}
+      {/* COL 1 — Session rail */}
       <aside className="ns-rail">
         <div className="ns-rail__section">
           <div className="ns-rail__eyebrow">Session</div>
@@ -571,7 +567,7 @@ export default function ChatShell({
         </div>
       </aside>
 
-      {/* COL 3 — Chat pane */}
+      {/* COL 2 — Chat pane */}
       <main className="ns-chat">
         {/* Header */}
         <header className="ns-chat__header">

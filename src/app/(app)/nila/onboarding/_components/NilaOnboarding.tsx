@@ -2,7 +2,6 @@
 
 import { useTransition } from 'react'
 import { markNilaOnboarded } from '@/actions/nila'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 
 function NilaOrb() {
@@ -65,10 +64,7 @@ export default function NilaOnboarding({ userName, userInitial }: NilaOnboarding
   }
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={userName} userInitial={userInitial} />
-
-      <div className="ns-main ns-main--onboard">
+    <div className="ns-main ns-main--onboard">
         {/* Concentric rings backdrop */}
         <svg
           className="ns-rings"
@@ -156,9 +152,8 @@ export default function NilaOnboarding({ userName, userInitial }: NilaOnboarding
             <em>You can step away anytime. No streaks, no nudges.</em>
           </p>
         </div>
-      </div>
 
-      <BottomNav />
-    </div>
+        <BottomNav />
+      </div>
   )
 }

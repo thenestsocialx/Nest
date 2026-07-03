@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getFeatureFlags } from '@/lib/featureFlags'
 import { getConfig, getPeriodStart } from '@/lib/nila-config'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import MoodSelector from './_components/MoodSelector'
@@ -225,12 +224,9 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={firstName} userInitial={initial} avatarUrl={avatarUrl} />
-
-      <div className="ns-main">
+    <div className="ns-main">
         {/* Top bar */}
-        <header className="ns-topbar ns-topbar--auth">
+        <header className="ns-topbar">
           <div className="ns-topbar__left">
             <div className="ns-topbar__greeting">
               {greeting}, {firstName}.
@@ -482,7 +478,6 @@ export default async function HomePage() {
 
         <BottomNav />
       </div>
-    </div>
   )
 }
 

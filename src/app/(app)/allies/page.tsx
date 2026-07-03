@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import Sidebar from '@/components/layout/Sidebar';
+import BottomNav from '@/components/layout/BottomNav';
 import FindAlliesShell from './_components/FindAlliesShell';
 import type { AllyPublicProfile } from '@/types/findAllies';
 
@@ -67,16 +67,14 @@ export default async function AlliesPage({ searchParams }: { searchParams: Promi
   }));
 
   return (
-    <div className="ns-shell" style={{ height: '100vh', overflow: 'hidden' }}>
-      <Sidebar userName={firstName} userInitial={initial} />
-      <main className="ns-main" style={{ height: '100vh', overflow: 'hidden', background: '#ECE5D8' }}>
+    <main className="ns-main">
         <FindAlliesShell
           allies={allies}
           userName={firstName}
           userInitial={initial}
           highlightId={highlightId}
         />
+        <BottomNav />
       </main>
-    </div>
   );
 }

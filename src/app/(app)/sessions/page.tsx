@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 
 export const metadata = {
@@ -255,24 +254,13 @@ export default async function SessionsPage() {
   const total    = sessions.length
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={firstName} userInitial={initial} />
-
-      <main className="ns-main" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <main className="ns-main">
 
         {/* Topbar */}
-        <header style={{
-          flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 40px',
-          background: 'var(--cream)',
-          borderBottom: '1px solid var(--honey-mute)',
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <header className="ns-topbar">
+          <div className="ns-topbar__left">
             <div className="fa-topbar-breadcrumb">your care</div>
-            <h1 style={{ fontSize: '1.0625rem', fontWeight: 500, color: 'var(--deep-pine)', letterSpacing: '-0.01em', margin: 0 }}>
-              My Sessions
-            </h1>
+            <h1 className="fa-topbar-title" style={{ margin: 0 }}>My Sessions</h1>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -336,6 +324,5 @@ export default async function SessionsPage() {
 
         <BottomNav />
       </main>
-    </div>
   )
 }

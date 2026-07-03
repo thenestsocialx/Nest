@@ -100,7 +100,6 @@ export default function Sidebar({ userName = 'You', userInitial = 'Y', avatarUrl
         <a
           href="/plans"
           className={`ns-sidebar__item${pathname.startsWith('/plans') ? ' is-active' : ''}`}
-          style={{ opacity: pathname.startsWith('/plans') ? 1 : 0.8 }}
         >
           <NavIcon id="plans" />
           <span>Plans</span>

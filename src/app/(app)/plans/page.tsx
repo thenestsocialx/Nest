@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import Sidebar from '@/components/layout/Sidebar'
+import BottomNav from '@/components/layout/BottomNav'
 import PlanCard from '@/components/plans/PlanCard'
 import type { PlanConfig, ActiveSub } from '@/components/plans/PlanCard'
 import PlanFAQ from '@/components/plans/PlanFAQ'
@@ -90,10 +90,7 @@ export default async function PlansPage({
     : null
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={displayName} userInitial={initial} />
-
-      <main className="ns-main">
+    <main className="ns-main">
         <div className="ns-plans">
           {/* ── Success banner after payment ── */}
           {showSuccess && (
@@ -129,7 +126,7 @@ export default async function PlansPage({
           {/* ── FAQ ── */}
           <PlanFAQ />
         </div>
+        <BottomNav />
       </main>
-    </div>
   )
 }

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { loadNilaHistory, softDeleteNilaConversation } from '@/actions/nila'
 import { getConfig } from '@/lib/nila-config'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 
 export const metadata = { title: 'Nila History — Nest' }
@@ -51,9 +50,7 @@ export default async function NilaHistoryPage() {
   const retentionDays = parseInt(retentionConfig, 10)
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={displayName} userInitial={initial} />
-      <main className="ns-main">
+    <main className="ns-main">
         <div className="ns-content">
           <div style={{ maxWidth: 640 }}>
             <div style={{ marginBottom: 24 }}>
@@ -114,6 +111,5 @@ export default async function NilaHistoryPage() {
         </div>
         <BottomNav />
       </main>
-    </div>
   )
 }

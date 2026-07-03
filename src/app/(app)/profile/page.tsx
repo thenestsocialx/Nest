@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import ProfileShell from '@/components/profile/ProfileShell'
 import type { ActiveSub } from '@/components/profile/ProfileShell'
@@ -61,10 +60,7 @@ export default async function ProfilePage() {
     : null
 
   return (
-    <div className="ns-shell ns-shell--locked">
-      <Sidebar userName={firstName} userInitial={initial} />
-
-      <div className="ns-main">
+    <div className="ns-main">
         <ProfileShell
           profile={profile}
           email={user.email ?? ''}
@@ -74,6 +70,5 @@ export default async function ProfilePage() {
         />
         <BottomNav />
       </div>
-    </div>
   )
 }

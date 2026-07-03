@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import ResourcesTabs from './_components/ResourcesTabs'
@@ -35,10 +34,7 @@ export default async function ResourcesPage() {
   const initial = firstName[0]?.toUpperCase() ?? 'A'
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={firstName} userInitial={initial} />
-
-      <main className="ns-main">
+    <main className="ns-main">
         <header className="ns-topbar">
           <div className="ns-topbar__left">
             <div className="ns-topbar__greeting">Resources</div>
@@ -56,6 +52,5 @@ export default async function ResourcesPage() {
 
         <BottomNav />
       </main>
-    </div>
   )
 }

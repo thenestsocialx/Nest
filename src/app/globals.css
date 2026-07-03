@@ -240,7 +240,7 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ns-event-mini__loc { font-size: 11px; color: var(--moss); margin-top: 2px; }
 
 /* ── COMPANION ONBOARDING ── */
-.ns-main--onboard { position: relative; overflow: hidden; }
+.ns-main--onboard { position: relative; overflow-y: auto; overflow-x: hidden; }
 .ns-rings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
 .ns-onboard { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 48px; text-align: center; max-width: 560px; margin: 0 auto; }
 .ns-onboard__orb { margin-bottom: 32px; }
@@ -261,7 +261,7 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ns-onboard__foot em { font-style: italic; }
 
 /* ── CHAT SHELL ── */
-.ns-chat-shell { display: grid; grid-template-columns: 220px 220px 1fr; grid-template-rows: 1fr; height: 100vh; overflow: hidden; background: var(--cream); color: var(--moss); }
+.ns-chat-shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 1fr; height: 100vh; overflow: hidden; background: var(--cream); color: var(--moss); }
 
 /* Rail */
 .ns-rail { background: rgba(248,240,229,0.7); border-right: 1px solid var(--honey-mute); display: flex; flex-direction: column; overflow-y: auto; padding: 20px 18px 0; }
@@ -588,6 +588,10 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ac-act__btn--book:hover { background: #8a5847; box-shadow: 0 4px 14px rgba(155,102,81,0.3); }
 .ac-act__btn--next { background: var(--cream); border: 1.5px solid var(--honey-mute); color: var(--moss); }
 .ac-act__btn--next:hover { border-color: var(--moss); background: var(--pine-tint); }
+@media (max-width: 600px) {
+  .ac-card { grid-template-columns: 1fr; }
+  .ac-left { min-height: 200px; }
+}
 
 /* ── BOOKING IFRAME MODAL ── */
 .bk-modal { display: flex; flex-direction: column; width: min(1020px, 96vw); height: min(720px, 90vh); border-radius: 18px; overflow: hidden; background: var(--cream); box-shadow: 0 24px 64px rgba(0,0,0,0.22); }
@@ -916,6 +920,18 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 
   /* ── Profile: expand toggle rows for easier tapping ── */
   .ns-prof-set-item { padding: 14px 0; }
+}
+
+/* ── Onboarding: compress vertical spacing on short screens (iPhone SE etc.) ── */
+@media (max-height: 700px) {
+  .ns-onboard { padding: 16px 24px; }
+  .ns-onboard__orb { margin-bottom: 14px; }
+  .ns-onboard__title { font-size: 26px; margin-bottom: 6px; }
+  .ns-onboard__sub { font-size: 13px; margin-bottom: 10px; }
+  .ns-onboard__body { margin-bottom: 14px; }
+  .ns-cancant { padding: 14px 18px; margin-bottom: 14px; }
+  .ns-onboard__begin { padding: 12px 40px; }
+  .ns-onboard__foot { margin-top: 10px; }
 }
 
 /* ══════════════════════════════════════════════

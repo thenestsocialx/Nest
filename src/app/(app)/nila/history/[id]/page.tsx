@@ -2,7 +2,6 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { loadNilaSessionMessages } from '@/actions/nila'
-import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from '@/components/layout/BottomNav'
 
 export const metadata = { title: 'Session — Nila History' }
@@ -50,9 +49,7 @@ export default async function NilaSessionPage({ params }: { params: Promise<{ id
   if (messages.length === 0) notFound()
 
   return (
-    <div className="ns-shell">
-      <Sidebar userName={displayName} userInitial={initial} />
-      <main className="ns-main">
+    <main className="ns-main">
         <div className="ns-content">
           <div style={{ maxWidth: 620 }}>
             <div style={{ marginBottom: 24 }}>
@@ -90,6 +87,5 @@ export default async function NilaSessionPage({ params }: { params: Promise<{ id
         </div>
         <BottomNav />
       </main>
-    </div>
   )
 }

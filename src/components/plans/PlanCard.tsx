@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { initiateSubscription, cancelSubscription, reactivateSubscription, resumeSubscription, pauseSubscription } from '@/actions/razorpay'
+import { initiateSubscription } from '@/actions/razorpay'
 
 export interface PlanConfig {
   id: string
@@ -105,14 +105,8 @@ export default function PlanCard({
   activeSub,
 }: Props) {
   const router = useRouter()
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState('')
-  const [cancelling, setCancelling]   = useState(false)
-  const [reactivating, setReactivating] = useState(false)
-  const [pausing, setPausing]     = useState(false)
-  const [resuming, setResuming]   = useState(false)
-  const [subMsg, setSubMsg]       = useState('')
-  const [subErr, setSubErr]       = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
 
   const isCurrent = currentPlan === id
 
@@ -160,7 +154,6 @@ export default function PlanCard({
             body: JSON.stringify(response),
           })
           if (!res.ok) throw new Error('Verification failed')
-          // Refresh the page to show the updated plan
           router.push('/plans?success=1')
         } catch {
           setError('Payment succeeded but verification failed. Contact support with your payment ID.')
@@ -171,64 +164,6 @@ export default function PlanCard({
 
     rzp.open()
   }, [id, name, isCurrent, userEmail, router])
-
-  const handleCancel = useCallback(async () => {
-    if (!window.confirm('Cancel your subscription? You will keep full access until the end of the current billing period.')) return
-    setCancelling(true)
-    setSubMsg('')
-    setSubErr('')
-    const res = await cancelSubscription()
-    setCancelling(false)
-    if (res.error) {
-      setSubErr(res.error)
-    } else {
-      setSubMsg('Cancellation scheduled. Your access continues until the billing period ends.')
-      router.refresh()
-    }
-  }, [router])
-
-  const handleReactivate = useCallback(async () => {
-    setReactivating(true)
-    setSubMsg('')
-    setSubErr('')
-    const res = await reactivateSubscription()
-    setReactivating(false)
-    if (res.error) {
-      setSubErr(res.error)
-    } else {
-      setSubMsg('Subscription reactivated — you\'ll be renewed as usual.')
-      router.refresh()
-    }
-  }, [router])
-
-  const handlePause = useCallback(async () => {
-    if (!window.confirm('Pause your subscription? Billing will be paused until you resume.')) return
-    setPausing(true)
-    setSubMsg('')
-    setSubErr('')
-    const res = await pauseSubscription()
-    setPausing(false)
-    if (res.error) {
-      setSubErr(res.error)
-    } else {
-      setSubMsg('Subscription paused. Resume anytime from your profile or here.')
-      router.refresh()
-    }
-  }, [router])
-
-  const handleResume = useCallback(async () => {
-    setResuming(true)
-    setSubMsg('')
-    setSubErr('')
-    const res = await resumeSubscription()
-    setResuming(false)
-    if (res.error) {
-      setSubErr(res.error)
-    } else {
-      setSubMsg('Subscription resumed.')
-      router.refresh()
-    }
-  }, [router])
 
   return (
     <div className={`ns-plan-card${isFeatured ? ' ns-plan-card--featured' : ''}`}>
@@ -259,10 +194,8 @@ export default function PlanCard({
         <div className="ns-plan-card__current-wrap">
           <div className="ns-plan-card__current">You&apos;re on this plan</div>
 
-          {/* Subscription management — shown only on the user's active paid plan */}
           {activeSub && id !== 'free' && (
             <div className="ns-plan-card__sub-mgmt">
-              {/* Period / status line */}
               {activeSub.status === 'paused' && (
                 <p className="ns-plan-card__sub-detail">Subscription paused — billing on hold</p>
               )}
@@ -278,53 +211,19 @@ export default function PlanCard({
                     : `Renews ${formatDate(activeSub.periodEnd)}`}
                 </p>
               )}
-
-              {/* Actions */}
-              {activeSub.status === 'paused' && (
-                <button
-                  type="button"
-                  className="ns-plan-card__cancel-btn"
-                  disabled={resuming}
-                  onClick={handleResume}
-                >
-                  {resuming ? 'Resuming…' : 'Resume subscription'}
-                </button>
-              )}
-              {(activeSub.status === 'active' || activeSub.status === 'authenticated') && !activeSub.cancelAtEnd && (
-                <>
-                  <button
-                    type="button"
-                    className="ns-plan-card__cancel-btn"
-                    disabled={cancelling}
-                    onClick={handleCancel}
-                  >
-                    {cancelling ? 'Cancelling…' : 'Cancel subscription'}
-                  </button>
-                  <button
-                    type="button"
-                    className="ns-plan-card__cancel-btn"
-                    disabled={pausing}
-                    onClick={handlePause}
-                    style={{ marginTop: 4 }}
-                  >
-                    {pausing ? 'Pausing…' : 'Pause subscription'}
-                  </button>
-                </>
-              )}
-              {activeSub.cancelAtEnd && (
-                <button
-                  type="button"
-                  className="ns-plan-card__cancel-btn"
-                  disabled={reactivating}
-                  onClick={handleReactivate}
-                >
-                  {reactivating ? 'Working…' : 'Keep my subscription'}
-                </button>
-              )}
-
-              {/* Feedback */}
-              {subMsg && <p className="ns-plan-card__cancel-msg">{subMsg}</p>}
-              {subErr && <p className="ns-plan-card__cancel-msg" style={{ color: 'var(--terracotta, #9B6651)' }}>{subErr}</p>}
+              <a
+                href="/profile"
+                style={{
+                  display: 'inline-block',
+                  marginTop: 10,
+                  fontSize: 12,
+                  color: 'var(--moss)',
+                  textDecoration: 'none',
+                  opacity: 0.75,
+                }}
+              >
+                Manage subscription → Profile
+              </a>
             </div>
           )}
         </div>

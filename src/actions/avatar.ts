@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -66,5 +67,6 @@ export async function uploadAvatar(
     return { error: 'Upload succeeded but profile update failed. Please refresh.' }
   }
 
+  revalidatePath('/', 'layout')
   return { avatarUrl }
 }

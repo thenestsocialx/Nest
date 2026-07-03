@@ -190,12 +190,9 @@ export default function LandingPage({ isAuthenticated }: Props) {
           </button>
 
           <nav className={styles.navLinks} aria-label="Main navigation">
-            <a href="#allies">Allies</a>
-            <a href="#how-it-works">Nila</a>
-            <a href="#events">Events</a>
             {isAuthenticated
               ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
-              : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={handleCta} className={styles.navCta}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>
+              : <Link href="/login" className={styles.navCta}>Sign in</Link>
             }
           </nav>
         </div>
@@ -204,12 +201,9 @@ export default function LandingPage({ isAuthenticated }: Props) {
           className={[styles.mobileMenu, menuOpen ? styles.mobileMenuOpen : ''].filter(Boolean).join(' ')}
           aria-label="Mobile navigation"
         >
-          <a href="#allies" onClick={closeMenu}>Allies</a>
-          <a href="#how-it-works" onClick={closeMenu}>Nila</a>
-          <a href="#events" onClick={closeMenu}>Events</a>
           {isAuthenticated
             ? <Link href="/home" onClick={closeMenu}>Go to your space →</Link>
-            : <Link href={IS_WAITLIST ? '#' : '/assessment'} onClick={(e) => { closeMenu(); handleCta(e) }}>{IS_WAITLIST ? 'Join Waitlist' : 'Start Here'}</Link>
+            : <Link href="/login" onClick={closeMenu}>Sign in</Link>
           }
         </nav>
       </header>

@@ -110,7 +110,8 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
   /* ── Avatar upload ── */
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url ?? null)
-  const [uploading, setUploading] = useState(false)
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
   /* ── Derived ── */
@@ -125,6 +126,24 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
     setSaved(false)
     setSaveError(null)
     startSaving(async () => {
+      let avatarUploaded = false
+      if (pendingAvatarFile) {
+        const fd = new FormData()
+        fd.append('avatar', pendingAvatarFile)
+        const res = await uploadAvatar(fd)
+        if (res.error) {
+          setUploadError(res.error)
+          return
+        }
+        if (res.avatarUrl) {
+          setAvatarUrl(res.avatarUrl)
+          if (previewUrl) URL.revokeObjectURL(previewUrl)
+          setPreviewUrl(null)
+          setPendingAvatarFile(null)
+          avatarUploaded = true
+        }
+      }
+
       const result = await saveProfile({
         full_name: fullName,
         display_name: displayName,
@@ -138,6 +157,7 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
       } else {
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+        if (avatarUploaded) router.refresh()
       }
     })
   }
@@ -198,21 +218,13 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
     })
   }
 
-  async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploading(true)
     setUploadError(null)
-    const fd = new FormData()
-    fd.append('avatar', file)
-    const res = await uploadAvatar(fd)
-    setUploading(false)
-    if (res.error) {
-      setUploadError(res.error)
-    } else if (res.avatarUrl) {
-      setAvatarUrl(res.avatarUrl)
-    }
-    // Reset so the same file can be re-selected after an error
+    setPendingAvatarFile(file)
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(URL.createObjectURL(file))
     e.target.value = ''
   }
 
@@ -258,10 +270,10 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
                   aria-label="Upload profile photo"
                 />
                 <div className="ns-prof-avatar-circle" aria-hidden="true">
-                  {avatarUrl
+                  {(previewUrl ?? avatarUrl)
                     ? (
                       <img
-                        src={avatarUrl}
+                        src={previewUrl ?? avatarUrl!}
                         alt={displayedName}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
                       />
@@ -273,9 +285,9 @@ export default function ProfileShell({ profile, email, userInitial, firstName, a
                   type="button"
                   aria-label="Change profile photo"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
+                  disabled={saving}
                 >
-                  {uploading ? 'Uploading…' : 'Change photo'}
+                  {pendingAvatarFile ? 'Photo selected' : 'Change photo'}
                 </button>
                 {uploadError && (
                   <p className="ns-prof-save-error" style={{ textAlign: 'center', marginTop: 4 }}>{uploadError}</p>

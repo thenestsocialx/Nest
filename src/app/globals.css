@@ -409,9 +409,20 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .fa-topbar-title { font-size: 17px; font-weight: 500; color: var(--deep-pine); letter-spacing: -0.01em; margin-top: 2px; }
 .fa-user-chip { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--moss); }
 .fa-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--deep-pine); border: 2px solid var(--honey-mute); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--cream); letter-spacing: 0.04em; flex-shrink: 0; }
+.fa-topbar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--cream); border-bottom: 1px solid var(--honey-mute); z-index: 10; }
+.fa-topbar-right { display: flex; align-items: center; gap: 12px; }
+.fa-sessions-link { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--moss); border: 1.5px solid var(--honey-mute); border-radius: var(--r-pill); padding: 6px 14px; text-decoration: none; letter-spacing: 0.01em; transition: border-color 150ms, color 150ms; }
+.fa-sessions-link:hover { border-color: var(--moss); color: var(--deep-pine); }
+.fa-user-name { font-size: 13px; color: var(--moss); opacity: 0.8; }
+.fa-sheet-handle { display: none; justify-content: center; padding: 12px 0 6px; flex-shrink: 0; cursor: grab; touch-action: none; }
+.fa-sheet-handle::after { content: ''; width: 40px; height: 4px; background: rgba(92,122,102,0.25); border-radius: 2px; }
+.fa-sheet-close { display: none; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--honey-mute); background: transparent; color: var(--moss); cursor: pointer; flex-shrink: 0; font-family: inherit; transition: all 160ms ease; }
+.fa-sheet-close:hover { border-color: var(--moss); color: var(--deep-pine); }
+.fa-mobile-dimmer { display: none; position: fixed; inset: 0; background: rgba(47,76,58,0.4); z-index: 199; cursor: pointer; animation: nsFade 200ms ease both; }
 
 /* Workspace animated split */
-.fa-workspace { flex: 1; display: grid; overflow: hidden; }
+.fa-workspace { flex: 1; display: grid; overflow: hidden; grid-template-columns: 1fr 0fr; grid-template-rows: 1fr; transition: grid-template-columns 520ms cubic-bezier(.22,.68,0,1.15); min-height: 0; }
+.fa-workspace--split { grid-template-columns: 25fr 75fr; }
 
 /* Filter column */
 .fa-filter-col { overflow-y: auto; overflow-x: hidden; padding: 32px 36px; border-right: 1px solid var(--honey-mute); background: var(--cream); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -591,6 +602,88 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 @media (max-width: 600px) {
   .ac-card { grid-template-columns: 1fr; }
   .ac-left { min-height: 200px; }
+}
+
+/* ── FIND ALLIES — MOBILE ── */
+@media (max-width: 767px) {
+  /* Topbar: tighter padding, hide text labels to save space */
+  .fa-topbar { padding: 14px 20px; }
+  .fa-topbar-title { font-size: 15px; }
+  .fa-sessions-link { padding: 5px 10px; }
+  .fa-sessions-label { display: none; }
+  .fa-user-name { display: none; }
+
+  /* Filter column: compact top panel */
+  .fa-filter-col {
+    padding: 18px 20px 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--honey-mute);
+    overflow-y: visible;
+    height: auto;
+    min-height: 0;
+  }
+  .fa-filter-header { margin-bottom: 14px; }
+  .fa-section { margin-bottom: 16px; }
+
+  /* Topic chips: horizontal scroll instead of wrap */
+  .fa-chip-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    gap: 8px;
+  }
+  .fa-chip-group::-webkit-scrollbar { display: none; }
+
+  /* Workspace: single column — profile col becomes a fixed sheet */
+  .fa-workspace { grid-template-columns: 1fr; overflow: visible; }
+  .fa-workspace--split { grid-template-columns: 1fr; }
+
+  /* Profile column: slide-up bottom sheet */
+  .fa-profile-col {
+    position: fixed;
+    bottom: 64px;
+    left: 0;
+    right: 0;
+    height: 82vh;
+    max-height: 82vh;
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--honey-mute);
+    box-shadow: 0 -8px 40px rgba(47,76,58,0.18);
+    z-index: 200;
+    transform: translateY(110%);
+    transition: transform 320ms cubic-bezier(.22,.68,0,1.15);
+    opacity: 1;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .fa-profile-col.is-visible {
+    transform: translateY(0);
+    pointer-events: all;
+  }
+  .fa-profile-area {
+    padding: 12px 20px 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sheet chrome: drag handle and close button */
+  .fa-sheet-handle { display: flex; }
+  .fa-sheet-close { display: flex; }
+
+  /* Dimmer behind the sheet */
+  .fa-mobile-dimmer { display: block; }
+
+  /* Results header: compact on mobile */
+  .fa-results-header { margin-bottom: 14px; padding-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .fa-results-title { font-size: 14px; }
+
+  /* Card area */
+  .fa-card-wrapper { gap: 8px; }
+  .fa-card-slot { max-width: 100%; }
 }
 
 /* ── BOOKING IFRAME MODAL ── */
@@ -920,6 +1013,42 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 
   /* ── Profile: expand toggle rows for easier tapping ── */
   .ns-prof-set-item { padding: 14px 0; }
+
+  /* ── Ambient strip: match the tighter 20px content padding ── */
+  .ns-ambient-wrap { margin: 0 -20px; }
+
+  /* ── Mode strip: scroll horizontally when chips overflow ── */
+  .ns-mode-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-wrap: nowrap; }
+  .ns-mode-strip::-webkit-scrollbar { display: none; }
+
+  /* ── Cards: tighter padding on mobile ── */
+  .ns-card { padding: 18px; }
+  .ns-nudge { padding: 14px 18px; gap: 14px; }
+
+  /* ── Mood chips: min touch-target ── */
+  .ns-mood__chip { min-height: 44px; }
+
+  /* ── Chat header: match tighter 16px side padding ── */
+  .ns-chat__header { padding: 0 16px; height: 52px; }
+  .ns-chat__banner { margin: 10px 16px 0; }
+  .ns-chat__limit-strip { padding: 8px 16px; }
+
+  /* ── Chat input: 16px prevents iOS auto-zoom ── */
+  .ns-chat__input input { font-size: 16px; }
+
+  /* ── Crisis button: icon-only on small screens, label overflows ── */
+  .ns-chat__crisis span { display: none; }
+  .ns-chat__crisis { padding: 7px; border-radius: 50%; gap: 0; }
+}
+
+/* ── Small screens: mood chips and trend bars ── */
+@media (max-width: 400px) {
+  .ns-mood__row { gap: 6px; }
+  .ns-mood__chip { padding: 10px 4px; }
+  .ns-mood__glyph { font-size: 18px; }
+  .ns-mood__name { font-size: 10px; }
+  .ns-trend { gap: 4px; }
+  .ns-trend__day { font-size: 9px; }
 }
 
 /* ── Onboarding: compress vertical spacing on short screens (iPhone SE etc.) ── */
@@ -1015,6 +1144,12 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   margin-bottom: 28px;
 }
 @media (max-width: 860px) { .ns-plans__grid { grid-template-columns: 1fr; max-width: 440px; } }
+@media (max-width: 767px) {
+  .ns-plans { padding: 28px 20px 88px; }
+  .ns-plans__header { margin-bottom: 32px; }
+  .ns-plans__headline { font-size: 26px; }
+  .ns-plans__sub { font-size: 14px; }
+}
 
 .ns-plan-card {
   background: var(--cream);

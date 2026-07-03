@@ -15,6 +15,7 @@ interface Props {
   isHighlighted?: boolean
   onNavigate: (dir: -1 | 1) => void
   onBook: (ally: AllyPublicProfile) => void
+  onClose?: () => void
 }
 
 export default function ProfileColumn({
@@ -27,6 +28,7 @@ export default function ProfileColumn({
   isHighlighted,
   onNavigate,
   onBook,
+  onClose,
 }: Props) {
   const safeIdx     = Math.min(currentIdx, Math.max(0, filteredAllies.length - 1))
   const currentAlly = filteredAllies[safeIdx] ?? null
@@ -47,6 +49,9 @@ export default function ProfileColumn({
 
   return (
     <div className={`fa-profile-col${isSplit ? ' is-visible' : ''}`}>
+      {/* Drag handle — visible only on mobile (CSS-controlled) */}
+      <div className="fa-sheet-handle" aria-hidden="true" />
+
       <div className="fa-profile-area">
 
         {/* Results header */}
@@ -56,21 +61,32 @@ export default function ProfileColumn({
             {countText && <div className="fa-results-count">{countText}</div>}
           </div>
 
-          {/* Progress dots */}
-          {total > 0 && (
-            <div className="fa-progress-row" role="tablist" aria-label="Profile pages">
-              {filteredAllies.map((_, i) => (
-                <div
-                  key={i}
-                  className={`fa-dot${i === safeIdx ? ' is-on' : ''}`}
-                  role="tab"
-                  aria-selected={i === safeIdx}
-                  aria-label={`Profile ${i + 1}`}
-                />
-              ))}
-              <span className="fa-page-label">{safeIdx + 1} of {total}</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Progress dots */}
+            {total > 0 && (
+              <div className="fa-progress-row" role="tablist" aria-label="Profile pages">
+                {filteredAllies.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`fa-dot${i === safeIdx ? ' is-on' : ''}`}
+                    role="tab"
+                    aria-selected={i === safeIdx}
+                    aria-label={`Profile ${i + 1}`}
+                  />
+                ))}
+                <span className="fa-page-label">{safeIdx + 1} of {total}</span>
+              </div>
+            )}
+
+            {/* Close button — visible only on mobile (CSS-controlled) */}
+            {onClose && (
+              <button type="button" className="fa-sheet-close" onClick={onClose} aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Card area */}

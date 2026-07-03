@@ -3,13 +3,18 @@
 import { usePathname } from 'next/navigation'
 import { useFeatureFlags } from '@/contexts/FeatureFlagsContext'
 
-const NAV_ITEMS = [
+const CORE_ITEMS = [
   { id: 'home',      label: 'Home',     href: '/home' },
   { id: 'companion', label: 'Nila',     href: '/nila' },
   { id: 'ally',      label: 'Allies',   href: '/allies' },
+]
+
+const FEATURE_ITEMS = [
   { id: 'resources', label: 'Resources', href: '/resources' },
   { id: 'events',    label: 'Events',   href: '/events' },
 ]
+
+const PROFILE_ITEM = { id: 'profile', label: 'Profile', href: '/profile' }
 
 function NavIcon({ id }: { id: string }) {
   const c = {
@@ -51,6 +56,12 @@ function NavIcon({ id }: { id: string }) {
       <path d="M4 13.5 Q4 11 8 11 Q12 11 12 13.5" {...c} />
     </svg>
   )
+  if (id === 'profile') return (
+    <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="8" cy="5.5" r="2.5" {...c} />
+      <path d="M2.5 14 Q2.5 10 8 10 Q13.5 10 13.5 14" {...c} />
+    </svg>
+  )
   return null
 }
 
@@ -58,11 +69,15 @@ export default function BottomNav() {
   const pathname = usePathname()
   const flags = useFeatureFlags()
 
-  const visibleItems = NAV_ITEMS.filter((item) => {
+  // Feature-flagged items that are enabled
+  const enabledFeatures = FEATURE_ITEMS.filter((item) => {
     if (item.id === 'resources') return flags.resources
     if (item.id === 'events')    return flags.events
-    return true
+    return false
   })
+
+  // Core + up to 1 feature item + Profile — never exceed 5 total
+  const visibleItems = [...CORE_ITEMS, ...enabledFeatures.slice(0, 1), PROFILE_ITEM]
 
   return (
     <nav className="ns-bottom-nav" aria-label="Mobile navigation">

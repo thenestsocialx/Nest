@@ -70,14 +70,11 @@
 }
 .navScrolled .navLogo { color: var(--anchor); }
 
-/* Desktop nav links */
+/* Nav links */
 .navLinks {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 32px;
-}
-@media (min-width: 768px) {
-  .navLinks { display: flex; }
 }
 .navLinks a:not(.navCta) {
   font-size: 15px;

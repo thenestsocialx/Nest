@@ -37,7 +37,6 @@ export default function LandingPage({ isAuthenticated }: Props) {
 
   // ── Nav state ──
   const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
 
   // ── Breathe state ──
   const [breathPhase, setBreathPhase] = useState<'idle' | 'in' | 'out'>('idle')
@@ -162,8 +161,6 @@ export default function LandingPage({ isAuthenticated }: Props) {
     }
   }
 
-  const closeMenu = () => setMenuOpen(false)
-
   const navClass = [styles.nav, scrolled ? styles.navScrolled : ''].filter(Boolean).join(' ')
 
   return (
@@ -180,15 +177,6 @@ export default function LandingPage({ isAuthenticated }: Props) {
             <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: 'currentColor' }}>nest</span>
           </Link>
 
-          <button
-            className={styles.navHamburger}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <span /><span /><span />
-          </button>
-
           <nav className={styles.navLinks} aria-label="Main navigation">
             {isAuthenticated
               ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
@@ -197,15 +185,6 @@ export default function LandingPage({ isAuthenticated }: Props) {
           </nav>
         </div>
 
-        <nav
-          className={[styles.mobileMenu, menuOpen ? styles.mobileMenuOpen : ''].filter(Boolean).join(' ')}
-          aria-label="Mobile navigation"
-        >
-          {isAuthenticated
-            ? <Link href="/home" onClick={closeMenu}>Go to your space →</Link>
-            : <Link href="/login" onClick={closeMenu}>Sign in</Link>
-          }
-        </nav>
       </header>
 
       <main>

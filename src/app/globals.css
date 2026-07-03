@@ -600,8 +600,67 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ac-act__btn--next { background: var(--cream); border: 1.5px solid var(--honey-mute); color: var(--moss); }
 .ac-act__btn--next:hover { border-color: var(--moss); background: var(--pine-tint); }
 @media (max-width: 600px) {
+  /* Card: single column */
   .ac-card { grid-template-columns: 1fr; }
-  .ac-left { min-height: 200px; }
+
+  /* Left panel: compact horizontal strip — photo beside name/badges */
+  .ac-left {
+    min-height: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 12px 10px;
+  }
+
+  /* Photo: fixed small square — flex: 0 0 so it doesn't grow in the row */
+  .ac-photo {
+    flex: 0 0 60px;
+    width: 60px;
+    height: 60px;
+    min-height: 0;
+    border-radius: 10px;
+    margin: 0;
+  }
+
+  /* Match badge: hidden (photo too small; match is implied by the active filters) */
+  .ac-match-badge { display: none; }
+
+  /* Nameband: fills remaining width, no extra padding */
+  .ac-nameband { padding: 0; flex: 1; min-width: 0; }
+  .ac-name { font-size: 15px; }
+  .ac-pronouns { margin-bottom: 5px; }
+
+  /* Right panel: tighter padding and spacing */
+  .ac-right { padding: 10px 12px 12px; gap: 8px; }
+
+  /* Decorative leaves: not needed on small screens */
+  .ac-ill { display: none; }
+
+  /* Tags: no padding offset (illustration gone) — allow horizontal scroll on very narrow */
+  .ac-tags { padding-right: 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .ac-tags::-webkit-scrollbar { display: none; }
+
+  /* Quote: smaller text, tighter padding */
+  .ac-quote { padding: 9px 11px; margin: 0; }
+  .ac-quote__text { font-size: 12px; }
+
+  /* "What to expect" boilerplate: hide to save vertical space */
+  .ac-expect { display: none; }
+
+  /* Intro offer: compact */
+  .ac-intro-offer { padding: 7px 10px; font-size: 11px; gap: 6px; }
+
+  /* Session info: 2×2 grid, tighter */
+  .ac-session { padding: 9px 11px; gap: 5px 10px; }
+
+  /* Actions: less top gap */
+  .ac-actions { padding-top: 2px; gap: 8px; }
+  .ac-act__btn { padding: 11px 14px; font-size: 13px; }
+
+  /* Placeholder avatar: shrink icon and hide initials so 60px box doesn't overflow */
+  .ac-photo-placeholder { gap: 4px; }
+  .ac-photo-placeholder svg { width: 24px; height: 24px; }
+  .ac-photo-placeholder span { font-size: 9px; letter-spacing: 0.06em; }
 }
 
 /* ── FIND ALLIES — MOBILE ── */

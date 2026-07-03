@@ -103,7 +103,7 @@ export async function POST(
         mime_type:    file.type,
         is_required:  REQUIRED_DOCS.has(docType as DocType),
         status:       'uploaded',
-        uploaded_by:  staff.id,
+        uploaded_by:  staff.user.id,
         updated_at:   new Date().toISOString(),
       },
       { onConflict: 'ally_id,doc_type' },

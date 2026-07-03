@@ -2,7 +2,7 @@
 // Final activation step: creates Zoho services, sets is_active=true, status="active".
 // Requires admin. Ally must be "approved" with a valid zoho_staff_id.
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createAllyServices } from '@/lib/zoho/addService';
 import { logAuditEvent } from '@/lib/audit';
@@ -13,12 +13,9 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  // Admin-only
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { user, role: actorRole } = staff;
 
   const admin = createAdminClient();
 

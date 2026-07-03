@@ -1,15 +1,12 @@
 // GET  /api/v1/allies          — List allies (admin-only). Query: ?status=submitted,approved
 // POST /api/v1/allies          — Create a blank draft ally record
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const statusParam = searchParams.get('status'); // e.g. "submitted,approved"
@@ -43,15 +40,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(_req: NextRequest) {
-  // Admin-only
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const admin = createAdminClient();
 

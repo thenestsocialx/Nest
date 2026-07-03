@@ -459,6 +459,7 @@
 .ns-badge--amber  { background: var(--ns-amber-light);  color: var(--ns-amber); }
 .ns-badge--forest { background: var(--ns-forest-light); color: var(--ns-forest); }
 .ns-badge--gray   { background: var(--ns-cream-2);      color: var(--ns-ink-3); }
+.ns-badge--teal   { background: var(--ns-teal-light);   color: var(--ns-teal); }
 .ns-badge__dot {
   width: 5px; height: 5px;
   border-radius: 50%;

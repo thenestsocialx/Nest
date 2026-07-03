@@ -1,7 +1,7 @@
 // POST /api/v1/allies/[id]/documents — Upload verification document
 // GET  /api/v1/allies/[id]/documents — List all documents for an ally
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { DocType } from '@/types/ally';
 
@@ -12,22 +12,13 @@ const VALID_DOC_TYPES = new Set<DocType>([
 ]);
 const REQUIRED_DOCS = new Set<DocType>(['govt_id', 'degree', 'license', 'bg_check']);
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') return null;
-  return user;
-}
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   let formData: FormData;
   try {
@@ -133,8 +124,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const admin = createAdminClient();
   const { data, error } = await admin

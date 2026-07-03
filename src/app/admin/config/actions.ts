@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getAdminUser } from '@/lib/auth-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { invalidateConfig } from '@/lib/nila-config'
 
@@ -8,12 +8,8 @@ export async function saveAdminConfig(
   key: string,
   value: string,
 ): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return { error: 'Unauthorized' }
-  }
+  const user = await getAdminUser()
+  if (!user) return { error: 'Unauthorized' }
 
   const admin = createAdminClient()
   const { error } = await admin

@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { StaffRole } from '@/lib/auth-admin';
 
 type NavItem = {
   href: string;
   label: string;
   icon: React.ReactElement;
   badgeKey?: 'applications';
+  adminOnly?: boolean;
 };
 
 type NavGroup = {
@@ -42,6 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/pricing',
         label: 'Pricing & limits',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <path d="M2 8A6 6 0 1 0 14 8A6 6 0 0 0 2 8Z"/>
@@ -52,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/integrations',
         label: 'Integrations',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <path d="M10 3l3 3-3 3M6 13l-3-3 3-3M9 6H6M10 10H7"/>
@@ -67,6 +71,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/resources',
         label: 'Resources',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <path d="M3 4h10M3 8h10M3 12h6"/>
@@ -76,6 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/events',
         label: 'Events',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <rect x="2" y="3" width="12" height="11" rx="2"/>
@@ -147,6 +153,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/matching',
         label: 'Matching Engine',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <circle cx="8" cy="8" r="2"/>
@@ -166,6 +173,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: '/admin/config',
         label: 'App Config',
+        adminOnly: true,
         icon: (
           <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
             <circle cx="8" cy="8" r="2"/>
@@ -173,13 +181,34 @@ const NAV_GROUPS: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        href: '/admin/team',
+        label: 'Team',
+        adminOnly: true,
+        icon: (
+          <svg className="ns-nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+            <circle cx="5.5" cy="5" r="2"/>
+            <path d="M1 13c0-2.5 2-4.5 4.5-4.5S10 10.5 10 13"/>
+            <circle cx="12" cy="5" r="1.5"/>
+            <path d="M10.5 13c0-1.8 1-3.2 2.5-3.8"/>
+            <path d="M13 8v.5"/>
+          </svg>
+        ),
+      },
     ],
   },
 ];
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  role: StaffRole;
+  userName: string;
+  userInitials: string;
+}
+
+export default function AdminSidebar({ role, userName, userInitials }: AdminSidebarProps) {
   const pathname = usePathname();
   const [counts, setCounts] = useState<{ applications: number } | null>(null);
+  const isAdmin = role === 'admin';
 
   // Fetch live badge counts — fire-and-forget, never blocks render
   useEffect(() => {
@@ -220,36 +249,42 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <div className="ns-sidebar__nav">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label}>
-            {group.dividerBefore && <div className="ns-sidebar__divider" />}
-            <div className="ns-sidebar__section-label">{group.label}</div>
-            {group.items.map((item) => {
-              const badge = getBadge(item.badgeKey);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`ns-nav-item${isActive(item.href) ? ' ns-nav-item--active' : ''}`}
-                >
-                  {item.icon}
-                  {item.label}
-                  {badge && (
-                    <span className="ns-nav-badge">{badge}</span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+        {NAV_GROUPS.map((group) => {
+          const visibleItems = group.items.filter(item => !item.adminOnly || isAdmin);
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={group.label}>
+              {group.dividerBefore && <div className="ns-sidebar__divider" />}
+              <div className="ns-sidebar__section-label">{group.label}</div>
+              {visibleItems.map((item) => {
+                const badge = getBadge(item.badgeKey);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`ns-nav-item${isActive(item.href) ? ' ns-nav-item--active' : ''}`}
+                  >
+                    {item.icon}
+                    {item.label}
+                    {badge && (
+                      <span className="ns-nav-badge">{badge}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* Footer */}
       <div className="ns-sidebar__footer">
-        <div className="ns-sidebar__avatar">SK</div>
+        <div className="ns-sidebar__avatar">{userInitials}</div>
         <div className="ns-sidebar__user">
-          <div className="ns-sidebar__user-name">Sanjay Karthick</div>
-          <div className="ns-sidebar__user-role">Super admin</div>
+          <div className="ns-sidebar__user-name">{userName}</div>
+          <div className="ns-sidebar__user-role">
+            {isAdmin ? 'Super admin' : 'Manager'}
+          </div>
         </div>
       </div>
     </nav>

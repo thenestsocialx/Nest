@@ -2,16 +2,12 @@
 // Lightweight counts used by the sidebar badges and topbar subtitles.
 // Runs on every admin page — must stay fast (HEAD queries only).
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET() {
-  // ── Auth check ───────────────────────────────────────────────
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const admin = createAdminClient();
 

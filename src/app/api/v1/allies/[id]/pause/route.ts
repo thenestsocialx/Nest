@@ -2,7 +2,7 @@
 // Pauses an active ally: sets is_active=false and turns off all visibility flags.
 // Requires admin. Ally must be in "active" state with is_active=true.
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logAuditEvent } from '@/lib/audit';
 
@@ -12,12 +12,9 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  // Admin-only
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { user, role: actorRole } = staff;
 
   const admin = createAdminClient();
 
@@ -65,6 +62,7 @@ export async function POST(
   logAuditEvent({
     actor_id:     user.id,
     actor_email:  user.email,
+    actor_role:   actorRole,
     event_type:   'ally.paused',
     target_type:  'ally',
     target_id:    id,

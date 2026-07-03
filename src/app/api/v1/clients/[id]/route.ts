@@ -1,7 +1,7 @@
 // GET  /api/v1/clients/[id] — Fetch single client profile
 // PATCH /api/v1/clients/[id] — Update plan, credits, safety flag, subscription status
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logAuditEvent } from '@/lib/audit';
 import type { ClientPatchPayload } from '@/types/client';
@@ -14,20 +14,14 @@ const PATCHABLE_FIELDS = new Set<string>([
   'subscription_status',
 ]);
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') return null;
-  return user;
-}
-
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { user } = staff;
 
   const admin = createAdminClient();
 
@@ -57,8 +51,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const staffPatch = await getStaffUser();
+  if (!staffPatch) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = staffPatch.user;
+  const actorRole = staffPatch.role;
 
   let body: Record<string, unknown>;
   try {
@@ -115,6 +111,7 @@ export async function PATCH(
   logAuditEvent({
     actor_id:     user.id,
     actor_email:  user.email,
+    actor_role:   actorRole,
     event_type:   eventType,
     target_type:  'client',
     target_id:    id,

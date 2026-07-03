@@ -3,7 +3,7 @@
 // THIS is where the Zoho staff record is created — only approved allies reach Zoho.
 // Requires admin.
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getStaffUser } from '@/lib/auth-admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { addZohoStaff, genderFromPronouns } from '@/lib/zoho/addStaff';
 import { logAuditEvent } from '@/lib/audit';
@@ -14,12 +14,9 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  // Admin-only
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const staff = await getStaffUser();
+  if (!staff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { user, role: actorRole } = staff;
 
   const admin = createAdminClient();
 

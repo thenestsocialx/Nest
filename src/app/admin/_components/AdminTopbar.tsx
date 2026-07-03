@@ -16,6 +16,7 @@ const PAGE_META: Record<string, { title: string; sub: string }> = {
   '/admin/users':               { title: 'Clients',             sub: 'User management · handle with care' },
   '/admin/matching':            { title: 'Matching Engine',     sub: 'Algorithm weights and configuration' },
   '/admin/audit':               { title: 'Audit Logs',          sub: 'System events and admin actions' },
+  '/admin/team':                { title: 'Team',                sub: 'Manage staff access and roles' },
 };
 
 export default function AdminTopbar() {

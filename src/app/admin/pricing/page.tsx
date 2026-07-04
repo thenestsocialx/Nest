@@ -43,13 +43,23 @@ const CONFIG_KEYS = [
   'plan.nila_modes.free',
   'plan.nila_modes.core',
   'plan.nila_modes.premium',
+  'plan.nila_default_mode.free',
+  'plan.nila_default_mode.core',
+  'plan.nila_default_mode.premium',
 ]
 
-const LIMIT_KEYS     = ['nila.free_daily_message_limit', 'nila.core_message_limit', 'nila.premium_message_limit', 'nila.limit_reset_period']
-const ALLY_KEYS      = ['plan.ally_sessions.core', 'plan.ally_sessions.premium']
-const MODE_KEYS      = ['plan.nila_modes.free', 'plan.nila_modes.core', 'plan.nila_modes.premium']
-const ALL_LIMIT_KEYS = [...LIMIT_KEYS, ...ALLY_KEYS, ...MODE_KEYS]
-const DUNNING_KEYS   = ['plan.dunning.grace_period_days', 'plan.dunning.max_retries']
+const MODE_LABELS: Record<string, string> = {
+  normal:        'Normal (Guide)',
+  rant:          'Rant (Vent)',
+  figure_it_out: 'Figure It Out (Reflect)',
+}
+
+const LIMIT_KEYS        = ['nila.free_daily_message_limit', 'nila.core_message_limit', 'nila.premium_message_limit', 'nila.limit_reset_period']
+const ALLY_KEYS         = ['plan.ally_sessions.core', 'plan.ally_sessions.premium']
+const MODE_KEYS         = ['plan.nila_modes.free', 'plan.nila_modes.core', 'plan.nila_modes.premium']
+const DEFAULT_MODE_KEYS = ['plan.nila_default_mode.free', 'plan.nila_default_mode.core', 'plan.nila_default_mode.premium']
+const ALL_LIMIT_KEYS    = [...LIMIT_KEYS, ...ALLY_KEYS, ...MODE_KEYS, ...DEFAULT_MODE_KEYS]
+const DUNNING_KEYS      = ['plan.dunning.grace_period_days', 'plan.dunning.max_retries']
 
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('pricing')
@@ -113,12 +123,23 @@ export default function PricingPage() {
     const raw = configEdits[`plan.nila_modes.${planId}`] ?? 'normal'
     return raw.split(',').map((m) => m.trim()).filter(Boolean)
   }
+  function getDefaultMode(planId: string): string {
+    return configEdits[`plan.nila_default_mode.${planId}`] ?? 'normal'
+  }
+  function setDefaultMode(planId: string, mode: string) {
+    setCfg(`plan.nila_default_mode.${planId}`, mode)
+  }
   function toggleMode(planId: string, modeVal: string, enabled: boolean) {
     const current = getModes(planId)
     const next = enabled
       ? [...new Set([...current, modeVal])]
       : current.filter((m) => m !== modeVal)
-    setCfg(`plan.nila_modes.${planId}`, next.filter(Boolean).join(',') || 'normal')
+    const nextModes = next.filter(Boolean)
+    setCfg(`plan.nila_modes.${planId}`, nextModes.join(',') || 'normal')
+    // if unchecking the current default mode, reset default to first remaining mode
+    if (!enabled && getDefaultMode(planId) === modeVal) {
+      setCfg(`plan.nila_default_mode.${planId}`, nextModes[0] ?? 'normal')
+    }
   }
 
   // Annual price helpers
@@ -584,6 +605,25 @@ export default function PricingPage() {
                         disabled={getModes(p).length === 1 && getModes(p).includes('figure_it_out')}
                         onChange={(e) => toggleMode(p, 'figure_it_out', e.target.checked)}
                       />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>
+                    <div className="row-label">Default mode</div>
+                    <div className="row-hint">Mode new users on this plan start with</div>
+                  </td>
+                  {(['free', 'core', 'premium'] as const).map((p) => (
+                    <td key={p}>
+                      <select
+                        className="mode-select"
+                        value={getDefaultMode(p)}
+                        onChange={(e) => setDefaultMode(p, e.target.value)}
+                      >
+                        {getModes(p).map((m) => (
+                          <option key={m} value={m}>{MODE_LABELS[m] ?? m}</option>
+                        ))}
+                      </select>
                     </td>
                   ))}
                 </tr>

@@ -62,6 +62,12 @@ function wantsFreshStart(text: string): boolean {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+const MODE_LABEL: Record<string, string> = {
+  normal:        'Normal',
+  rant:          'Rant',
+  figure_it_out: 'Figure It Out',
+}
+
 interface Message {
   id: string
   role: 'user' | 'nila'
@@ -237,9 +243,10 @@ export default function ChatShell({
   const [sessionPeriod] = useState(() => getSessionPeriod())
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const [mode, setMode] = useState<NilaMode>(
-    isRestoring ? initialSession!.lastMode : nilaDefaultMode,
-  )
+  const [mode, setMode] = useState<NilaMode>(() => {
+    const initial = isRestoring ? initialSession!.lastMode : nilaDefaultMode
+    return enabledModes.includes(initial) ? initial : (enabledModes[0] ?? 'normal')
+  })
   const [conversationId, setConversationId] = useState<string | null>(
     isRestoring ? initialSession!.id : null,
   )
@@ -388,6 +395,20 @@ export default function ChatShell({
         if (data.conversationId) setConversationId(data.conversationId)
         if (data.error === 'daily_limit_reached') {
           setMessageCount(messageLimit)
+        } else if (data.error === 'mode_not_available') {
+          const fallbackMode = enabledModes[0] ?? 'normal'
+          setMode(fallbackMode)
+          setMessageCount((prev) => Math.max(0, prev - 1))
+          setInput(text)
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: streamingId,
+              role: 'nila',
+              content: `${MODE_LABEL[fallbackMode] ?? fallbackMode} is the only conversation mode available on your plan — I've switched to it. Send your message again and I'll respond.`,
+              timestamp: new Date(),
+            },
+          ])
         } else {
           setFailedMessage(text)
           setMessageCount((prev) => Math.max(0, prev - 1))
@@ -469,7 +490,7 @@ export default function ChatShell({
     } finally {
       setIsSending(false)
     }
-  }, [isSending, limitReached, awaitingRestoreDecision, conversationId, messages, mode, messageLimit, currentDefaultMode, initialGreeting])
+  }, [isSending, limitReached, awaitingRestoreDecision, conversationId, messages, mode, messageLimit, currentDefaultMode, initialGreeting, enabledModes])
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()

@@ -333,6 +333,19 @@
 
 .pricing-pg .lim-cell { display: inline-flex; align-items: center; gap: 6px; }
 
+.pricing-pg .mode-select {
+  width: 170px;
+  border: 1px solid rgba(232,200,160,0.8); border-radius: 8px;
+  padding: 6px 10px; font-size: 13px; font-weight: 500;
+  background: var(--cream); color: var(--deep-pine);
+  outline: none; font-family: inherit; transition: border-color 0.15s;
+  cursor: pointer;
+}
+.pricing-pg .mode-select:focus {
+  border-color: var(--deep-pine);
+  box-shadow: 0 0 0 3px rgba(47,76,58,0.08);
+}
+
 /* ══ WALLET GRID ══ */
 .pricing-pg .wallet-grid {
   display: grid;

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getConfig, getPeriodStart, getEnabledModesForPlan } from '@/lib/nila-config'
+import { getConfig, getPeriodStart, getEnabledModesForPlan, getDefaultModeForPlan } from '@/lib/nila-config'
 import { loadActiveNilaSession } from '@/actions/nila'
 import ChatShell from './_components/ChatShell'
 
@@ -45,13 +45,14 @@ export default async function NilaPage() {
     :                        'nila.free_daily_message_limit'
 
   const timePeriod = getTimePeriod()
-  const [greetingPool, messageLimitStr, maxTopics, resetPeriod, initialSession, enabledModes] = await Promise.all([
+  const [greetingPool, messageLimitStr, maxTopics, resetPeriod, initialSession, enabledModes, planDefaultMode] = await Promise.all([
     getConfig(`nila.greeting_pool.${timePeriod}`, "Hey. I'm Nila. I'm here to listen — no rush, no judgment. What's on your mind?"),
     getConfig(limitKey, userPlan === 'free' ? '10' : '999'),
     getConfig('nila.max_topics_displayed', '3'),
     getConfig('nila.limit_reset_period', 'daily'),
     loadActiveNilaSession(),
     getEnabledModesForPlan(userPlan),
+    getDefaultModeForPlan(userPlan),
   ])
 
   const messageLimit = parseInt(messageLimitStr, 10)
@@ -74,6 +75,14 @@ export default async function NilaPage() {
   const greetings = greetingPool.split('|').map((s) => s.trim()).filter(Boolean)
   const greeting = greetings[Math.floor(Math.random() * greetings.length)] ?? greetings[0]
 
+  // Use profile's stored mode only if it's still an enabled mode for this plan;
+  // otherwise fall back to the plan-level default (which getDefaultModeForPlan
+  // already guarantees is within enabledModes).
+  const storedMode = profile?.nila_default_mode as string | undefined
+  const resolvedDefaultMode = (storedMode && enabledModes.includes(storedMode))
+    ? storedMode as 'normal' | 'rant' | 'figure_it_out'
+    : planDefaultMode as 'normal' | 'rant' | 'figure_it_out'
+
   return (
     <ChatShell
       userName={displayName}
@@ -83,7 +92,7 @@ export default async function NilaPage() {
       messageLimit={isUnlimited ? 9999 : messageLimit}
       initialGreeting={greeting}
       maxTopics={parseInt(maxTopics, 10)}
-      nilaDefaultMode={(profile?.nila_default_mode as 'normal' | 'rant' | 'figure_it_out') ?? 'normal'}
+      nilaDefaultMode={resolvedDefaultMode}
       nilaLanguage={profile?.nila_language ?? 'english'}
       nilaNudgeEnabled={profile?.nila_nudge_enabled ?? false}
       nilaNudgeTime={profile?.nila_nudge_time ?? 'evening'}

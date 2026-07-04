@@ -34,6 +34,12 @@ export function invalidateConfig(key?: string): void {
   }
 }
 
+export async function getDefaultModeForPlan(plan: string): Promise<string> {
+  const enabled = await getEnabledModesForPlan(plan)
+  const raw = await getConfig(`plan.nila_default_mode.${plan}`, enabled[0] ?? 'normal')
+  return enabled.includes(raw) ? raw : (enabled[0] ?? 'normal')
+}
+
 export async function getEnabledModesForPlan(plan: string): Promise<string[]> {
   const fallbacks: Record<string, string> = {
     free:    'normal',

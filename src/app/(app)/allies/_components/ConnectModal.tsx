@@ -162,7 +162,13 @@ export default function ConnectModal({ ally, onClose }: Props) {
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.4"/>
               <path d="M12 8v5M12 15v1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
             </svg>
-            <p>Booking isn&rsquo;t set up for this ally yet.<br/>Check back soon.</p>
+            <p>Booking isn&rsquo;t set up for this ally yet.</p>
+            <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: 6 }}>
+              Their calendar is being configured. Please check back in a little while or choose another ally for now.
+            </p>
+            <button type="button" className="bk-error-btn" onClick={onClose} style={{ marginTop: 16 }}>
+              Close
+            </button>
           </div>
         )}
 

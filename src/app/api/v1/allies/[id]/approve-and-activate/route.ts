@@ -91,12 +91,13 @@ export async function POST(
 
   // ── Step 1.5: Fetch staff from Zoho — verify + capture embed_url ─────────────
   let zohoEmbedUrl: string | null = null;
+  let embedUrlMissing = false;
   try {
     const staffData = await fetchZohoStaff(zohoStaffId);
     zohoEmbedUrl = staffData.embed_url;
     console.log('[POST /approve-and-activate] zoho embed_url captured');
   } catch (err) {
-    // Non-fatal: staff already exists in Zoho; embed_url can be back-filled later
+    embedUrlMissing = true;
     console.warn(
       '[POST /approve-and-activate] fetchZohoStaff failed (non-fatal):',
       err instanceof Error ? err.message : err,
@@ -180,5 +181,11 @@ export async function POST(
     new_value:    { onboarding_status: 'active', is_active: true },
   });
 
-  return NextResponse.json({ ok: true, ally: updated });
+  return NextResponse.json({
+    ok: true,
+    ally: updated,
+    ...(embedUrlMissing && {
+      embed_url_warning: 'Booking URL could not be fetched from Zoho. The ally is live but their booking page will not load for clients until the URL is set. You can fix this by editing the ally profile.',
+    }),
+  });
 }

@@ -50,6 +50,7 @@ export default function ApplicationsPage() {
   const [busy, setBusy]           = useState<Record<string, boolean>>({});
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [embedUrlWarning, setEmbedUrlWarning] = useState<{ name: string; message: string } | null>(null);
 
   const showToast = useCallback((type: Toast['type'], message: string) => {
     setToast({ type, message });
@@ -83,7 +84,7 @@ export default function ApplicationsPage() {
     try {
       const res  = await fetch(`/api/v1/allies/${id}/approve-and-activate`, { method: 'POST' });
       const data = await res.json() as {
-        ok?: boolean; error?: string; warning?: string; step?: string;
+        ok?: boolean; error?: string; warning?: string; step?: string; embed_url_warning?: string;
       };
       if (!res.ok) {
         const detail = data.step ? ` (failed at: ${data.step} step)` : '';
@@ -91,6 +92,9 @@ export default function ApplicationsPage() {
       }
       if (data.warning) {
         showToast('error', `Partial success — ${data.warning}`);
+      } else if (data.embed_url_warning) {
+        showToast('success', `✓ ${name ?? 'Ally'} is now live`);
+        setEmbedUrlWarning({ name: name ?? 'This ally', message: data.embed_url_warning });
       } else {
         showToast('success', `✓ ${name ?? 'Ally'} is now live — profile and services created in Zoho`);
       }
@@ -423,6 +427,63 @@ export default function ApplicationsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Embed URL warning dialog ─────────────────────────────────────────── */}
+      {embedUrlWarning && (
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(26,43,34,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200,
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setEmbedUrlWarning(null); }}
+        >
+          <div className="ns-card" style={{ width: 460, padding: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div
+                style={{
+                  width: 34, height: 34, borderRadius: 8,
+                  background: 'var(--ns-amber-light, #fff8e6)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M8 2L1.5 13h13L8 2z" stroke="var(--ns-amber)" strokeWidth="1.3" strokeLinejoin="round"/>
+                  <path d="M8 6.5v3M8 11v.5" stroke="var(--ns-amber)" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--ns-ink)' }}>
+                Ally is live — but booking URL is missing
+              </div>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--ns-ink-4)', marginBottom: 8, lineHeight: 1.6 }}>
+              <strong style={{ color: 'var(--ns-ink)' }}>{embedUrlWarning.name}</strong> has been approved and activated successfully, but their Zoho booking URL could not be fetched automatically.
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--ns-ink-4)', marginBottom: 20, lineHeight: 1.6 }}>
+              Clients clicking <em>"Book a session"</em> will see a <em>"Booking not set up"</em> message until this is fixed. Go to their profile and manually set the Zoho embed URL.
+            </p>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                className="ns-btn ns-btn--ghost ns-btn--sm"
+                onClick={() => setEmbedUrlWarning(null)}
+              >
+                Dismiss
+              </button>
+              <a
+                href="/admin/allies"
+                className="ns-btn ns-btn--primary ns-btn--sm"
+                onClick={() => setEmbedUrlWarning(null)}
+              >
+                Go to Allies → Fix profile
+              </a>
+            </div>
           </div>
         </div>
       )}

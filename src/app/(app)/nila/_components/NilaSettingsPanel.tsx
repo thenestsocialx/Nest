@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { updateNilaSetting } from '@/actions/nila-settings'
+import { updateNilaSetting, savePushSubscription, deletePushSubscription } from '@/actions/nila-settings'
 import { clearNilaHistory } from '@/actions/nila'
 import type { NilaMode } from '@/actions/nila'
 
@@ -44,8 +44,10 @@ export default function NilaSettingsPanel({
 }: Props) {
   const [mode, setMode]       = useState<NilaMode>(defaultMode)
   const [lang, setLang]       = useState(language.toLowerCase())
-  const [nudgeOn, setNudgeOn] = useState(nudgeEnabled)
-  const [nudgeT, setNudgeT]   = useState(nudgeTime.toLowerCase())
+  const [nudgeOn, setNudgeOn]       = useState(nudgeEnabled)
+  const [nudgeT, setNudgeT]         = useState(nudgeTime.toLowerCase())
+  const [nudgeLoading, setNudgeLoading] = useState(false)
+  const [pushBlocked, setPushBlocked]   = useState(false)
   const [closing, setClosing] = useState(false)
 
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -127,10 +129,74 @@ export default function NilaSettingsPanel({
     void saveSetting('nila_language', newLang, () => setLang(prev))
   }
 
-  function handleNudgeToggle() {
-    const newVal = !nudgeOn
-    setNudgeOn(newVal)
-    void saveSetting('nila_nudge_enabled', newVal, () => setNudgeOn(!newVal))
+  async function handleNudgeToggle() {
+    if (nudgeLoading) return
+
+    if (nudgeOn) {
+      // Turning OFF — clear state and subscription
+      setNudgeOn(false)
+      setPushBlocked(false)
+      await saveSetting('nila_nudge_enabled', false, () => setNudgeOn(true))
+      await deletePushSubscription()
+      return
+    }
+
+    // Turning ON — request push permission then subscribe
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Your browser does not support push notifications.')
+      return
+    }
+
+    setNudgeLoading(true)
+    try {
+      const permission = await Notification.requestPermission()
+
+      if (permission === 'denied') {
+        setPushBlocked(true)
+        toast.error('Notifications are blocked. Enable them in your browser settings to use this feature.')
+        return
+      }
+
+      if (permission !== 'granted') {
+        // User dismissed the prompt — leave toggle off, no error
+        return
+      }
+
+      setPushBlocked(false)
+      const reg = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+
+      const existingSub = await reg.pushManager.getSubscription()
+      const sub = existingSub ?? await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) as unknown as ArrayBuffer,
+      })
+
+      const result = await savePushSubscription(sub.toJSON() as Record<string, unknown>)
+      if (result.error) {
+        toast.error('Failed to enable notifications. Try again.')
+        return
+      }
+
+      setNudgeOn(true)
+      await saveSetting('nila_nudge_enabled', true, () => setNudgeOn(false))
+    } catch (err) {
+      console.error('[handleNudgeToggle]', err)
+      toast.error('Something went wrong enabling notifications.')
+    } finally {
+      setNudgeLoading(false)
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = atob(base64)
+    const output = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      output[i] = rawData.charCodeAt(i)
+    }
+    return output
   }
 
   function handleNudgeTimeChange(newTime: string) {
@@ -250,19 +316,28 @@ export default function NilaSettingsPanel({
             <div className="ns-nila-panel__row ns-nila-panel__row--between">
               <div>
                 <div className="ns-nila-panel__label">Daily check-in</div>
-                <p className="ns-nila-panel__sub">A gentle nudge to check in with yourself</p>
+                <p className="ns-nila-panel__sub">
+                  {nudgeLoading ? 'Requesting permission…' : 'Nila will gently nudge you once a day'}
+                </p>
               </div>
               <button
                 type="button"
                 role="switch"
                 aria-checked={nudgeOn}
-                className={`ns-toggle${nudgeOn ? ' is-on' : ''}`}
+                className={`ns-toggle${nudgeOn ? ' is-on' : ''}${nudgeLoading ? ' is-loading' : ''}`}
                 onClick={handleNudgeToggle}
+                disabled={nudgeLoading}
                 aria-label="Toggle daily check-in nudge"
               />
             </div>
-            {nudgeOn && (
+            {pushBlocked && (
+              <p className="ns-nila-panel__sub" style={{ marginTop: 10, color: 'var(--terracotta)', opacity: 1 }}>
+                Notifications are blocked. Open your browser settings, allow notifications for this site, then try again.
+              </p>
+            )}
+            {nudgeOn && !pushBlocked && (
               <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p className="ns-nila-panel__sub" style={{ marginBottom: 8 }}>When would you like Nila to reach out?</p>
                 {NUDGE_TIMES.map((t) => (
                   <button
                     key={t.value}

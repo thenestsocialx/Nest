@@ -399,6 +399,8 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ns-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform var(--t-fast) var(--ease); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
 .ns-toggle.is-on { background: var(--moss); }
 .ns-toggle.is-on::after { transform: translateX(18px); }
+.ns-toggle.is-loading { opacity: 0.45; cursor: not-allowed; animation: ns-toggle-pulse 1s ease-in-out infinite; }
+@keyframes ns-toggle-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.25; } }
 
 /* ══════════════════════════════════════════════
    FIND ALLIES (fa-*)

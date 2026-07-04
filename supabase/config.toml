@@ -357,6 +357,9 @@ enabled = false
 # Obtain from https://clerk.com/setup/supabase
 # domain = "example.clerk.accounts.dev"
 
+[functions.nila-push-nudge]
+verify_jwt = false
+
 # OAuth server configuration
 [auth.oauth_server]
 # Enable OAuth server functionality

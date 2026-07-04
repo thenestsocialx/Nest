@@ -413,6 +413,7 @@ export type Database = {
           nila_nudge_enabled: boolean
           nila_nudge_time: string
           nila_onboarded: boolean
+          nila_push_subscription: Json | null
           nila_tone: string
           notify_ally_reminders: boolean
           notify_email_updates: boolean
@@ -450,6 +451,7 @@ export type Database = {
           nila_nudge_enabled?: boolean
           nila_nudge_time?: string
           nila_onboarded?: boolean
+          nila_push_subscription?: Json | null
           nila_tone?: string
           notify_ally_reminders?: boolean
           notify_email_updates?: boolean
@@ -487,6 +489,7 @@ export type Database = {
           nila_nudge_enabled?: boolean
           nila_nudge_time?: string
           nila_onboarded?: boolean
+          nila_push_subscription?: Json | null
           nila_tone?: string
           notify_ally_reminders?: boolean
           notify_email_updates?: boolean

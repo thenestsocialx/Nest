@@ -115,10 +115,11 @@ export async function POST(
 
   const existingServiceId = ally.zoho_service_id as string | null | undefined;
 
+  const allyName = (ally.full_name as string | null) ?? 'Ally';
+
   if (!existingServiceId) {
     const durations  = (ally.session_durations as string[] | null) ?? [];
     const price      = (ally.session_price     as number   | null) ?? 0;
-    const allyName   = (ally.full_name         as string   | null) ?? 'Ally';
 
     const missedDurations = durations.filter(d => !zohoServiceIds[d]);
 

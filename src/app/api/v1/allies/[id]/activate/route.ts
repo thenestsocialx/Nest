@@ -22,7 +22,7 @@ export async function POST(
   // Fetch ally
   const { data: ally, error: fetchError } = await admin
     .from('allies')
-    .select('id, onboarding_status, is_active, zoho_staff_id, zoho_service_ids, full_name, session_durations, session_price')
+    .select('id, onboarding_status, is_active, zoho_staff_id, zoho_service_ids, zoho_service_id, full_name, session_durations, session_price')
     .eq('id', id)
     .single();
 
@@ -52,35 +52,41 @@ export async function POST(
   }
 
   // ── Create Zoho services ─────────────────────────────────────────────────
-  // Use existing service IDs if already created (re-activation safety)
+  // If the ally has a pre-selected Zoho service (from Step 3 / zoho_services table),
+  // it was already assigned via assigned_services at staff creation — skip new service creation.
   let zohoServiceIds: Record<string, string> =
     (ally.zoho_service_ids as Record<string, string> | null) ?? {};
 
-  const durations     = (ally.session_durations as string[] | null) ?? [];
-  const price         = (ally.session_price as number | null) ?? 0;
-  const allyName      = (ally.full_name as string | null) ?? 'Ally';
-  const staffId       = ally.zoho_staff_id as string;
+  const existingServiceId = (ally as Record<string, unknown>).zoho_service_id as string | null | undefined;
+  const staffId           = ally.zoho_staff_id as string;
 
-  // Only create services for durations that don't already have an ID
-  const missedDurations = durations.filter(d => !zohoServiceIds[d]);
+  if (!existingServiceId) {
+    const durations = (ally.session_durations as string[] | null) ?? [];
+    const price     = (ally.session_price as number | null) ?? 0;
+    const allyName  = (ally.full_name as string | null) ?? 'Ally';
 
-  if (missedDurations.length > 0) {
-    try {
-      const newServiceIds = await createAllyServices(
-        missedDurations,
-        price,
-        allyName,
-        staffId,
-      );
-      zohoServiceIds = { ...zohoServiceIds, ...newServiceIds };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Zoho service creation failed';
-      console.error('[POST /activate] Zoho error:', message);
-      return NextResponse.json(
-        { error: message, zoho_error: true },
-        { status: 502 },
-      );
+    const missedDurations = durations.filter(d => !zohoServiceIds[d]);
+
+    if (missedDurations.length > 0) {
+      try {
+        const newServiceIds = await createAllyServices(
+          missedDurations,
+          price,
+          allyName,
+          staffId,
+        );
+        zohoServiceIds = { ...zohoServiceIds, ...newServiceIds };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Zoho service creation failed';
+        console.error('[POST /activate] Zoho error:', message);
+        return NextResponse.json(
+          { error: message, zoho_error: true },
+          { status: 502 },
+        );
+      }
     }
+  } else {
+    console.log('[POST /activate] skipping service creation — using pre-selected service:', existingServiceId);
   }
 
   // ── Update ally: is_active, status, service IDs ──────────────────────────

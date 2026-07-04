@@ -68,14 +68,16 @@ export async function POST(
     console.log('[POST /approve-and-activate] reusing zoho_staff_id:', zohoStaffId);
   } else {
     try {
+      const preSelectedServiceId = ally.zoho_service_id as string | null | undefined;
       const result = await addZohoStaff({
-        name:            ally.full_name,
-        email:           ally.email,
-        gender:          genderFromPronouns(ally.pronouns),
-        role:            'Staff',
-        phone:           ally.phone        ?? undefined,
-        designation:     ally.primary_role ?? undefined,
-        additional_info: ally.bio          ?? undefined,
+        name:             ally.full_name,
+        email:            ally.email,
+        gender:           genderFromPronouns(ally.pronouns),
+        role:             'Staff',
+        phone:            ally.phone        ?? undefined,
+        designation:      ally.primary_role ?? undefined,
+        additional_info:  ally.bio          ?? undefined,
+        assigned_services: preSelectedServiceId ? [preSelectedServiceId] : undefined,
       });
       zohoStaffId = result.id;
       console.log('[POST /approve-and-activate] Zoho staff created:', zohoStaffId);
@@ -105,39 +107,48 @@ export async function POST(
   }
 
   // ── Step 2: Zoho services ────────────────────────────────────────────────────
+  // If the ally already has a pre-selected Zoho service (from Step 3 / zoho_services table),
+  // we passed it as assigned_services during staff creation above — no new service needed.
+  // Only fall back to createAllyServices for allies that don't have a pre-selected service.
   let zohoServiceIds: Record<string, string> =
     (ally.zoho_service_ids as Record<string, string> | null) ?? {};
 
-  const durations  = (ally.session_durations as string[] | null) ?? [];
-  const price      = (ally.session_price     as number   | null) ?? 0;
-  const allyName   = (ally.full_name         as string   | null) ?? 'Ally';
+  const existingServiceId = ally.zoho_service_id as string | null | undefined;
 
-  const missedDurations = durations.filter(d => !zohoServiceIds[d]);
+  if (!existingServiceId) {
+    const durations  = (ally.session_durations as string[] | null) ?? [];
+    const price      = (ally.session_price     as number   | null) ?? 0;
+    const allyName   = (ally.full_name         as string   | null) ?? 'Ally';
 
-  if (missedDurations.length > 0) {
-    try {
-      const newServiceIds = await createAllyServices(
-        missedDurations,
-        price,
-        allyName,
-        zohoStaffId,
-      );
-      zohoServiceIds = { ...zohoServiceIds, ...newServiceIds };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Zoho service creation failed';
-      console.error('[POST /approve-and-activate] Zoho service error:', message);
+    const missedDurations = durations.filter(d => !zohoServiceIds[d]);
 
-      // Persist the staff ID we just created so retrying skips step 1
-      await admin
-        .from('allies')
-        .update({ zoho_staff_id: zohoStaffId, onboarding_status: 'approved' })
-        .eq('id', id);
+    if (missedDurations.length > 0) {
+      try {
+        const newServiceIds = await createAllyServices(
+          missedDurations,
+          price,
+          allyName,
+          zohoStaffId,
+        );
+        zohoServiceIds = { ...zohoServiceIds, ...newServiceIds };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Zoho service creation failed';
+        console.error('[POST /approve-and-activate] Zoho service error:', message);
 
-      return NextResponse.json(
-        { error: message, zoho_error: true, step: 'services', zoho_staff_id: zohoStaffId },
-        { status: 502 },
-      );
+        // Persist the staff ID we just created so retrying skips step 1
+        await admin
+          .from('allies')
+          .update({ zoho_staff_id: zohoStaffId, onboarding_status: 'approved' })
+          .eq('id', id);
+
+        return NextResponse.json(
+          { error: message, zoho_error: true, step: 'services', zoho_staff_id: zohoStaffId },
+          { status: 502 },
+        );
+      }
     }
+  } else {
+    console.log('[POST /approve-and-activate] skipping service creation — using pre-selected service:', existingServiceId);
   }
 
   // ── Step 3: Persist to DB — ally is now fully active ────────────────────────

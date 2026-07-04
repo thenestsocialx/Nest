@@ -174,15 +174,15 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
           <div className="ac-expect__steps">
             <div className="ac-expect__step">
               <span className="ac-expect__dot"/>
-              Choose a time slot that works for you
+              We picked them for you, not just whoever had a free slot
             </div>
             <div className="ac-expect__step">
               <span className="ac-expect__dot"/>
-              They confirm within a few hours
+              If it doesn&apos;t feel right, we&apos;ll find you someone else; you won&apos;t have to go looking on your own
             </div>
             <div className="ac-expect__step">
               <span className="ac-expect__dot"/>
-              Payment happens before the session — not now
+              And in between? Nila&apos;s still there. You&apos;re not on your own till the next one
             </div>
           </div>
         </div>

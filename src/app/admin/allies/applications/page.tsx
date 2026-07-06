@@ -50,7 +50,8 @@ export default function ApplicationsPage() {
   const [busy, setBusy]           = useState<Record<string, boolean>>({});
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [embedUrlWarning, setEmbedUrlWarning] = useState<{ name: string; message: string } | null>(null);
+  const [embedUrlWarning, setEmbedUrlWarning] = useState<{ id: string; name: string; message: string } | null>(null);
+  const [syncingUrl, setSyncingUrl] = useState(false);
 
   const showToast = useCallback((type: Toast['type'], message: string) => {
     setToast({ type, message });
@@ -94,7 +95,7 @@ export default function ApplicationsPage() {
         showToast('error', `Partial success — ${data.warning}`);
       } else if (data.embed_url_warning) {
         showToast('success', `✓ ${name ?? 'Ally'} is now live`);
-        setEmbedUrlWarning({ name: name ?? 'This ally', message: data.embed_url_warning });
+        setEmbedUrlWarning({ id, name: name ?? 'This ally', message: data.embed_url_warning });
       } else {
         showToast('success', `✓ ${name ?? 'Ally'} is now live — profile and services created in Zoho`);
       }
@@ -103,6 +104,21 @@ export default function ApplicationsPage() {
       showToast('error', err instanceof Error ? err.message : 'Action failed');
     } finally {
       setAllyBusy(id, false);
+    }
+  }
+
+  async function handleSyncBookingUrl(id: string) {
+    setSyncingUrl(true);
+    try {
+      const res  = await fetch(`/api/v1/allies/${id}/refresh-booking-url`, { method: 'POST' });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? 'Sync failed');
+      showToast('success', 'Booking URL synced successfully');
+      setEmbedUrlWarning(null);
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Sync failed');
+    } finally {
+      setSyncingUrl(false);
     }
   }
 
@@ -476,13 +492,23 @@ export default function ApplicationsPage() {
               >
                 Dismiss
               </button>
-              <a
-                href="/admin/allies"
+              <button
                 className="ns-btn ns-btn--primary ns-btn--sm"
-                onClick={() => setEmbedUrlWarning(null)}
+                disabled={syncingUrl}
+                onClick={() => void handleSyncBookingUrl(embedUrlWarning.id)}
               >
-                Go to Allies → Fix profile
-              </a>
+                {syncingUrl ? (
+                  <>
+                    <span
+                      className="ob-spinner"
+                      style={{ width: 11, height: 11, borderWidth: 1.5, borderTopColor: '#fff', display: 'inline-block' }}
+                    />
+                    &nbsp;Syncing…
+                  </>
+                ) : (
+                  'Sync Booking URL Now'
+                )}
+              </button>
             </div>
           </div>
         </div>

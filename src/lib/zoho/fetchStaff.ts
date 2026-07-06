@@ -72,11 +72,12 @@ async function callStaffApi(
 
 /**
  * Fetches a specific staff member from Zoho by ID and returns their embed_url.
- * Uses the staff_id filter so Zoho returns only that one record.
+ * Zoho's /staffs endpoint does not support filtering by staff_id, so we fetch
+ * all staffs in the workspace and match by ID.
  */
 export async function fetchZohoStaff(staffId: string): Promise<{ embed_url: string }> {
-  const staffList = await callStaffApi({ staff_id: staffId });
-  const staff = staffList.find(s => s.id === staffId) ?? staffList[0];
+  const staffList = await callStaffApi();
+  const staff = staffList.find(s => s.id === staffId);
 
   if (!staff) {
     throw new ZohoAPIError(404, `Staff ID ${staffId} not found in Zoho workspace`);
@@ -84,7 +85,7 @@ export async function fetchZohoStaff(staffId: string): Promise<{ embed_url: stri
 
   const embedUrl = staff.embed_url ?? staff.booking_url;
   if (!embedUrl) {
-    throw new ZohoAPIError(0, `Zoho staff ${staffId} returned no embed_url`);
+    throw new ZohoAPIError(0, `Booking URL not available yet — the ally may not have accepted their Zoho invitation. Ask them to check their email and complete the Zoho setup, then sync again.`);
   }
 
   return { embed_url: embedUrl };

@@ -144,8 +144,9 @@ export default function OnboardAllyPage() {
   const [step,        setStep]        = useState(1);
   const [errors,      setErrors]      = useState<Record<string,string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted,   setSubmitted]   = useState(false);
-  const [zohoStaffId, setZohoStaffId] = useState<string | null>(null);
+  const [submitted,      setSubmitted]      = useState(false);
+  const [zohoStaffId,    setZohoStaffId]    = useState<string | null>(null);
+  const [syncingBookUrl, setSyncingBookUrl] = useState(false);
 
   const saveTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -562,6 +563,24 @@ export default function OnboardAllyPage() {
   }, [fullName, pronouns, location, email, phone, tagline, ownWords, flushSave, showToast]);
 
   /* ═══════════════════════════════════════════
+     SYNC BOOKING URL
+  ═══════════════════════════════════════════ */
+  const handleSyncBookingUrl = useCallback(async () => {
+    if (!allyId) return;
+    setSyncingBookUrl(true);
+    try {
+      const res  = await fetch(`/api/v1/allies/${allyId}/refresh-booking-url`, { method: 'POST' });
+      const data = await res.json() as { ok?: boolean; zoho_embed_url?: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? 'Sync failed');
+      showToast('success', 'Booking URL synced from Zoho');
+    } catch (err) {
+      showToast('error', `Sync failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSyncingBookUrl(false);
+    }
+  }, [allyId, showToast]);
+
+  /* ═══════════════════════════════════════════
      DERIVED PREVIEW VALUES
   ═══════════════════════════════════════════ */
   const previewName     = fullName || 'Ally Name';
@@ -626,6 +645,45 @@ export default function OnboardAllyPage() {
             {/* Scrollable area — only this scrolls */}
             <div className="ob-form-col__scroller">
             <div className="ob-form-panel">
+
+              {/* ── Booking URL sync banner (active allies only) ── */}
+              {zohoStaffId && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    padding: '10px 14px',
+                    marginBottom: 20,
+                    background: 'var(--ns-cream, #f8f5f0)',
+                    border: '1px solid var(--ns-border-soft, #e5ddd4)',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: 'var(--ns-ink-4)',
+                  }}
+                >
+                  <span>Zoho staff linked — booking URL can be synced any time after saving.</span>
+                  <button
+                    className="ns-btn ns-btn--ghost ns-btn--sm"
+                    disabled={syncingBookUrl}
+                    onClick={() => void handleSyncBookingUrl()}
+                    style={{ flexShrink: 0, fontSize: 12 }}
+                  >
+                    {syncingBookUrl ? (
+                      <>
+                        <span
+                          className="ob-spinner"
+                          style={{ width: 10, height: 10, borderWidth: 1.5, display: 'inline-block' }}
+                        />
+                        &nbsp;Syncing…
+                      </>
+                    ) : (
+                      'Sync Booking URL'
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* ════════════════════════════════════
                   STEP 1 — Personal Identity

@@ -6,6 +6,18 @@ import LandingPage from './_components/LandingPage'
 export const metadata: Metadata = {
   title: 'nest — you don\'t have to carry this alone',
   description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+  openGraph: {
+    title: 'nest — you don\'t have to carry this alone',
+    description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+    url: 'https://thenest.social',
+    siteName: 'Nest',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'nest — you don\'t have to carry this alone',
+    description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+  },
 }
 
 export default async function RootPage({

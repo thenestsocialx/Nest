@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DM_Sans, DM_Serif_Display, Lora, Noto_Serif_Tamil } from 'next/font/google'
+import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
@@ -39,9 +40,22 @@ const notoSerifTamil = Noto_Serif_Tamil({
 export const metadata: Metadata = {
   title: 'Nest — a space for you',
   description: 'A warm space that helps people feel less alone and more like themselves.',
+  metadataBase: new URL('https://thenest.social'),
   icons: {
     icon: [{ url: '/nest-icon.svg', type: 'image/svg+xml' }],
     shortcut: '/nest-icon.svg',
+  },
+  openGraph: {
+    title: 'Nest — a space for you',
+    description: 'A warm space that helps people feel less alone and more like themselves.',
+    url: 'https://thenest.social',
+    siteName: 'Nest',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Nest — a space for you',
+    description: 'A warm space that helps people feel less alone and more like themselves.',
   },
 }
 
@@ -57,6 +71,16 @@ export default function RootLayout({
         <Toaster position="top-center" richColors />
         <Analytics />
         <SpeedInsights />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-V9X61BPJL7"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-V9X61BPJL7');
+        `}</Script>
       </body>
     </html>
   )

@@ -10,6 +10,7 @@ import QuestionScreen from './QuestionScreen'
 import PauseScreen from './PauseScreen'
 import ResultScreen from './ResultScreen'
 import CrisisScreen from './CrisisScreen'
+import AssessmentIntroScreen from './AssessmentIntroScreen'
 
 const SESSION_ID_KEY = 'nest_session_id'
 const PROGRESS_KEY   = 'nest_assessment_progress'
@@ -30,6 +31,7 @@ type StoredProgress = {
 
 type Action =
   | { type: 'RESTORE'; payload: StoredProgress }
+  | { type: 'START_ASSESSMENT' }
   | { type: 'SELECT'; payload: { label: string; microcopy: string; next: NextTarget; branch: BranchId | null } }
   | { type: 'TEXT_SUBMIT'; payload: { text: string; microcopy: string; next: NextTarget } }
   | { type: 'ADVANCE_TO_PAUSE' }
@@ -44,7 +46,7 @@ type Action =
   | { type: 'BACK' }
 
 const initialState: AssessmentState = {
-  phase: 'question',
+  phase: 'intro',
   currentQuestionId: FIRST_QUESTION,
   branch: null,
   history: [],
@@ -61,12 +63,16 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
     case 'RESTORE':
       return {
         ...state,
+        phase: 'question',
         currentQuestionId: action.payload.currentQuestionId ?? FIRST_QUESTION,
         branch: action.payload.branch ?? null,
         answers: action.payload.answers ?? [],
         history: action.payload.history ?? [],
         crisisFlag: action.payload.crisisFlag ?? false,
       }
+
+    case 'START_ASSESSMENT':
+      return { ...state, phase: 'question', currentQuestionId: FIRST_QUESTION }
 
     case 'SELECT':
       return {
@@ -375,6 +381,15 @@ export default function AssessmentShell({ flags }: { flags: FeatureFlags }) {
     router.push('/login?redirectTo=/assessment/save')
   }, [state.result, state.answers, state.branch, state.crisisFlag, router])
 
+  // ── Intro: start / skip ───────────────────────────────────────────────────
+  const handleStart = useCallback(() => {
+    dispatch({ type: 'START_ASSESSMENT' })
+  }, [])
+
+  const handleSkip = useCallback(() => {
+    router.push('/home')
+  }, [router])
+
   // ── Back ──────────────────────────────────────────────────────────────────
   const handleBack = useCallback(() => {
     if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
@@ -412,17 +427,18 @@ export default function AssessmentShell({ flags }: { flags: FeatureFlags }) {
   const pauseAnswer    = state.currentAnswer?.label    ?? ''
   const pauseMicrocopy = state.currentAnswer?.microcopy ?? ''
 
+  const isIntroPhase  = state.phase === 'intro'
   const isResultPhase = state.phase === 'result'
   const isCrisisPhase = state.phase === 'crisis'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--cream)' }}>
 
-      {/* Progress bar — hidden on result and crisis */}
-      {!isResultPhase && !isCrisisPhase && <ProgressBar progress={progress} />}
+      {/* Progress bar — hidden on intro, result, and crisis */}
+      {!isIntroPhase && !isResultPhase && !isCrisisPhase && <ProgressBar progress={progress} />}
 
-      {/* Nav — hidden on result and crisis */}
-      {!isResultPhase && !isCrisisPhase && (
+      {/* Nav — hidden on intro, result, and crisis */}
+      {!isIntroPhase && !isResultPhase && !isCrisisPhase && (
         <nav
           style={{
             display: 'flex',
@@ -473,6 +489,10 @@ export default function AssessmentShell({ flags }: { flags: FeatureFlags }) {
       )}
 
       {/* Screens */}
+      {state.phase === 'intro' && (
+        <AssessmentIntroScreen onStart={handleStart} onSkip={handleSkip} />
+      )}
+
       {state.phase === 'question' && (
         <QuestionScreen
           question={QUESTION_TREE[state.currentQuestionId]}

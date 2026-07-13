@@ -38,7 +38,7 @@ export interface AnswerRecord {
   microcopy: string
 }
 
-export type Phase = 'question' | 'pause' | 'loading' | 'result' | 'crisis'
+export type Phase = 'intro' | 'question' | 'pause' | 'loading' | 'result' | 'crisis'
 
 export type PrimaryPathway = 'ally' | 'sai' | 'resources' | 'events'
 

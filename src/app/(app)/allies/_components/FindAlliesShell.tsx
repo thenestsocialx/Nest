@@ -19,8 +19,10 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
   const [selectedVibe,  setSelectedVibe]  = useState<VibeId  | null>(null)
   const [currentIdx,    setCurrentIdx]    = useState(0)
   const [hasSplit,      setHasSplit]      = useState(false)
-  const [bookingAlly,   setBookingAlly]   = useState<AllyPublicProfile | null>(null)
-  const [highlightedId, setHighlightedId] = useState<string | null>(null)
+  const [bookingAlly,      setBookingAlly]      = useState<AllyPublicProfile | null>(null)
+  const [bookingLoadingId, setBookingLoadingId] = useState<string | null>(null)
+  const [bookingError,     setBookingError]     = useState<string | null>(null)
+  const [highlightedId,    setHighlightedId]    = useState<string | null>(null)
 
   const filteredAllies = useMemo(
     () => filterAllies(allies, selectedTopic, selectedVibe),
@@ -68,6 +70,26 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
       return next
     })
   }, [filteredAllies.length])
+
+  const handleBook = useCallback(async (ally: AllyPublicProfile) => {
+    setBookingError(null)
+    if (ally.zoho_embed_url) {
+      setBookingAlly(ally)
+      return
+    }
+    setBookingLoadingId(ally.id)
+    try {
+      const res = await fetch(`/api/v1/allies/${ally.id}/booking-url`, { method: 'POST' })
+      const json = await res.json() as { zoho_embed_url?: string; error?: string }
+      if (!res.ok) throw new Error(json.error ?? 'Could not load the booking page')
+      const updatedAlly = { ...ally, zoho_embed_url: json.zoho_embed_url ?? null }
+      setBookingAlly(updatedAlly)
+    } catch (err) {
+      setBookingError(err instanceof Error ? err.message : 'Could not load the booking page')
+    } finally {
+      setBookingLoadingId(null)
+    }
+  }, [])
 
   // Keyboard navigation
   useEffect(() => {
@@ -149,8 +171,9 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
           hasSelections={hasSelections}
           isSplit={hasSplit}
           isHighlighted={!!(highlightedId && filteredAllies[currentIdx]?.id === highlightedId)}
+          bookingLoadingId={bookingLoadingId}
           onNavigate={handleNavigate}
-          onBook={setBookingAlly}
+          onBook={handleBook}
           onClose={() => setHasSplit(false)}
         />
 
@@ -161,6 +184,29 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
         ally={bookingAlly}
         onClose={() => setBookingAlly(null)}
       />
+
+      {/* Booking fetch error toast */}
+      {bookingError && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            background: '#1a1a1a', color: '#fff', borderRadius: 10, padding: '12px 20px',
+            fontSize: 14, maxWidth: 360, textAlign: 'center', zIndex: 9999,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          }}
+        >
+          {bookingError}
+          <button
+            type="button"
+            onClick={() => setBookingError(null)}
+            aria-label="Dismiss"
+            style={{ marginLeft: 12, background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 16 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </>
   )
 }

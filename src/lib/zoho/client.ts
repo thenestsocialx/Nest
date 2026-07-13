@@ -1,7 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getValidAccessToken } from './tokenManager';
+import { getValidAccessToken, forceRefreshToken } from './tokenManager';
 import { ZohoAPIError } from './types';
 import type { ZohoTokenRow } from './types';
+import { isTokenExpired } from './utils';
 
 async function getZohoBaseUrl(): Promise<string> {
   if (process.env.ZOHO_API_BASE) return process.env.ZOHO_API_BASE;
@@ -20,21 +21,34 @@ async function getZohoBaseUrl(): Promise<string> {
 }
 
 export async function zohoFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const [token, baseUrl] = await Promise.all([getValidAccessToken(), getZohoBaseUrl()]);
-  const url = `${baseUrl}${path}`;
+  const baseUrl = await getZohoBaseUrl();
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } catch (err) {
-    throw new ZohoAPIError(0, `Network error: ${err instanceof Error ? err.message : err}`);
+  async function attempt(token: string): Promise<Response> {
+    try {
+      return await fetch(`${baseUrl}${path}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      throw new ZohoAPIError(0, `Network error: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
+  let token = await getValidAccessToken();
+  let res = await attempt(token);
+
+  // On token expiry, refresh once and retry transparently.
+  if (!res.ok) {
+    let body: unknown;
+    try { body = await res.clone().json(); } catch { /* not JSON */ }
+    if (isTokenExpired(res.status, body)) {
+      token = await forceRefreshToken();
+      res = await attempt(token);
+    }
   }
 
   if (!res.ok) {

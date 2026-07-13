@@ -3,9 +3,10 @@
 // Endpoint: GET {domain}/bookings/v1/json/staff?workspace_id={id}
 // ══════════════════════════════════════════════════════════════
 
-import { getValidAccessToken } from './tokenManager';
+import { getValidAccessToken, forceRefreshToken } from './tokenManager';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ZohoAPIError } from './types';
+import { isTokenExpired } from './utils';
 import type { ZohoTokenRow } from './types';
 
 export interface ZohoStaffData {
@@ -38,25 +39,35 @@ async function getConfig(): Promise<{ baseUrl: string; workspaceId: string }> {
 async function callStaffApi(
   extraParams: Record<string, string> = {},
 ): Promise<ZohoStaffData[]> {
-  const [token, { baseUrl, workspaceId }] = await Promise.all([
-    getValidAccessToken(),
-    getConfig(),
-  ]);
-
+  const { baseUrl, workspaceId } = await getConfig();
   const params = new URLSearchParams({ workspace_id: workspaceId, ...extraParams });
   const url = `${baseUrl}/bookings/v1/json/staffs?${params.toString()}`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      headers: { Authorization: `Zoho-oauthtoken ${token}` },
-      cache: 'no-store',
-    });
-  } catch (err) {
-    throw new ZohoAPIError(
-      0,
-      `Network error fetching Zoho staff: ${err instanceof Error ? err.message : String(err)}`,
-    );
+  async function attempt(token: string): Promise<Response> {
+    try {
+      return await fetch(url, {
+        headers: { Authorization: `Zoho-oauthtoken ${token}` },
+        cache: 'no-store',
+      });
+    } catch (err) {
+      throw new ZohoAPIError(
+        0,
+        `Network error fetching Zoho staff: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  let token = await getValidAccessToken();
+  let res = await attempt(token);
+
+  // On token expiry, refresh once and retry transparently.
+  if (!res.ok) {
+    let body: unknown;
+    try { body = await res.clone().json(); } catch { /* not JSON */ }
+    if (isTokenExpired(res.status, body)) {
+      token = await forceRefreshToken();
+      res = await attempt(token);
+    }
   }
 
   if (!res.ok) {

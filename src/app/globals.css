@@ -599,6 +599,8 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ac-act__btn:active { transform: scale(0.97); }
 .ac-act__btn--book { background: var(--terracotta); color: var(--cream); }
 .ac-act__btn--book:hover { background: #8a5847; box-shadow: 0 4px 14px rgba(155,102,81,0.3); }
+.ac-act__btn--book:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .ac-act__btn--next { background: var(--cream); border: 1.5px solid var(--honey-mute); color: var(--moss); }
 .ac-act__btn--next:hover { border-color: var(--moss); background: var(--pine-tint); }
 @media (max-width: 600px) {

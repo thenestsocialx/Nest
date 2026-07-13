@@ -13,6 +13,7 @@ interface Props {
   hasSelections: boolean
   isSplit: boolean
   isHighlighted?: boolean
+  bookingLoadingId?: string | null
   onNavigate: (dir: -1 | 1) => void
   onBook: (ally: AllyPublicProfile) => void
   onClose?: () => void
@@ -26,6 +27,7 @@ export default function ProfileColumn({
   hasSelections,
   isSplit,
   isHighlighted,
+  bookingLoadingId,
   onNavigate,
   onBook,
   onClose,
@@ -114,6 +116,7 @@ export default function ProfileColumn({
                 showNext={total > 1}
                 onNext={() => onNavigate(1)}
                 onBook={onBook}
+                isBookingLoading={bookingLoadingId === currentAlly.id}
               />
             ) : null}
           </div>

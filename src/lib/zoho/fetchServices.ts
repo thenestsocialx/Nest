@@ -1,4 +1,5 @@
-import { getValidAccessToken } from './tokenManager';
+import { getValidAccessToken, forceRefreshToken } from './tokenManager';
+import { isTokenExpired } from './utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface ZohoServiceRaw {
@@ -43,45 +44,47 @@ function deriveSessionFormat(name: string, desc: string): string[] {
   return ['online'];
 }
 
-async function fetchServicesPage(
+async function fetchServicesPageRaw(
   token: string,
   workspaceId: string,
   page: number,
-): Promise<{ data: ZohoServiceRaw[]; next_page_available: boolean }> {
+): Promise<Response> {
   const base = process.env.ZOHO_API_BASE ?? 'https://www.zohoapis.in';
   const url = `${base}/bookings/v1/json/services?workspace_id=${encodeURIComponent(workspaceId)}&page=${page}`;
-
-  const res = await fetch(url, {
+  return fetch(url, {
     headers: { Authorization: `Zoho-oauthtoken ${token}` },
     cache: 'no-store',
   });
+}
 
-  if (!res.ok) throw new Error(`Zoho services API returned ${res.status}`);
-
-  const json = (await res.json()) as {
-    response?: {
-      returnvalue?: {
-        data?: ZohoServiceRaw[];
-        next_page_available?: boolean;
-      };
-    };
-  };
-
-  const rv = json?.response?.returnvalue;
-  return {
-    data: rv?.data ?? [],
-    next_page_available: rv?.next_page_available ?? false,
-  };
+function parseServicesResponse(json: unknown): { data: ZohoServiceRaw[]; next_page_available: boolean } {
+  const rv = (json as { response?: { returnvalue?: { data?: ZohoServiceRaw[]; next_page_available?: boolean } } })
+    ?.response?.returnvalue;
+  return { data: rv?.data ?? [], next_page_available: rv?.next_page_available ?? false };
 }
 
 /** Fetch all pages from Zoho until next_page_available is false. Cap at 20 pages. */
 export async function fetchAllZohoServices(workspaceId: string): Promise<ZohoServiceRaw[]> {
-  const token = await getValidAccessToken();
+  let token = await getValidAccessToken();
   const all: ZohoServiceRaw[] = [];
   const MAX_PAGES = 20;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
-    const { data, next_page_available } = await fetchServicesPage(token, workspaceId, page);
+    let res = await fetchServicesPageRaw(token, workspaceId, page);
+
+    // On token expiry, refresh once and retry this page transparently.
+    if (!res.ok) {
+      let body: unknown;
+      try { body = await res.clone().json(); } catch { /* not JSON */ }
+      if (isTokenExpired(res.status, body)) {
+        token = await forceRefreshToken();
+        res = await fetchServicesPageRaw(token, workspaceId, page);
+      }
+    }
+
+    if (!res.ok) throw new Error(`Zoho services API returned ${res.status}`);
+
+    const { data, next_page_available } = parseServicesResponse(await res.json());
     all.push(...data);
     if (!next_page_available) break;
   }

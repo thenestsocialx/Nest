@@ -31,7 +31,13 @@ export async function GET(request: Request) {
     }
 
     const tokenData: ZohoTokenResponse = await tokenRes.json();
-    if (!tokenData.access_token) {
+    if (!tokenData.access_token || !tokenData.refresh_token) {
+      console.error(
+        '[zoho/callback] Missing token fields — access_token:',
+        !!tokenData.access_token,
+        'refresh_token:',
+        !!tokenData.refresh_token,
+      );
       return NextResponse.redirect(`${origin}/admin/integrations?error=zoho_token_exchange_failed`);
     }
 

@@ -9,9 +9,10 @@ interface Props {
   showNext: boolean
   onNext: () => void
   onBook: (ally: AllyPublicProfile) => void
+  isBookingLoading?: boolean
 }
 
-export default function ProfileCard({ ally, quality, showNext, onNext, onBook }: Props) {
+export default function ProfileCard({ ally, quality, showNext, onNext, onBook, isBookingLoading }: Props) {
   const initials = getInitials(ally.display_name)
   const gradient = getAvatarGradient(ally.id)
   const isGreat  = quality === 'great'
@@ -229,13 +230,20 @@ export default function ProfileCard({ ally, quality, showNext, onNext, onBook }:
             type="button"
             className="ac-act__btn ac-act__btn--book"
             onClick={() => onBook(ally)}
-            aria-label={`Book a session with ${ally.display_name}`}
+            disabled={isBookingLoading}
+            aria-label={isBookingLoading ? 'Loading booking page…' : `Book a session with ${ally.display_name}`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.6"/>
-              <path d="M3 9h18M8 2v4M16 2v4M12 13v4M10 15h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-            </svg>
-            Book a session
+            {isBookingLoading ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ animation: 'spin 0.8s linear infinite' }}>
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="40 20" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.6"/>
+                <path d="M3 9h18M8 2v4M16 2v4M12 13v4M10 15h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            )}
+            {isBookingLoading ? 'Loading…' : 'Book a session'}
           </button>
 
           {showNext && (

@@ -52,8 +52,16 @@ export default function ZohoCard({
     setSyncError(null);
     try {
       const res  = await fetch('/api/v1/zoho/sync-services', { method: 'POST' });
-      const data = (await res.json()) as { synced?: number; deactivated?: number; error?: { message?: string } };
-      if (!res.ok) throw new Error(data.error?.message ?? 'Sync failed');
+      const data = (await res.json()) as { synced?: number; deactivated?: number; error?: { code?: string; message?: string } };
+      if (!res.ok) {
+        const code = data.error?.code ?? '';
+        if (code === 'REFRESH_FAILED' || code === 'NOT_CONNECTED') {
+          setSyncError('__TOKEN_EXPIRED__');
+        } else {
+          throw new Error(data.error?.message ?? 'Sync failed');
+        }
+        return;
+      }
       setSyncResult({ synced: data.synced ?? 0, deactivated: data.deactivated ?? 0 });
       loadCachedServices();
     } catch (err) {
@@ -154,11 +162,23 @@ export default function ZohoCard({
           {syncResult.deactivated > 0 && ` · ${syncResult.deactivated} deactivated`}
         </div>
       )}
-      {syncError && (
+      {syncError && syncError === '__TOKEN_EXPIRED__' ? (
+        <div style={{ fontSize: 12, background: 'rgba(155,102,81,0.08)', border: '1px solid rgba(155,102,81,0.35)', borderRadius: 7, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ color: 'var(--ns-terra,#9B6651)', fontWeight: 500 }}>
+            ⚠ Zoho connection has expired — the refresh token is no longer valid.
+          </span>
+          <a
+            href="/api/v1/zoho/oauth/start"
+            style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, color: 'var(--ns-terra,#9B6651)', textDecoration: 'underline', whiteSpace: 'nowrap' }}
+          >
+            Reconnect Zoho →
+          </a>
+        </div>
+      ) : syncError ? (
         <div style={{ fontSize: 12, color: 'var(--ns-terra,#9B6651)', background: 'rgba(155,102,81,0.08)', border: '1px solid rgba(155,102,81,0.2)', borderRadius: 7, padding: '8px 12px', marginBottom: 10 }}>
           ✗ {syncError}
         </div>
-      )}
+      ) : null}
 
       {/* Active workspace */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>

@@ -12,9 +12,10 @@ interface Props {
   userName: string
   userInitial: string
   highlightId?: string | null
+  isGuest?: boolean
 }
 
-export default function FindAlliesShell({ allies, userName, userInitial, highlightId }: Props) {
+export default function FindAlliesShell({ allies, userName, userInitial, highlightId, isGuest }: Props) {
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null)
   const [selectedVibe,  setSelectedVibe]  = useState<VibeId  | null>(null)
   const [currentIdx,    setCurrentIdx]    = useState(0)
@@ -130,19 +131,30 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
           <div className="fa-topbar-breadcrumb">connect</div>
           <h1 className="fa-topbar-title">Find your ally</h1>
         </div>
-        <div className="fa-topbar-right">
-          <a href="/sessions" className="fa-sessions-link">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M5 2V4M11 2V4M2 6.5H14M5 9.5L7 11.5L11 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="fa-sessions-label">My Sessions</span>
-          </a>
-          <a href="/profile" className="fa-user-chip" aria-label={`View profile for ${userName}`}>
-            <span className="fa-user-name">{userName}</span>
-            <div className="fa-avatar" aria-hidden="true">{userInitial}</div>
-          </a>
-        </div>
+        {isGuest ? (
+          <div className="fa-topbar-right">
+            <a href="/login" style={{ fontSize: 13, color: 'var(--moss)', textDecoration: 'none', padding: '7px 14px' }}>
+              Log in
+            </a>
+            <a href="/signup" className="ns-btn ns-btn--primary" style={{ fontSize: 13, padding: '8px 18px', textDecoration: 'none' }}>
+              Get started
+            </a>
+          </div>
+        ) : (
+          <div className="fa-topbar-right">
+            <a href="/sessions" className="fa-sessions-link">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M5 2V4M11 2V4M2 6.5H14M5 9.5L7 11.5L11 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="fa-sessions-label">My Sessions</span>
+            </a>
+            <a href="/profile" className="fa-user-chip" aria-label={`View profile for ${userName}`}>
+              <span className="fa-user-name">{userName}</span>
+              <div className="fa-avatar" aria-hidden="true">{userInitial}</div>
+            </a>
+          </div>
+        )}
       </header>
 
       {/* Mobile dimmer — sits behind the profile sheet, closes it on tap */}
@@ -175,6 +187,7 @@ export default function FindAlliesShell({ allies, userName, userInitial, highlig
           onNavigate={handleNavigate}
           onBook={handleBook}
           onClose={() => setHasSplit(false)}
+          isGuest={isGuest}
         />
 
       </div>

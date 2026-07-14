@@ -1,11 +1,16 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
+import PublicPageHeader from '@/components/layout/PublicPageHeader'
 import NotifyForm from './_components/NotifyForm'
 
 export const metadata = {
   title: 'Events — Nest',
+  description: 'Workshops, listening circles, and community events hosted by Nest allies. Small groups. Real conversations. Open to everyone.',
+  openGraph: {
+    title: 'Events — Nest',
+    description: 'Workshops, listening circles, and community events hosted by Nest allies. Small groups. Real conversations. Open to everyone.',
+  },
 }
 
 /* ── Inline SVG icons ── */
@@ -53,7 +58,6 @@ function MapIcon() {
   )
 }
 
-// Replace VIBES with dynamic data when real event programming exists
 const VIBES = [
   {
     title: 'Small groups. Real conversations.',
@@ -75,30 +79,25 @@ const VIBES = [
 export default async function EventsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
 
-  const { data: flag } = await supabase
-    .from('nest_config')
-    .select('value')
-    .eq('key', 'features.events.enabled')
-    .maybeSingle()
-  if (flag?.value !== 'true') redirect('/home')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, display_name')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  const firstName =
-    profile?.display_name ??
-    profile?.full_name?.split(' ')[0] ??
-    user.email?.split('@')[0] ??
-    'there'
-  const initial = firstName[0]?.toUpperCase() ?? 'A'
+  let initial = 'A'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, display_name')
+      .eq('id', user.id)
+      .maybeSingle()
+    const firstName =
+      profile?.display_name ??
+      profile?.full_name?.split(' ')[0] ??
+      user.email?.split('@')[0] ??
+      'there'
+    initial = firstName[0]?.toUpperCase() ?? 'A'
+  }
 
   return (
     <main className="ns-main">
+      {user ? (
         <header className="ns-topbar">
           <div className="ns-topbar__left">
             <div className="ns-topbar__greeting">Events</div>
@@ -106,103 +105,106 @@ export default async function EventsPage() {
           </div>
           <MobileProfileLink initial={initial} />
         </header>
+      ) : (
+        <PublicPageHeader />
+      )}
 
-        <div className="ns-content" style={{ paddingTop: 40 }}>
-          <div style={{ maxWidth: '48rem', width: '100%', margin: '0 auto' }}>
+      <div className="ns-content" style={{ paddingTop: 40 }}>
+        <div style={{ maxWidth: '48rem', width: '100%', margin: '0 auto' }}>
 
-            {/* Upcoming events — replace with real event cards when data is available */}
-            <section aria-label="Upcoming events" style={{ marginBottom: 48 }}>
-              <div className="ns-section-label" style={{ marginBottom: 20 }}>Upcoming</div>
+          {/* Upcoming events */}
+          <section aria-label="Upcoming events" style={{ marginBottom: 48 }}>
+            <div className="ns-section-label" style={{ marginBottom: 20 }}>Upcoming</div>
 
-              <div className="ns-evt-empty" style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
-                <div
+            <div className="ns-evt-empty" style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
+              <div
+                style={{
+                  width:           72,
+                  height:          72,
+                  borderRadius:    '50%',
+                  background:      'var(--pine-tint)',
+                  border:          '1px solid rgba(92,122,102,0.25)',
+                  display:         'flex',
+                  alignItems:      'center',
+                  justifyContent:  'center',
+                  color:           'var(--moss)',
+                  marginBottom:    4,
+                }}
+                aria-hidden="true"
+              >
+                <CalendarIcon />
+              </div>
+
+              <div>
+                <h2
                   style={{
-                    width:           72,
-                    height:          72,
-                    borderRadius:    '50%',
-                    background:      'var(--pine-tint)',
-                    border:          '1px solid rgba(92,122,102,0.25)',
-                    display:         'flex',
-                    alignItems:      'center',
-                    justifyContent:  'center',
-                    color:           'var(--moss)',
-                    marginBottom:    4,
+                    fontSize:   18,
+                    fontWeight: 500,
+                    color:      'var(--deep-pine)',
+                    margin:     '0 0 10px',
+                    lineHeight: 1.35,
                   }}
-                  aria-hidden="true"
                 >
-                  <CalendarIcon />
-                </div>
-
-                <div>
-                  <h2
-                    style={{
-                      fontSize:   18,
-                      fontWeight: 500,
-                      color:      'var(--deep-pine)',
-                      margin:     '0 0 10px',
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    No events scheduled yet.
-                  </h2>
-                  <p
-                    style={{
-                      fontSize:   14,
-                      color:      'var(--moss)',
-                      margin:     0,
-                      fontStyle:  'italic',
-                      lineHeight: 1.65,
-                      maxWidth:   '38ch',
-                    }}
-                  >
-                    We&rsquo;re planning something special. Stay close.
-                  </p>
-                </div>
-
-                <div style={{ marginTop: 8, width: '100%' }}>
-                  <p
-                    style={{
-                      fontSize:      12,
-                      color:         'var(--moss)',
-                      margin:        '0 0 14px',
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      opacity:       0.8,
-                    }}
-                  >
-                    Get notified when we announce
-                  </p>
-                  <NotifyForm />
-                </div>
+                  No events scheduled yet.
+                </h2>
+                <p
+                  style={{
+                    fontSize:   14,
+                    color:      'var(--moss)',
+                    margin:     0,
+                    fontStyle:  'italic',
+                    lineHeight: 1.65,
+                    maxWidth:   '38ch',
+                  }}
+                >
+                  We&rsquo;re planning something special. Stay close.
+                </p>
               </div>
-            </section>
 
-            {/* What to expect — stays as evergreen content */}
-            <section aria-label="What to expect at Nest events">
-              <div className="ns-section-label" style={{ marginBottom: 20 }}>What to expect</div>
-              <div className="ns-evt-vibes-grid">
-                {VIBES.map((vibe, i) => (
-                  <article key={i} className="ns-card ns-evt-vibe-card">
-                    <div className="ns-evt-vibe-icon" aria-hidden="true">
-                      {vibe.icon}
-                    </div>
-                    <div className="ns-evt-vibe-text">
-                      <h3 className="ns-card__title" style={{ fontSize: 14, marginBottom: 6 }}>
-                        {vibe.title}
-                      </h3>
-                      <p className="ns-card__body" style={{ fontSize: 13, margin: 0 }}>
-                        {vibe.body}
-                      </p>
-                    </div>
-                  </article>
-                ))}
+              <div style={{ marginTop: 8, width: '100%' }}>
+                <p
+                  style={{
+                    fontSize:      12,
+                    color:         'var(--moss)',
+                    margin:        '0 0 14px',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    opacity:       0.8,
+                  }}
+                >
+                  Get notified when we announce
+                </p>
+                <NotifyForm />
               </div>
-            </section>
+            </div>
+          </section>
 
-          </div>
+          {/* What to expect */}
+          <section aria-label="What to expect at Nest events">
+            <div className="ns-section-label" style={{ marginBottom: 20 }}>What to expect</div>
+            <div className="ns-evt-vibes-grid">
+              {VIBES.map((vibe, i) => (
+                <article key={i} className="ns-card ns-evt-vibe-card">
+                  <div className="ns-evt-vibe-icon" aria-hidden="true">
+                    {vibe.icon}
+                  </div>
+                  <div className="ns-evt-vibe-text">
+                    <h3 className="ns-card__title" style={{ fontSize: 14, marginBottom: 6 }}>
+                      {vibe.title}
+                    </h3>
+                    <p className="ns-card__body" style={{ fontSize: 13, margin: 0 }}>
+                      {vibe.body}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
         </div>
+      </div>
 
-        <BottomNav />
-      </main>
+      {user && <BottomNav />}
+    </main>
   )
 }

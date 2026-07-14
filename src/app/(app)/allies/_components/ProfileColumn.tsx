@@ -17,6 +17,7 @@ interface Props {
   onNavigate: (dir: -1 | 1) => void
   onBook: (ally: AllyPublicProfile) => void
   onClose?: () => void
+  isGuest?: boolean
 }
 
 export default function ProfileColumn({
@@ -31,6 +32,7 @@ export default function ProfileColumn({
   onNavigate,
   onBook,
   onClose,
+  isGuest,
 }: Props) {
   const safeIdx     = Math.min(currentIdx, Math.max(0, filteredAllies.length - 1))
   const currentAlly = filteredAllies[safeIdx] ?? null
@@ -117,6 +119,7 @@ export default function ProfileColumn({
                 onNext={() => onNavigate(1)}
                 onBook={onBook}
                 isBookingLoading={bookingLoadingId === currentAlly.id}
+                isGuest={isGuest}
               />
             ) : null}
           </div>

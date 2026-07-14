@@ -25,6 +25,7 @@ interface Props extends PlanConfig {
   currentPlan: string
   userEmail: string
   activeSub?: ActiveSub | null
+  guestMode?: boolean
 }
 
 // Razorpay checkout.js is loaded dynamically at payment time
@@ -103,6 +104,7 @@ export default function PlanCard({
   currentPlan,
   userEmail,
   activeSub,
+  guestMode,
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -190,7 +192,15 @@ export default function PlanCard({
       </ul>
 
       {/* ── CTA / Status section ── */}
-      {isCurrent ? (
+      {guestMode ? (
+        <a
+          href={id === 'free' ? '/signup' : `/signup?plan=${id}`}
+          className={`ns-btn${isFeatured ? ' ns-btn--primary' : ' ns-btn--secondary'} ns-btn--full`}
+          style={{ textAlign: 'center', textDecoration: 'none', display: 'block', boxSizing: 'border-box' }}
+        >
+          {id === 'free' ? 'Start free' : cta}
+        </a>
+      ) : isCurrent ? (
         <div className="ns-plan-card__current-wrap">
           <div className="ns-plan-card__current">You&apos;re on this plan</div>
 

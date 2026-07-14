@@ -38,6 +38,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     avatarUrl = profile?.avatar_url ?? null
   }
 
+  // Guest: no sidebar — public pages (plans, allies, events) render full-width
+  if (!user) {
+    return (
+      <FeatureFlagsProvider flags={flags}>
+        <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+          {children}
+        </div>
+      </FeatureFlagsProvider>
+    )
+  }
+
   return (
     <FeatureFlagsProvider flags={flags}>
       {isPaymentHalted && <DunningBanner />}

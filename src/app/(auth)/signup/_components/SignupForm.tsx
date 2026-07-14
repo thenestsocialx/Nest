@@ -223,23 +223,7 @@ export default function SignupForm({ defaultName, email }: SignupFormProps) {
                 </svg>
               </span>
               <span className="ns-su-tc-text">
-                I&rsquo;ve read and agree to NEST&rsquo;s{' '}
-                <a
-                  href="/terms"
-                  className="ns-su-tc-link"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Terms of Use
-                </a>{' '}
-                and{' '}
-                <a
-                  href="/privacy"
-                  className="ns-su-tc-link"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Privacy Policy
-                </a>
-                . I understand my data stays private.
+                I&rsquo;ve read and agree to NEST&rsquo;s Terms of Use and Privacy Policy. I understand my data stays private.
               </span>
             </label>
 

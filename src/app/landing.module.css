@@ -1165,16 +1165,14 @@
 /* ── FOOTER ── */
 .footer {
   background: var(--anchor);
-  padding: 48px 0 32px;
+  padding: 56px 0 36px;
 }
 .footerInner {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin-bottom: 36px;
-}
-@media (min-width: 768px) {
-  .footerInner { flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 32px; }
+  align-items: center;
+  text-align: center;
+  margin-bottom: 40px;
 }
 .footerTagline {
   font-family: var(--font-d);
@@ -1183,37 +1181,48 @@
   color: var(--canvas);
   opacity: 0.45;
   margin-top: 10px;
-  max-width: 28ch;
+  max-width: 44ch;
   line-height: 1.5;
 }
-.footerNav {
+.footerContact {
   display: flex;
-  gap: 16px;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 22px;
 }
-@media (min-width: 768px) { .footerNav { gap: 28px; } }
-.footerNav a {
-  font-size: 0.875rem;
-  font-weight: 500;
+.footerContactDot {
   color: var(--canvas);
-  opacity: 0.55;
-  transition: opacity 0.25s ease;
-  text-decoration: none;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+  opacity: 0.2;
+  font-size: 0.875rem;
+  user-select: none;
 }
-.footerNav a:hover { opacity: 1; }
+@media (max-width: 479px) { .footerContactDot { display: none; } }
+.footerContactLink {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8125rem;
+  color: var(--canvas);
+  opacity: 0.5;
+  text-decoration: none;
+  transition: opacity 0.25s ease;
+  min-height: 44px;
+  line-height: 1.4;
+}
+.footerContactLink:hover { opacity: 1; }
 .footerBottom {
   border-top: 1px solid rgba(248,240,229,0.08);
   padding-top: 24px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 12px;
+  text-align: center;
 }
 @media (min-width: 768px) {
-  .footerBottom { flex-direction: row; justify-content: space-between; align-items: center; }
+  .footerBottom { flex-direction: row; justify-content: space-between; align-items: center; text-align: left; }
 }
 .footerCopy { font-size: 0.75rem; color: var(--canvas); opacity: 0.3; }
 .footerLegal { display: flex; gap: 20px; }

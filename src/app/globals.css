@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ═══════════════════════════════════════════════
    NEST · DESIGN TOKENS
@@ -1784,4 +1784,8 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   .ns-billing-modal { padding: 28px 20px 24px; }
   .ns-billing-modal__actions { flex-direction: column-reverse; }
   .ns-billing-modal__btn--danger { display: block; width: 100%; }
+}
+/* Kanmani Fund -- hide header nav link on very small screens */
+@media (max-width: 540px) {
+  .ns-kanmani-nav-link { display: none; }
 }

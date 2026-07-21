@@ -23,6 +23,23 @@ export default function PublicPageHeader() {
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <a
+          href="/kanmani"
+          className="ns-kanmani-nav-link"
+          style={{
+            padding:        '8px 14px',
+            fontSize:       12,
+            color:          'var(--terracotta)',
+            textDecoration: 'none',
+            borderRadius:   'var(--r-sm)',
+            fontWeight:     600,
+            letterSpacing:  '0.03em',
+            transition:     'opacity 0.15s',
+            whiteSpace:     'nowrap',
+          }}
+        >
+          Kanmani Fund
+        </a>
+        <a
           href="/login"
           style={{
             padding:        '8px 16px',

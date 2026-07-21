@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, DM_Serif_Display, Lora, Noto_Serif_Tamil } from 'next/font/google'
+import { DM_Sans, DM_Serif_Display, Lora, Noto_Serif_Tamil, Playfair_Display } from 'next/font/google'
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -37,6 +37,14 @@ const notoSerifTamil = Noto_Serif_Tamil({
   display: 'swap',
 })
 
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Nest — a space for you',
   description: 'A warm space that helps people feel less alone and more like themselves.',
@@ -65,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable} ${lora.variable} ${notoSerifTamil.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable} ${lora.variable} ${notoSerifTamil.variable} ${playfairDisplay.variable}`}>
       <body style={{ fontFamily: 'var(--font, DM Sans, sans-serif)' }}>
         {children}
         <Toaster position="top-center" richColors />

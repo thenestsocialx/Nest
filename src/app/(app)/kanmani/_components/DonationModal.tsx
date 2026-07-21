@@ -10,12 +10,6 @@ interface Props {
   onClose: () => void
 }
 
-const PRESETS = [
-  { amount: 799,  label: '1 session'  },
-  { amount: 1598, label: '2 sessions' },
-  { amount: 2397, label: '3 sessions' },
-]
-
 function loadRazorpaySDK(): Promise<boolean> {
   return new Promise((resolve) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,9 +33,6 @@ function fmt(n: number) {
 export default function DonationModal({ isOpen, initialAmount, onClose }: Props) {
   const [mounted,      setMounted]      = useState(false)
   const [closing,      setClosing]      = useState(false)
-  const [amount,       setAmount]       = useState(initialAmount)
-  const [isCustom,     setIsCustom]     = useState(false)
-  const [customVal,    setCustomVal]    = useState('')
   const [donorName,    setDonorName]    = useState('')
   const [donorEmail,   setDonorEmail]   = useState('')
   const [loading,      setLoading]      = useState(false)
@@ -57,10 +48,6 @@ export default function DonationModal({ isOpen, initialAmount, onClose }: Props)
     if (isOpen) {
       setMounted(true)
       setClosing(false)
-      setAmount(initialAmount)
-      const isPreset = PRESETS.some(p => p.amount === initialAmount)
-      setIsCustom(!isPreset)
-      setCustomVal(!isPreset ? String(initialAmount) : '')
       setError('')
       setLoading(false)
     } else {
@@ -88,10 +75,7 @@ export default function DonationModal({ isOpen, initialAmount, onClose }: Props)
     setTimeout(() => onClose(), 230)
   }
 
-  const effectiveAmount = isCustom
-    ? (parseInt(customVal, 10) || 0)
-    : amount
-
+  const effectiveAmount = initialAmount
   const sessions = Math.floor(effectiveAmount / 799)
 
   const handlePay = useCallback(async () => {
@@ -219,46 +203,6 @@ export default function DonationModal({ isOpen, initialAmount, onClose }: Props)
         </div>
 
         <div className="kf-modal-body">
-
-          {/* Amount selector */}
-          <div>
-            <p className="kf-modal-section-label">Choose an amount</p>
-            <div className="kf-modal-amounts">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.amount}
-                  type="button"
-                  className={`kf-modal-amount-btn${!isCustom && amount === p.amount ? ' is-active' : ''}`}
-                  onClick={() => { setAmount(p.amount); setIsCustom(false); setError('') }}
-                >
-                  <span className="kf-modal-amt-value">{fmt(p.amount)}</span>
-                  <span className="kf-modal-amt-label">{p.label}</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                className={`kf-modal-amount-btn kf-modal-amount-btn--custom${isCustom ? ' is-active' : ''}`}
-                onClick={() => { setIsCustom(true); setError('') }}
-              >
-                <span className="kf-modal-amt-value">Custom</span>
-                <span className="kf-modal-amt-label">any amount</span>
-              </button>
-            </div>
-
-            {isCustom && (
-              <input
-                className="kf-modal-custom-input"
-                type="number"
-                min="1"
-                placeholder="e.g. 1500"
-                value={customVal}
-                onChange={(e) => { setCustomVal(e.target.value); setError('') }}
-                style={{ marginTop: '0.75rem' }}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-              />
-            )}
-          </div>
 
           {/* Impact preview */}
           {effectiveAmount > 0 && (

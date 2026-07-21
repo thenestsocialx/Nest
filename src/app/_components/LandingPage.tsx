@@ -621,6 +621,20 @@ export default function LandingPage({ isAuthenticated }: Props) {
           </div>
         </section>
 
+        {/* ══ KANMANI CALLOUT ══ */}
+        <section className={styles.kanmaniCallout} aria-label="Kanmani social fund">
+          <div className={styles.container}>
+            <p className={styles.kanmaniCalloutEyebrow}>Kanmani · A Nest Social Fund</p>
+            <p className={styles.kanmaniCalloutText} data-animate>
+              Some people had the booking page open last night, saw the price, and closed the tab.<br />
+              The Kanmani fund pays for the hour they couldn&apos;t.
+            </p>
+            <Link href="/kanmani" className={styles.kanmaniCalloutLink} data-animate data-delay="1">
+              Give to Kanmani →
+            </Link>
+          </div>
+        </section>
+
         {/* ══ FINAL CTA ══ */}
         <section className={styles.finalSection} id="signup" aria-label="Start your nest journey">
           <div className={styles.container}>
@@ -695,6 +709,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
           <div className={styles.footerBottom}>
             <span className={styles.footerCopy}>© 2026 Nest. All rights reserved.</span>
             <div className={styles.footerLegal}>
+              <Link href="/kanmani">Kanmani Fund</Link>
               <a href="#">Privacy Policy</a>
               <a href="#">Terms of Service</a>
             </div>

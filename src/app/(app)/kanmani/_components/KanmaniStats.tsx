@@ -26,6 +26,12 @@ export default function KanmaniStats({ initialStats }: Props) {
   }, [stats])
 
   useEffect(() => {
+    // Always fetch live stats on mount — the server-rendered initialStats may be stale
+    fetch('/api/kanmani/stats')
+      .then(r => r.json())
+      .then((fresh: Stats) => setStats(fresh))
+      .catch(() => {})
+
     const supabase = createClient()
     const channel = supabase
       .channel('kf-donations-realtime')

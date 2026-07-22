@@ -164,8 +164,7 @@ export default async function KanmaniPage() {
             someone sitting across from a real practitioner.
           </p>
           <p className="kf-trust-reg" data-kf-reveal>
-            Kanmani operates under The Nest Social. Trust registration in progress —
-            details will appear here once complete.
+            Initiative by The Nest Social
           </p>
         </section>
 

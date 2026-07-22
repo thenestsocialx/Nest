@@ -151,6 +151,8 @@ export default function DonationModal({ isOpen, initialAmount, onClose }: Props)
             }),
           })
           if (!res.ok) throw new Error('Verification failed')
+          // Notify KanmaniStats (sibling component) to re-fetch now that the DB is updated
+          window.dispatchEvent(new CustomEvent('kanmani:payment-captured'))
           // Show success screen — keeps same z-stack, overlay appears on top
           setSuccessData({ amountInr: effectiveAmount, prevTotalInr, prevSessions })
         } catch {

@@ -26,11 +26,18 @@ export default function KanmaniStats({ initialStats }: Props) {
   }, [stats])
 
   useEffect(() => {
+    function fetchFresh() {
+      fetch('/api/kanmani/stats')
+        .then(r => r.json())
+        .then((fresh: Stats) => setStats(fresh))
+        .catch(() => {})
+    }
+
     // Always fetch live stats on mount — the server-rendered initialStats may be stale
-    fetch('/api/kanmani/stats')
-      .then(r => r.json())
-      .then((fresh: Stats) => setStats(fresh))
-      .catch(() => {})
+    fetchFresh()
+
+    // Re-fetch when a payment is captured on this page (dispatched by DonationModal)
+    window.addEventListener('kanmani:payment-captured', fetchFresh)
 
     const supabase = createClient()
     const channel = supabase
@@ -38,16 +45,14 @@ export default function KanmaniStats({ initialStats }: Props) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'kanmani_donations' },
-        () => {
-          fetch('/api/kanmani/stats')
-            .then(r => r.json())
-            .then((fresh: Stats) => setStats(fresh))
-            .catch(() => {})
-        },
+        fetchFresh,
       )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      window.removeEventListener('kanmani:payment-captured', fetchFresh)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return (

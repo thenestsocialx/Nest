@@ -48,7 +48,7 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   title: 'Nest — a space for you',
   description: 'A warm space that helps people feel less alone and more like themselves.',
-  metadataBase: new URL('https://thenest.social'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL!),
   icons: {
     icon: [{ url: '/nest-icon.svg', type: 'image/svg+xml' }],
     shortcut: '/nest-icon.svg',
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Nest — a space for you',
     description: 'A warm space that helps people feel less alone and more like themselves.',
-    url: 'https://thenest.social',
+    url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: 'Nest',
     type: 'website',
   },

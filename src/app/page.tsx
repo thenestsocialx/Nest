@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'nest — you don\'t have to carry this alone',
     description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
-    url: 'https://thenest.social',
+    url: process.env.NEXT_PUBLIC_APP_URL,
     siteName: 'Nest',
     type: 'website',
   },

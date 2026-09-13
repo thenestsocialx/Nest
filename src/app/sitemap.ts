@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://thenest.social'
+  const base = process.env.NEXT_PUBLIC_APP_URL!
 
   // Fetch active ally slugs for individual profile pages
   let allyEntries: MetadataRoute.Sitemap = []

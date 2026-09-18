@@ -16,7 +16,7 @@ export async function initiateSubscription(planId: string): Promise<
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+  const keyId = process.env.RAZORPAY_KEY_ID
   if (!keyId) return { success: false, error: 'Payment provider is not configured.' }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

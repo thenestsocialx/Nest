@@ -11,7 +11,7 @@ export async function createDonationOrder(amountInr: number): Promise<
     return { success: false, error: 'Invalid amount.' }
   }
 
-  const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+  const keyId = process.env.RAZORPAY_KEY_ID
   if (!keyId) return { success: false, error: 'Payment is not configured.' }
 
   try {

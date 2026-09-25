@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
+import LandingHeader from '@/components/layout/LandingHeader'
 import styles from './legal.module.css'
 
 export const metadata: Metadata = {
@@ -14,17 +15,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
   return (
     <>
       {/* ── HEADER ── */}
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Link href="/" className={styles.headerLogo} aria-label="Nest home">
-            <NestLogo size={18} color="#F8F0E5" />
-          </Link>
-
-          <Link href="/login" className={styles.headerCta}>
-            go to your space →
-          </Link>
-        </div>
-      </header>
+      <LandingHeader />
 
       {/* ── PAGE CONTENT ── */}
       <main className={styles.main}>{children}</main>

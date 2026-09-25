@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import BottomNav from '@/components/layout/BottomNav'
 import MobileProfileLink from '@/components/layout/MobileProfileLink'
-import PublicPageHeader from '@/components/layout/PublicPageHeader'
+import LandingHeader from '@/components/layout/LandingHeader'
 import NotifyForm from './_components/NotifyForm'
 
 export const metadata = {
@@ -106,7 +106,7 @@ export default async function EventsPage() {
           <MobileProfileLink initial={initial} />
         </header>
       ) : (
-        <PublicPageHeader />
+        <LandingHeader />
       )}
 
       <div className="ns-content" style={{ paddingTop: 40 }}>

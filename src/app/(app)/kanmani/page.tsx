@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import PublicPageHeader from '@/components/layout/PublicPageHeader'
+import LandingHeader from '@/components/layout/LandingHeader'
 import KanmaniReveal    from './_components/KanmaniReveal'
 import KanmaniGive      from './_components/KanmaniGive'
 import KanmaniStats     from './_components/KanmaniStats'
@@ -58,7 +58,7 @@ export default async function KanmaniPage() {
           </a>
         </nav>
       ) : (
-        <PublicPageHeader />
+        <LandingHeader />
       )}
 
       {/* Initialises IntersectionObserver for scroll-reveal — emits no DOM */}

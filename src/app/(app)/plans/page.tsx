@@ -1,27 +1,11 @@
 import { redirect } from 'next/navigation'
-import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import BottomNav from '@/components/layout/BottomNav'
-import PublicPageHeader from '@/components/layout/PublicPageHeader'
+import LandingHeader from '@/components/layout/LandingHeader'
 import PlanCard from '@/components/plans/PlanCard'
-import type { PlanConfig, ActiveSub } from '@/components/plans/PlanCard'
+import type { ActiveSub } from '@/components/plans/PlanCard'
 import PlanFAQ from '@/components/plans/PlanFAQ'
-
-// Plans are global config — cache server-side for 1 hour
-const getPlans = unstable_cache(
-  async () => {
-    const admin = createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await (admin as any)
-      .from('plans')
-      .select('id, name, price_inr, tag, features, cta, is_featured')
-      .order('display_order')
-    return data ?? []
-  },
-  ['plans-list'],
-  { revalidate: 3600, tags: ['plans'] }
-)
+import { getPlans } from '@/lib/plans'
 
 export const metadata = {
   title: 'Plans — Nest',
@@ -43,24 +27,13 @@ export default async function PlansPage({
   const params = await searchParams
   const showSuccess = params.success === '1'
 
-  const planRows = await getPlans()
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const PLANS: PlanConfig[] = ((planRows ?? []) as any[]).map((p) => ({
-    id: p.id as string,
-    name: p.name as string,
-    price: p.price_inr === 0 ? '₹0' : `₹${p.price_inr}`,
-    tag: p.tag as string,
-    features: p.features as string[],
-    cta: p.cta as string,
-    isFeatured: p.is_featured as boolean,
-  }))
+  const PLANS = await getPlans()
 
   // ── Guest view (unauthenticated) ────────────────────────────
   if (!user) {
     return (
       <main className="ns-main">
-        <PublicPageHeader />
+        <LandingHeader />
         <div className="ns-plans">
           <div className="ns-plans__header">
             <h1 className="ns-plans__headline">Choose what feels right</h1>

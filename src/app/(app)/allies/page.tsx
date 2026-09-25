@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import BottomNav from '@/components/layout/BottomNav';
 import FindAlliesShell from './_components/FindAlliesShell';
+import AlliesLanding from './_components/AlliesLanding';
 import type { AllyPublicProfile } from '@/types/findAllies';
 
 export const metadata = {
@@ -61,21 +62,11 @@ export default async function AlliesPage({ searchParams }: { searchParams: Promi
       .eq('onboarding_status', 'active')
       .eq('visibility_search', true)
       .is('deleted_at', null)
-      .order('manual_priority_score', { ascending: false });
+      .order('manual_priority_score', { ascending: false })
+      .limit(3);
 
-    const allies: AllyPublicProfile[] = (rawAllies ?? []).map(mapAlly);
-
-    return (
-      <main className="ns-main">
-        <FindAlliesShell
-          allies={allies}
-          userName=""
-          userInitial=""
-          highlightId={highlightId}
-          isGuest
-        />
-      </main>
-    );
+    const featuredAllies: AllyPublicProfile[] = (rawAllies ?? []).map(mapAlly);
+    return <AlliesLanding featuredAllies={featuredAllies} />;
   }
 
   // ── Authenticated view ───────────────────────────────────────

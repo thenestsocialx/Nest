@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getConfig, getPeriodStart, getEnabledModesForPlan, getDefaultModeForPlan } from '@/lib/nila-config'
 import { loadActiveNilaSession } from '@/actions/nila'
+import { getPlans } from '@/lib/plans'
 import ChatShell from './_components/ChatShell'
+import NilaLanding from './_components/NilaLanding'
 
 export const metadata = {
   title: 'Nila — Nest',
@@ -21,7 +23,8 @@ export default async function NilaPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    const plans = await getPlans()
+    return <NilaLanding plans={plans} />
   }
 
   const { data: profile } = await supabase

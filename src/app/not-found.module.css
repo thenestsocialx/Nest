@@ -1,0 +1,310 @@
+/* ═══════════════════════════════════════════
+   NEST · NOT FOUND — no-scroll, fit-to-viewport
+═══════════════════════════════════════════ */
+
+/* ── SHELL — full viewport, no scroll ── */
+.shell {
+  /* dvh accounts for mobile browser chrome collapsing */
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  background: var(--deep-pine);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: 68px; /* PublicHeader fixed height */
+}
+
+/* ── HERO — fills remaining space, centres content ── */
+.hero {
+  flex: 1;
+  min-height: 0;       /* let flexbox shrink below content height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  position: relative;
+  overflow: hidden;
+  animation: nfFadeUp 0.55s cubic-bezier(0.25, 0, 0.1, 1) both;
+}
+
+@keyframes nfFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── DECORATIVE NEST ART ── */
+.nestArt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--honey);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+
+.nestArt svg {
+  width: 220px;
+  height: auto;
+}
+
+@media (min-width: 480px)  { .nestArt svg { width: 280px; } }
+@media (min-width: 768px)  { .nestArt svg { width: 360px; } }
+@media (min-width: 1024px) { .nestArt svg { width: 420px; } }
+
+/* ── CONTENT ── */
+.content {
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── EYEBROW ── */
+.eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--honey);
+  opacity: 0.75;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 768px) { .eyebrow { font-size: 11px; margin-bottom: 16px; } }
+
+/* ── HEADING ── */
+.heading {
+  font-family: var(--font-playfair), 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: 28px;
+  color: var(--cream);
+  margin: 0 0 12px;
+  line-height: 1.15;
+}
+
+@media (min-width: 480px)  { .heading { font-size: 34px; } }
+@media (min-width: 768px)  { .heading { font-size: 42px; margin-bottom: 14px; } }
+@media (min-width: 1024px) { .heading { font-size: 48px; } }
+
+/* ── BODY TEXT ── */
+.body {
+  font-size: 13px;
+  line-height: 1.78;
+  color: rgba(248, 240, 229, 0.5);
+  margin: 0 0 32px;
+  max-width: 40ch;
+}
+
+@media (min-width: 480px)  { .body { font-size: 14px; } }
+@media (min-width: 768px)  { .body { font-size: 15px; margin-bottom: 36px; } }
+
+/* ── DESTINATION CARDS ── */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+/* switch to 3-column grid on wider screens */
+@media (min-width: 520px) {
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (min-width: 768px) { .cards { gap: 12px; } }
+
+/* ── CARD ── */
+.card {
+  display: flex;
+  flex-direction: row;   /* horizontal on mobile: [icon] [text] [→] */
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: rgba(248, 240, 229, 0.04);
+  border: 1px solid rgba(248, 240, 229, 0.09);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background   var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease),
+    transform    var(--t-base) var(--ease),
+    box-shadow   var(--t-base) var(--ease);
+}
+
+/* vertical layout once in the 3-column grid */
+@media (min-width: 520px) {
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 18px 16px 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .card { padding: 20px 18px 16px; }
+}
+
+.card:hover {
+  background: rgba(248, 240, 229, 0.07);
+  border-color: rgba(232, 200, 160, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+/* warm shimmer on hover */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(232, 200, 160, 0.07) 0%,
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.card:hover::after { opacity: 1; }
+
+/* ── CARD ICON ── */
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(232, 200, 160, 0.1);
+  color: var(--honey);
+  flex-shrink: 0;
+}
+
+@media (min-width: 520px) {
+  .cardIcon { margin-bottom: 2px; }
+}
+
+/* ── CARD BODY (label + desc grouped) ── */
+.cardBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── CARD LABEL ── */
+.cardLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) { .cardLabel { font-size: 14px; } }
+
+/* ── CARD DESCRIPTION ── */
+.cardDesc {
+  font-size: 11px;
+  color: rgba(248, 240, 229, 0.42);
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) { .cardDesc { font-size: 12px; } }
+
+/* ── CARD ARROW ── */
+.cardArrow {
+  font-size: 13px;
+  color: rgba(232, 200, 160, 0.4);
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform var(--t-base) var(--ease), color var(--t-base) var(--ease);
+}
+
+/* on vertical grid cards, push arrow to bottom-right */
+@media (min-width: 520px) {
+  .cardArrow {
+    align-self: flex-end;
+    margin-top: 4px;
+  }
+}
+
+.card:hover .cardArrow {
+  transform: translateX(3px);
+  color: var(--honey);
+}
+
+/* ── FOOTER ── */
+.footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(248, 240, 229, 0.06);
+  background: rgba(0, 0, 0, 0.12);
+  padding: 16px 24px;
+}
+
+@media (min-width: 768px) { .footer { padding: 18px 40px; } }
+
+.footerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footerCopy {
+  display: none;
+  font-size: 12px;
+  color: rgba(248, 240, 229, 0.22);
+}
+
+@media (min-width: 480px) { .footerCopy { display: block; } }
+
+.footerLinks {
+  display: flex;
+  gap: 14px;
+}
+
+.footerLink {
+  font-size: 12px;
+  color: rgba(248, 240, 229, 0.25);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.footerLink:hover { color: rgba(248, 240, 229, 0.65); }
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero          { animation: none; }
+  .card,
+  .card::after,
+  .cardArrow,
+  .footerLink    { transition: none; }
+}

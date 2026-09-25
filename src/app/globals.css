@@ -1199,6 +1199,13 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
+.ns-ld-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 920px;
+  margin: 0 auto;
+}
 .ns-ld-ally-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1338,6 +1345,7 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
   .ns-ld-hero__svg { display: none; }
   .ns-ld-grid-3 { grid-template-columns: 1fr; gap: 20px; }
   .ns-ld-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+  .ns-ld-pricing-grid { grid-template-columns: 1fr; gap: 16px; }
   .ns-ld-ally-cards { grid-template-columns: 1fr; padding-top: 60px; }
   .ns-ld-ally-cards > *:nth-child(2), .ns-ld-ally-cards > *:nth-child(3) { display: none; }
   .ns-ld-ally-card { margin-top: 80px; }
@@ -1422,7 +1430,7 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 
 .ns-plans__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 20px;
   width: 100%;
   max-width: 880px;

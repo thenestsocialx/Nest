@@ -60,7 +60,25 @@
   transition: border-color 0.15s;
 }
 .pricing-pg .plan-card.featured { border: 1.5px solid var(--deep-pine); }
-.pricing-pg .plan-card.disabled-plan { opacity: 0.55; pointer-events: none; }
+.pricing-pg .plan-card.plan-inactive {
+  border-style: dashed;
+  border-color: rgba(180,178,169,0.6);
+  background: #fafaf9;
+}
+.pricing-pg .plan-card.plan-inactive .plan-price-display .p-amount,
+.pricing-pg .plan-card.plan-inactive .plan-name { opacity: 0.45; }
+
+/* Active / Inactive toggle switch */
+.pricing-pg .plan-active-toggle {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.pricing-pg .plan-active-label {
+  font-size: 10px; font-weight: 600;
+  color: var(--moss); white-space: nowrap;
+}
+.pricing-pg .plan-active-label--on {
+  color: var(--deep-pine);
+}
 
 .pricing-pg .popular-tag {
   position: absolute;

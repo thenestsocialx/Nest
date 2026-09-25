@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { savePlan, saveNestConfig } from './actions'
+import { savePlan, saveNestConfig, togglePlanActive } from './actions'
 import './pricing.css'
 
 interface PlanRow {
@@ -13,6 +13,7 @@ interface PlanRow {
   features: string[]
   cta: string
   is_featured: boolean
+  is_active: boolean
   razorpay_plan_id: string | null
   display_order: number
 }
@@ -67,9 +68,10 @@ export default function PricingPage() {
   const [planEdits, setPlanEdits] = useState<Record<string, PlanEdits>>({})
   const [configEdits, setConfigEdits] = useState<Record<string, string>>({})
   const [savedConfig, setSavedConfig] = useState<Record<string, string>>({})
-  const [saving, setSaving] = useState<Record<string, boolean>>({})
-  const [msgs, setMsgs]     = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+  const [saving, setSaving]     = useState<Record<string, boolean>>({})
+  const [toggling, setToggling] = useState<Record<string, boolean>>({})
+  const [msgs, setMsgs]         = useState<Record<string, string>>({})
+  const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
     // Both plans and nest_config are readable by authenticated users via RLS
@@ -79,7 +81,11 @@ export default function PricingPage() {
       (supabase as any).from('plans').select('*').order('display_order'),
       supabase.from('nest_config').select('key, value').in('key', CONFIG_KEYS),
     ]).then(([plansRes, configRes]) => {
-      const plansData = plansRes.data as PlanRow[] | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const plansData = (plansRes.data as any[] | null)?.map((p) => ({
+        ...p,
+        is_active: p.is_active ?? true,
+      })) as PlanRow[] | null
       if (plansData) {
         setPlans(plansData)
         const edits: Record<string, PlanEdits> = {}
@@ -109,6 +115,16 @@ export default function PricingPage() {
   function flash(key: string, msg: string) {
     setMsgs((p) => ({ ...p, [key]: msg }))
     setTimeout(() => setMsgs((p) => { const n = { ...p }; delete n[key]; return n }), 3000)
+  }
+
+  async function handleTogglePlanActive(planId: string, currentActive: boolean) {
+    setToggling((p) => ({ ...p, [planId]: true }))
+    const result = await togglePlanActive(planId, !currentActive)
+    if (!result.error) {
+      setPlans((prev) => prev.map((p) => p.id === planId ? { ...p, is_active: !currentActive } : p))
+    }
+    setToggling((p) => ({ ...p, [planId]: false }))
+    if (result.error) flash(planId, result.error)
   }
   function setPE(id: string, field: keyof PlanEdits, value: string | boolean) {
     setPlanEdits((p) => ({ ...p, [id]: { ...p[id], [field]: value } }))
@@ -248,7 +264,9 @@ export default function PricingPage() {
           </div>
 
           <div className="plan-grid">
-            {plans.map((plan) => {
+            {(() => {
+              const activeCount = plans.filter((p) => p.is_active).length
+              return plans.map((plan) => {
               const e = planEdits[plan.id]
               if (!e) return null
               const mo = parseInt(e.price_inr || '0', 10)
@@ -260,7 +278,7 @@ export default function PricingPage() {
                   className={[
                     'plan-card',
                     e.is_featured ? 'featured' : '',
-                    plan.id === 'free' ? 'disabled-plan' : '',
+                    !plan.is_active ? 'plan-inactive' : '',
                   ].filter(Boolean).join(' ')}
                 >
                   {e.is_featured && <div className="popular-tag">Most popular</div>}
@@ -271,17 +289,37 @@ export default function PricingPage() {
                       <div className={`plan-dot dot-${plan.id}`} />
                       <span className="plan-name">{e.name || plan.id}</span>
                     </div>
-                    <span
-                      className="stripe-badge"
-                      title={e.razorpay_plan_id || undefined}
-                      style={{ background: e.razorpay_plan_id ? 'rgba(47,76,58,0.08)' : undefined }}
-                    >
-                      {plan.id === 'free'
-                        ? 'No Razorpay plan'
-                        : e.razorpay_plan_id
-                          ? e.razorpay_plan_id.substring(0, 16) + (e.razorpay_plan_id.length > 16 ? '…' : '')
-                          : 'Not linked'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span
+                        className="stripe-badge"
+                        title={e.razorpay_plan_id || undefined}
+                        style={{ background: e.razorpay_plan_id ? 'rgba(47,76,58,0.08)' : undefined }}
+                      >
+                        {plan.id === 'free'
+                          ? 'No Razorpay plan'
+                          : e.razorpay_plan_id
+                            ? e.razorpay_plan_id.substring(0, 16) + (e.razorpay_plan_id.length > 16 ? '…' : '')
+                            : 'Not linked'}
+                      </span>
+                      <div
+                        className="plan-active-toggle"
+                        title={plan.is_active && activeCount <= 2 ? 'At least 2 plans must remain active' : undefined}
+                      >
+                        <span className={`plan-active-label${plan.is_active ? ' plan-active-label--on' : ''}`}>
+                          {toggling[plan.id] ? '…' : plan.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        <label className="ns-toggle">
+                          <input
+                            type="checkbox"
+                            checked={plan.is_active}
+                            disabled={!!toggling[plan.id] || (plan.is_active && activeCount <= 2)}
+                            onChange={() => handleTogglePlanActive(plan.id, plan.is_active)}
+                          />
+                          <div className="ns-toggle__track" />
+                          <div className="ns-toggle__thumb" />
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Live price preview */}
@@ -302,7 +340,6 @@ export default function PricingPage() {
                       className="price-inp"
                       type="number" min={0}
                       value={e.price_inr}
-                      disabled={plan.id === 'free'}
                       onChange={(ev) => setPE(plan.id, 'price_inr', ev.target.value)}
                     />
                   </div>
@@ -365,7 +402,8 @@ export default function PricingPage() {
                   </div>
                 </div>
               )
-            })}
+            })
+          })()}
           </div>
 
           <div className="save-bar">

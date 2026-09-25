@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidateTag } from 'next/cache'
 import { getAdminUser } from '@/lib/auth-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { invalidateConfig } from '@/lib/nila-config'
@@ -39,6 +40,33 @@ export async function savePlan(
     return { error: 'Failed to save plan' }
   }
 
+  revalidateTag('plans', {})
+  return {}
+}
+
+export async function togglePlanActive(
+  id: string,
+  isActive: boolean,
+): Promise<{ error?: string }> {
+  try {
+    await assertAdmin()
+  } catch {
+    return { error: 'Unauthorized' }
+  }
+
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin as any)
+    .from('plans')
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[togglePlanActive]', error)
+    return { error: 'Failed to update plan status' }
+  }
+
+  revalidateTag('plans', {})
   return {}
 }
 

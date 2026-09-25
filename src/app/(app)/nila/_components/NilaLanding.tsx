@@ -51,8 +51,6 @@ function StepIcon({ children }: { children: React.ReactNode }) {
 }
 
 export default function NilaLanding({ plans }: NilaLandingProps) {
-  const freePlan = plans.find((p) => p.price === '₹0') ?? plans[0]
-  const paidPlan = plans.find((p) => p.isFeatured) ?? plans[1] ?? null
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: '#F8F0E5', minHeight: '100vh' }}>
@@ -491,65 +489,46 @@ export default function NilaLanding({ plans }: NilaLandingProps) {
               </p>
             </div>
 
-            <div className="ns-ld-grid-2" style={{ maxWidth: 820, margin: '0 auto' }}>
-              {freePlan && (
-                <div style={{ background: '#F8F0E5', border: '1px solid #E0D5C5', borderRadius: 18, padding: 36 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.13em', color: '#5C7A66', display: 'block', marginBottom: 14 }}>
-                    {freePlan.tag || 'WHERE YOU ARE NOW'}
-                  </span>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#2F4C3A', marginBottom: 6 }}>
-                    {freePlan.name}
-                  </div>
-                  <div style={{ marginBottom: 28 }}>
-                    <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: '#2F4C3A' }}>{freePlan.price}</span>
-                    <span style={{ fontSize: 14, color: '#5C7A66' }}> always</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
-                    {(freePlan.features ?? []).map((f) => (
-                      <div key={f} style={{ display: 'flex', gap: 12, fontSize: 14, color: '#2F4C3A', alignItems: 'flex-start' }}>
-                        <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(47,76,58,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                          <Check color="#2F4C3A" />
+            <div className="ns-ld-pricing-grid">
+              {plans.map((plan) => {
+                const isFree = plan.price === '₹0'
+                return (
+                  <div key={plan.id} style={{ background: '#F8F0E5', border: plan.isFeatured ? '2px solid #2F4C3A' : '1px solid #E0D5C5', borderRadius: 18, padding: 36 }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.13em', color: plan.isFeatured ? '#A85D3C' : '#5C7A66', display: 'block', marginBottom: 14 }}>
+                      {plan.tag || (plan.isFeatured ? 'MOST CHOSEN' : 'WHERE YOU ARE NOW')}
+                    </span>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#2F4C3A', marginBottom: 6 }}>
+                      {plan.name}
+                    </div>
+                    <div style={{ marginBottom: 28 }}>
+                      <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: '#2F4C3A' }}>{plan.price}</span>
+                      <span style={{ fontSize: 14, color: '#5C7A66' }}>{isFree ? ' always' : ' / month'}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
+                      {(plan.features ?? []).map((f) => (
+                        <div key={f} style={{ display: 'flex', gap: 12, fontSize: 14, color: '#2F4C3A', alignItems: 'flex-start' }}>
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: plan.isFeatured ? '#2F4C3A' : 'rgba(47,76,58,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                            <Check color={plan.isFeatured ? '#F8F0E5' : '#2F4C3A'} />
+                          </div>
+                          {f}
                         </div>
-                        {f}
+                      ))}
+                    </div>
+                    {isFree ? (
+                      <div style={{ textAlign: 'center', fontSize: 13, color: '#5C7A66', opacity: 0.7 }}>
+                        you are already here
                       </div>
-                    ))}
+                    ) : (
+                      <a
+                        href="/signup"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 999, background: '#A85D3C', color: '#F8F0E5', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}
+                      >
+                        {plan.cta || 'get started'}
+                      </a>
+                    )}
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: 13, color: '#5C7A66', opacity: 0.7 }}>
-                    you are already here
-                  </div>
-                </div>
-              )}
-
-              {paidPlan && (
-                <div style={{ background: '#F8F0E5', border: '2px solid #2F4C3A', borderRadius: 18, padding: 36 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.13em', color: '#A85D3C', display: 'block', marginBottom: 14 }}>
-                    {paidPlan.tag || 'MOST CHOSEN'}
-                  </span>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#2F4C3A', marginBottom: 6 }}>
-                    {paidPlan.name}
-                  </div>
-                  <div style={{ marginBottom: 28 }}>
-                    <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, color: '#2F4C3A' }}>{paidPlan.price}</span>
-                    <span style={{ fontSize: 14, color: '#5C7A66' }}> / month</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
-                    {(paidPlan.features ?? []).map((f) => (
-                      <div key={f} style={{ display: 'flex', gap: 12, fontSize: 14, color: '#2F4C3A', alignItems: 'flex-start' }}>
-                        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#2F4C3A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                          <Check color="#F8F0E5" />
-                        </div>
-                        {f}
-                      </div>
-                    ))}
-                  </div>
-                  <a
-                    href="/signup"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 15, borderRadius: 999, background: '#A85D3C', color: '#F8F0E5', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}
-                  >
-                    {paidPlan.cta || 'get started'}
-                  </a>
-                </div>
-              )}
+                )
+              })}
             </div>
 
             <p style={{ textAlign: 'center', margin: '28px 0 0', fontSize: 14, fontStyle: 'italic', color: '#5C7A66' }}>

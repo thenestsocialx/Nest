@@ -9,6 +9,7 @@ export const getPlans = unstable_cache(
     const { data } = await (admin as any)
       .from('plans')
       .select('id, name, price_inr, tag, features, cta, is_featured')
+      .eq('is_active', true)
       .order('display_order')
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

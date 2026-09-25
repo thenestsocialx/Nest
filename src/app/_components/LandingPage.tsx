@@ -683,20 +683,21 @@ export default function LandingPage({ isAuthenticated }: Props) {
                 7550096933
               </a>
               <span className={styles.footerContactDot} aria-hidden="true">·</span>
-              <a href="mailto:thenestsocialx@gmail.com" className={styles.footerContactLink}>
+              <a href="mailto:care@thenestsocial.com" className={styles.footerContactLink}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect x="2" y="4" width="20" height="16" rx="2"/>
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
-                thenestsocialx@gmail.com
+                care@thenestsocial.com
               </a>
             </div>
           </div>
           <div className={styles.footerBottom}>
             <span className={styles.footerCopy}>© 2026 Nest. All rights reserved.</span>
             <div className={styles.footerLegal}>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
+              <a href="/legal/privacy">Privacy Policy</a>
+              <a href="/legal/terms">Terms &amp; Conditions</a>
+              <a href="/legal/cancellation-refund">Cancellation &amp; Refund</a>
             </div>
           </div>
         </div>

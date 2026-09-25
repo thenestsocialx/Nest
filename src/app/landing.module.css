@@ -90,6 +90,8 @@
 .navLinks a:not(.navCta):hover { color: var(--canvas); }
 .navScrolled .navLinks a:not(.navCta) { color: rgba(28,43,34,0.65); }
 .navScrolled .navLinks a:not(.navCta):hover { color: var(--ink); }
+.navActive:not(.navCta) { color: var(--canvas) !important; }
+.navScrolled .navActive:not(.navCta) { color: var(--ink) !important; }
 
 .navCta {
   background: var(--canvas) !important;

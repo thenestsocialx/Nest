@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import styles from '@/app/landing.module.css'
 
@@ -10,6 +11,7 @@ interface PublicHeaderProps {
 
 export default function PublicHeader({ isAuthenticated = false }: PublicHeaderProps) {
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -18,6 +20,11 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
   }, [])
 
   const navClass = [styles.nav, scrolled ? styles.navScrolled : ''].filter(Boolean).join(' ')
+
+  const linkClass = (href: string) =>
+    pathname === href || pathname.startsWith(href + '/')
+      ? [styles.navActive].join(' ')
+      : undefined
 
   return (
     <header className={navClass} role="banner">
@@ -33,8 +40,8 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
         </Link>
 
         <nav className={styles.navLinks} aria-label="Main navigation">
-          <Link href="/nila">nila</Link>
-          <Link href="/allies">allies</Link>
+          <Link href="/nila" className={linkClass('/nila')}>nila</Link>
+          <Link href="/allies" className={linkClass('/allies')}>allies</Link>
           {isAuthenticated
             ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
             : <Link href="/login" className={styles.navCta}>Sign in</Link>

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
-import LandingHeader from '@/components/layout/LandingHeader'
+import PublicHeader from '@/components/layout/PublicHeader'
+import { createClient } from '@/lib/supabase/server'
 import styles from './legal.module.css'
 
 export const metadata: Metadata = {
@@ -11,11 +12,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LegalLayout({ children }: { children: React.ReactNode }) {
+export default async function LegalLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <>
       {/* ── HEADER ── */}
-      <LandingHeader />
+      <PublicHeader isAuthenticated={!!user} />
 
       {/* ── PAGE CONTENT ── */}
       <main className={styles.main}>{children}</main>

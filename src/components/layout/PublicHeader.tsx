@@ -11,6 +11,7 @@ interface PublicHeaderProps {
 
 export default function PublicHeader({ isAuthenticated = false }: PublicHeaderProps) {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -23,8 +24,10 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
 
   const linkClass = (href: string) =>
     pathname === href || pathname.startsWith(href + '/')
-      ? [styles.navActive].join(' ')
+      ? styles.navActive
       : undefined
+
+  const close = () => setMenuOpen(false)
 
   return (
     <header className={navClass} role="banner">
@@ -47,6 +50,30 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
             : <Link href="/login" className={styles.navCta}>Sign in</Link>
           }
         </nav>
+
+        <button
+          className={styles.navHamburger}
+          type="button"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(p => !p)}
+        >
+          <span style={menuOpen ? { transform: 'translateY(7px) rotate(45deg)' } : {}} />
+          <span style={menuOpen ? { opacity: 0, transform: 'scaleX(0)' } : {}} />
+          <span style={menuOpen ? { transform: 'translateY(-7px) rotate(-45deg)' } : {}} />
+        </button>
+      </div>
+
+      <div
+        className={[styles.mobileMenu, menuOpen ? styles.mobileMenuOpen : ''].filter(Boolean).join(' ')}
+        aria-hidden={!menuOpen}
+      >
+        <Link href="/nila" className={linkClass('/nila')} onClick={close}>nila</Link>
+        <Link href="/allies" className={linkClass('/allies')} onClick={close}>allies</Link>
+        {isAuthenticated
+          ? <Link href="/home" className={styles.navCta} onClick={close}>Go to your space →</Link>
+          : <Link href="/login" className={styles.navCta} onClick={close}>Sign in</Link>
+        }
       </div>
     </header>
   )

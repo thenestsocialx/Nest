@@ -76,6 +76,9 @@
   align-items: center;
   gap: 32px;
 }
+@media (max-width: 767px) {
+  .navLinks { display: none; }
+}
 .navLinks a:not(.navCta) {
   font-size: 15px;
   font-weight: 500;
@@ -167,6 +170,15 @@
   padding: 8px 0;
 }
 .mobileMenu a:last-child { border-bottom: none; }
+.mobileMenu .navCta {
+  background: var(--anchor) !important;
+  color: var(--canvas) !important;
+  border-bottom: none;
+  justify-content: center;
+  margin-top: 8px;
+  border-radius: 100px;
+  min-height: 44px;
+}
 
 /* ── HERO ── */
 .hero {

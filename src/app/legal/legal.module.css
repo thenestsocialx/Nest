@@ -84,25 +84,22 @@
 .headerCta:hover { opacity: 0.85; }
 
 /* ── MAIN ── */
-/* padding-top = exact measured distance from viewport top to heroZone bottom
-   (header height + hero height), so content starts right below the fixed hero */
+/* padding-top = PublicHeader height (always 68px) + heroZone height at each breakpoint */
 .main {
-  padding-top: 231px;
+  padding-top: 243px;
 }
 
-@media (min-width: 480px)  { .main { padding-top: 253px; } }
+@media (min-width: 480px)  { .main { padding-top: 261px; } }
 @media (min-width: 768px)  { .main { padding-top: 285px; } }
-@media (min-width: 1024px) { .main { padding-top: 310px; } }
-@media (min-width: 1280px) { .main { padding-top: 330px; } }
+@media (min-width: 1024px) { .main { padding-top: 306px; } }
+@media (min-width: 1280px) { .main { padding-top: 318px; } }
 
 /* ── HERO ZONE ── */
-/* sticky at top = header height: heroZone starts there naturally so it
-   sticks immediately and stays put while content scrolls underneath */
-/* position:fixed — completely removed from scroll, always visible below the header */
+/* top is always 68px — the fixed height of PublicHeader (landing.module.css .nav) */
 .heroZone {
   background: var(--deep-pine);
   position: fixed;
-  top: 56px;
+  top: 68px;
   left: 0;
   right: 0;
   width: 100%;
@@ -110,10 +107,10 @@
   padding: 36px 16px 52px;
 }
 
-@media (min-width: 480px)  { .heroZone { top: 60px; padding: 40px 20px 60px; } }
-@media (min-width: 768px)  { .heroZone { top: 68px; padding: 48px 32px 68px; } }
-@media (min-width: 1024px) { .heroZone { top: 72px; padding: 52px 56px 76px; } }
-@media (min-width: 1280px) { .heroZone { top: 80px; padding: 56px 80px 80px; } }
+@media (min-width: 480px)  { .heroZone { padding: 40px 20px 60px; } }
+@media (min-width: 768px)  { .heroZone { padding: 48px 32px 68px; } }
+@media (min-width: 1024px) { .heroZone { padding: 52px 56px 76px; } }
+@media (min-width: 1280px) { .heroZone { padding: 56px 80px 80px; } }
 
 /* centers the text block within the full-bleed hero background */
 .heroInner {

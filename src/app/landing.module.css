@@ -1109,18 +1109,29 @@
 /* ── CRISIS STRIP ── */
 .crisisStrip {
   background: rgba(47,76,58,0.92);
-  padding: 20px 0;
+  padding: 14px 0;
   border-bottom: 1px solid rgba(248,240,229,0.07);
 }
+@media (min-width: 768px) { .crisisStrip { padding: 18px 0; } }
+@media (min-width: 1280px) { .crisisStrip { padding: 20px 0; } }
+
 .crisisStripInner {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
 }
 @media (min-width: 768px) {
-  .crisisStripInner { align-items: center; gap: 20px; }
+  .crisisStripInner {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
 }
+@media (min-width: 1280px) {
+  .crisisStripInner { gap: 20px; flex-wrap: nowrap; }
+}
+
 .crisisStripLabel {
   font-family: var(--font-d);
   font-style: italic;
@@ -1130,12 +1141,14 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
+
 .crisisStripNumbers {
   display: flex;
   gap: 6px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
 }
+
 .crisisChip {
   font-size: 11px;
   font-weight: 500;
@@ -1152,15 +1165,16 @@
 }
 .crisisChip:hover { opacity: 1; }
 .crisisChip a { color: inherit; text-decoration: none; }
+
 .crisisStripEnd {
-  margin-left: 16px;
   font-size: 0.75rem;
   color: #F5D060;
   font-family: var(--font-d);
   font-style: italic;
   flex-shrink: 0;
+  margin-left: 4px;
 }
-@media (max-width: 767px) { .crisisStripEnd { margin-left: 0; } }
+@media (min-width: 768px) { .crisisStripEnd { margin-left: 10px; } }
 
 /* ── FOOTER ── */
 .footer {

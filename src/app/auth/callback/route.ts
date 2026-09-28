@@ -6,12 +6,15 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/home'
   const error = searchParams.get('error')
-  const errorDescription = searchParams.get('error_description')
+  const errorCode = searchParams.get('error_code')
 
   if (error) {
-    const url = new URL('/login', origin)
-    url.searchParams.set('error', errorDescription ?? 'Link expired. Please request a new one.')
-    return NextResponse.redirect(url)
+    // OTP/magic link expired — send user to forgot-password so they can request a fresh link
+    if (errorCode === 'otp_expired' || error === 'access_denied') {
+      return NextResponse.redirect(new URL('/forgot-password?error=link_expired', origin))
+    }
+    // All other auth errors fall back to the login page
+    return NextResponse.redirect(new URL('/login?error=callback_failed', origin))
   }
 
   if (code) {
@@ -27,6 +30,11 @@ export async function GET(request: Request) {
         // If returning from assessment, skip straight to save
         if (next === '/assessment/save') {
           return NextResponse.redirect(new URL('/assessment/save', origin))
+        }
+
+        // Password recovery — session is live; go straight to the reset form
+        if (next === '/auth/reset-password') {
+          return NextResponse.redirect(new URL('/auth/reset-password', origin))
         }
 
         const { data: profile } = await supabase

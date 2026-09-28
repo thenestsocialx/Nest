@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default async function RootPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string; error?: string; error_description?: string }>
+  searchParams: Promise<{ code?: string; error?: string; error_code?: string; error_description?: string }>
 }) {
   const params = await searchParams
 
@@ -33,7 +33,11 @@ export default async function RootPage({
     redirect(`/auth/callback?code=${params.code}`)
   }
   if (params.error) {
-    redirect(`/login?error=${encodeURIComponent(params.error_description ?? params.error)}`)
+    // Supabase sends expired link errors to the Site URL (root), not to /auth/callback
+    if (params.error_code === 'otp_expired' || params.error === 'access_denied') {
+      redirect('/forgot-password?error=link_expired')
+    }
+    redirect('/login?error=callback_failed')
   }
 
   const supabase = await createClient()

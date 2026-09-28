@@ -101,6 +101,41 @@ body { min-height: 100%; overflow-x: hidden; background: var(--cream); color: va
 .ns-otp__box.is-filled { background: var(--pine-tint); border-color: var(--moss); }
 .ns-mono { font-variant-numeric: tabular-nums; color: var(--deep-pine); font-weight: 500; }
 
+/* ── FORM — password fields ── */
+.ns-form__field--pw { position: relative; }
+.ns-form__field--pw .ns-form__input { padding-right: 44px; }
+.ns-form__eye { position: absolute; right: 0; top: 0; height: 100%; width: 44px; background: transparent; border: none; cursor: pointer; color: var(--moss); display: flex; align-items: center; justify-content: center; transition: color var(--t-fast) var(--ease); }
+.ns-form__eye:hover { color: var(--deep-pine); }
+
+/* ── FORM — label row with inline link ── */
+.ns-form__row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.ns-form__row .ns-form__label { margin-bottom: 0; }
+.ns-form__forgot { font-size: 12px; color: var(--moss); text-decoration: none; transition: color var(--t-fast) var(--ease); }
+.ns-form__forgot:hover { color: var(--deep-pine); }
+
+/* ── FORM — password strength bar ── */
+.ns-pw-strength { display: flex; gap: 4px; margin-top: 8px; }
+.ns-pw-bar { height: 3px; border-radius: 2px; flex: 1; background: var(--honey-mute); transition: background 200ms var(--ease); }
+.ns-pw-bar.s1 { background: #C0473D; }
+.ns-pw-bar.s2 { background: #D4874A; }
+.ns-pw-bar.s3 { background: #D4A84A; }
+.ns-pw-bar.s4 { background: var(--moss); }
+.ns-pw-label { font-size: 11px; color: var(--moss); margin-top: 5px; opacity: 0.75; }
+
+/* ── FORM — password requirement checklist ── */
+.ns-pw-reqs { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; animation: nsFade 200ms var(--ease) both; }
+.ns-pw-req { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--moss); opacity: 0.5; transition: opacity 150ms var(--ease), color 150ms var(--ease); line-height: 1.4; }
+.ns-pw-req--met { opacity: 1; }
+.ns-pw-req__dot { width: 14px; height: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+/* ── FORM — field-level inline error (space always reserved → no layout shift) ── */
+.ns-form__field-hint { min-height: 18px; font-size: 11px; color: var(--terracotta); margin-top: 4px; line-height: 1.4; padding: 0 2px; }
+.ns-form__field-error { min-height: 18px; font-size: 11px; color: var(--terracotta); margin-top: 4px; line-height: 1.4; padding: 0 2px; }
+/* Red border on a field that has an error */
+.ns-form__field--error { border-color: rgba(155,102,81,0.75) !important; }
+/* Form-level error zone — fixed height so no shift; content fades in/out */
+.ns-form__zone { min-height: 40px; display: flex; align-items: center; font-size: 13px; color: var(--terracotta); line-height: 1.5; margin-bottom: 4px; }
+
 /* ── BUTTONS ── */
 .ns-btn { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: 13px; font-weight: 500; padding: 11px 22px; border-radius: var(--r-pill); border: none; cursor: pointer; transition: all var(--t-fast) var(--ease); white-space: nowrap; text-decoration: none; -webkit-appearance: none; }
 .ns-btn:active { transform: scale(0.98); }

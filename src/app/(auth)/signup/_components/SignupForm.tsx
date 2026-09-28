@@ -61,7 +61,7 @@ export default function SignupForm({ defaultName, email }: SignupFormProps) {
                 name="email_display"
                 defaultValue={email}
                 readOnly
-                aria-label="Email from your Google account — cannot be changed here"
+                aria-label="Your email address — cannot be changed here"
                 tabIndex={-1}
               />
             </div>

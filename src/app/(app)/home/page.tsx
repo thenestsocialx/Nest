@@ -8,7 +8,8 @@ import MobileProfileLink from '@/components/layout/MobileProfileLink'
 import MoodSelector from './_components/MoodSelector'
 
 export const metadata = {
-  title: 'Home — Nest',
+  title: 'The Nest Social | Online Therapy & Relationship Support in India',
+  description: 'The Nest Social is a warm, credentialed space for online therapy and relationship support in India. Talk to Nila anytime, or book a verified psychologist. Start free.',
 }
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']

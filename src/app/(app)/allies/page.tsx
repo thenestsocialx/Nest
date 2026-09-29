@@ -6,11 +6,11 @@ import AlliesLanding from './_components/AlliesLanding';
 import type { AllyPublicProfile } from '@/types/findAllies';
 
 export const metadata = {
-  title: 'Find your ally — Nest',
-  description: 'Browse therapists, coaches, and counsellors on Nest. Find an ally who gets you — filter by what matters to you and book a free intro session.',
+  title: 'Find a Psychologist | Licensed Online Therapy in India | The Nest Social',
+  description: 'Every Ally is a licensed psychologist or counsellor, RCI, NMC or IACP registered. 55-minute sessions in Tamil, Thanglish, Hindi or English. Matched to you.',
   openGraph: {
-    title: 'Find your ally — Nest',
-    description: 'Browse therapists, coaches, and counsellors on Nest. Find an ally who gets you — filter by what matters to you and book a free intro session.',
+    title: 'Find a Psychologist | Licensed Online Therapy in India | The Nest Social',
+    description: 'Every Ally is a licensed psychologist or counsellor, RCI, NMC or IACP registered. 55-minute sessions in Tamil, Thanglish, Hindi or English. Matched to you.',
   },
 };
 

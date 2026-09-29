@@ -7,7 +7,8 @@ import ChatShell from './_components/ChatShell'
 import NilaLanding from './_components/NilaLanding'
 
 export const metadata = {
-  title: 'Nila — Nest',
+  title: 'Nila | AI Companion when you feel lonely| The Nest Social',
+  description: 'Meet Nila - a warm AI companion who listens, and talks back. There at 2am, without judgment. Built to help you find your way back to real people.',
 }
 
 function getTimePeriod(): 'morning' | 'afternoon' | 'evening' | 'night' {

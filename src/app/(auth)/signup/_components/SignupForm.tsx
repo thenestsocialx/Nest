@@ -8,9 +8,16 @@ const initialState: ProfileActionState = {}
 interface SignupFormProps {
   defaultName: string
   email: string
+  defaultCountryCode?: string
+  defaultPhone?: string
 }
 
-export default function SignupForm({ defaultName, email }: SignupFormProps) {
+export default function SignupForm({
+  defaultName,
+  email,
+  defaultCountryCode = '+91',
+  defaultPhone = '',
+}: SignupFormProps) {
   const [state, formAction, isPending] = useActionState(saveSignupProfile, initialState)
   const [tcChecked, setTcChecked] = useState(false)
   const [waChecked, setWaChecked] = useState(false)
@@ -52,19 +59,21 @@ export default function SignupForm({ defaultName, email }: SignupFormProps) {
               />
             </div>
 
-            <div className="ns-su-field">
-              <label className="ns-su-field-label" htmlFor="su-email">Email address</label>
-              <input
-                className="ns-su-input ns-su-input--readonly"
-                type="email"
-                id="su-email"
-                name="email_display"
-                defaultValue={email}
-                readOnly
-                aria-label="Your email address — cannot be changed here"
-                tabIndex={-1}
-              />
-            </div>
+            {email && (
+              <div className="ns-su-field">
+                <label className="ns-su-field-label" htmlFor="su-email">Email address</label>
+                <input
+                  className="ns-su-input ns-su-input--readonly"
+                  type="email"
+                  id="su-email"
+                  name="email_display"
+                  defaultValue={email}
+                  readOnly
+                  aria-label="Your email address — cannot be changed here"
+                  tabIndex={-1}
+                />
+              </div>
+            )}
           </fieldset>
 
           {/* ── Section 2: Your number ── */}
@@ -78,7 +87,7 @@ export default function SignupForm({ defaultName, email }: SignupFormProps) {
                   <select
                     className="ns-su-select"
                     name="phone_country_code"
-                    defaultValue="+91"
+                    defaultValue={defaultCountryCode}
                     aria-label="Country code"
                   >
                     <option value="+91">🇮🇳 +91</option>
@@ -92,6 +101,7 @@ export default function SignupForm({ defaultName, email }: SignupFormProps) {
                     type="tel"
                     id="su-phone"
                     name="phone"
+                    defaultValue={defaultPhone}
                     placeholder="98765 43210"
                     autoComplete="tel-national"
                     required

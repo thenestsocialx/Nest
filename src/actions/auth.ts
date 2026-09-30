@@ -3,6 +3,9 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getFirebaseAdminAuth } from '@/lib/firebase/admin'
+import { phoneAuthEmail } from '@/lib/phone-auth'
 import { validatePasswordRules } from '@/lib/password'
 
 async function getOrigin(): Promise<string> {
@@ -225,4 +228,70 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/login')
+}
+
+// Firebase ID tokens older than this are rejected, so a leaked token can't be replayed later.
+const PHONE_TOKEN_MAX_AGE_SECONDS = 5 * 60
+
+/**
+ * Sign in (or sign up) with a phone number verified by Firebase SMS OTP.
+ * The browser verifies the OTP with Firebase and sends us the resulting ID token; we verify
+ * it with firebase-admin, then create/find the matching Supabase user and start a Supabase
+ * session via a server-generated magic link (no email is sent).
+ */
+export async function signInWithPhone(idToken: string): Promise<AuthActionState> {
+  if (typeof idToken !== 'string' || !idToken) {
+    return { error: 'Verification failed. Please try again.' }
+  }
+
+  let phone: string
+  try {
+    const decoded = await getFirebaseAdminAuth().verifyIdToken(idToken)
+    if (decoded.firebase.sign_in_provider !== 'phone' || !decoded.phone_number) {
+      return { error: 'Verification failed. Please try again.' }
+    }
+    if (Date.now() / 1000 - decoded.auth_time > PHONE_TOKEN_MAX_AGE_SECONDS) {
+      return { error: 'Your code has expired. Please request a new one.' }
+    }
+    phone = decoded.phone_number
+  } catch {
+    return { error: 'We couldn’t verify your number. Please try again.' }
+  }
+
+  const email = phoneAuthEmail(phone)
+  const admin = createAdminClient()
+
+  const { error: createError } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    phone: phone.replace(/\D/g, ''),
+    phone_confirm: true,
+    user_metadata: { signup_method: 'phone' },
+  })
+  // email_exists = returning phone user; anything else is a real failure
+  if (createError && createError.code !== 'email_exists') {
+    if (createError.code === 'phone_exists') {
+      return { error: 'This number is already linked to another account. Try signing in with email.' }
+    }
+    return { error: 'Something went wrong. Please try again.' }
+  }
+
+  const { data: link, error: linkError } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+  })
+  if (linkError || !link.properties?.hashed_token) {
+    return { error: 'Something went wrong. Please try again.' }
+  }
+
+  const supabase = await createClient()
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    type: 'email',
+    token_hash: link.properties.hashed_token,
+  })
+  if (otpError) {
+    return { error: 'Something went wrong. Please try again.' }
+  }
+
+  return routeAfterAuth()
 }

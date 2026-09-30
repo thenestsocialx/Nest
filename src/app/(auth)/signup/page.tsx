@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isPhoneAuthEmail, PHONE_COUNTRY_CODES } from '@/lib/phone-auth'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import SignupForm from './_components/SignupForm'
@@ -30,7 +31,16 @@ export default async function SignupPage() {
     (user.user_metadata?.full_name as string) ??
     (user.user_metadata?.name as string) ??
     ''
-  const email = user.email ?? ''
+  // Phone sign-ups carry an internal placeholder email — don't show it
+  const email = isPhoneAuthEmail(user.email) ? '' : (user.email ?? '')
+
+  // Pre-fill the number already verified by phone sign-in (stored as digits, e.g. 919876543210)
+  const verifiedPhone = user.phone ? `+${user.phone}` : ''
+  const verifiedCountry = [...PHONE_COUNTRY_CODES]
+    .sort((a, b) => b.code.length - a.code.length)
+    .find((c) => verifiedPhone.startsWith(c.code))
+  const defaultCountryCode = verifiedCountry?.code ?? '+91'
+  const defaultPhone = verifiedCountry ? verifiedPhone.slice(verifiedCountry.code.length) : ''
 
   return (
     <main className="ns-signup">
@@ -40,7 +50,12 @@ export default async function SignupPage() {
           <NestLogo size={18} color="#2F4C3A" />
         </div>
 
-        <SignupForm defaultName={defaultName} email={email} />
+        <SignupForm
+          defaultName={defaultName}
+          email={email}
+          defaultCountryCode={defaultCountryCode}
+          defaultPhone={defaultPhone}
+        />
       </div>
 
       {/* Right — illustration column */}

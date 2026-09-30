@@ -19,9 +19,22 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!exchangeError) {
+      // Detect password-recovery sessions via the JWT AMR claim.
+      // This catches the case where Supabase ignores our ?next= redirectTo (allowlist
+      // mismatch) and drops the code at the site root, losing the next param entirely.
+      const accessToken = exchangeData.session?.access_token
+      if (accessToken) {
+        try {
+          const payload = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url').toString())
+          if (Array.isArray(payload.amr) && payload.amr.some((a: { method: string }) => a.method === 'recovery')) {
+            return NextResponse.redirect(new URL('/auth/reset-password', origin))
+          }
+        } catch {}
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser()

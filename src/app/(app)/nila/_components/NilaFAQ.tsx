@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import styles from '@/components/layout/guestLanding.module.css'
 
 const FAQS = [
   {
@@ -16,7 +17,7 @@ const FAQS = [
   {
     id: 'f3',
     q: 'Is Nila a therapist?',
-    a: 'No. Nila is an AI companion — she listens, reflects, and helps you feel less alone. She is not a licensed therapist and does not provide clinical diagnosis or treatment. For clinical support, our allies are here.',
+    a: 'No. Nila is an AI companion. She listens, reflects, and helps you feel less alone. She is not a licensed therapist and does not provide clinical diagnosis or treatment. For clinical support, our allies are here.',
   },
   {
     id: 'f4',
@@ -31,7 +32,7 @@ const FAQS = [
   {
     id: 'f6',
     q: 'Can I use Nila if I am going through something serious?',
-    a: 'Nila is here for the in-between — for nights that feel heavy, for processing what\'s on your mind. If you are in crisis, please reach out to iCall (9152 987 821) or Vandrevala (1860 2662 345). Both are free. If you want structured support, our allies are licensed professionals ready to help.',
+    a: 'Nila is here for the in-between: for nights that feel heavy, for processing what\'s on your mind. If you are in crisis, please reach out to iCall (9152 987 821) or Vandrevala (1860 2662 345). Both are free. If you want structured support, our allies are licensed professionals ready to help.',
   },
 ]
 
@@ -39,39 +40,21 @@ export default function NilaFAQ() {
   const [open, setOpen] = useState<string>('f1')
 
   return (
-    <div style={{ width: '100%', maxWidth: 800 }}>
+    <div className={styles.faqList}>
       {FAQS.map((faq) => {
         const isOpen = open === faq.id
         return (
-          <div key={faq.id} className="ns-ld-faq-row">
+          <div key={faq.id} className={styles.faqItem}>
             <button
-              className="ns-ld-faq-trigger"
+              className={styles.faqTrigger}
               type="button"
               onClick={() => setOpen(isOpen ? '' : faq.id)}
               aria-expanded={isOpen}
             >
-              <span style={{ fontSize: 16, fontWeight: 500, color: '#2F4C3A', lineHeight: 1.4 }}>
-                {faq.q}
-              </span>
-              <span
-                style={{
-                  fontSize: 22,
-                  color: '#5C7A66',
-                  lineHeight: 1,
-                  paddingLeft: 16,
-                  flexShrink: 0,
-                  fontWeight: 300,
-                }}
-                aria-hidden="true"
-              >
-                {isOpen ? '−' : '+'}
-              </span>
+              {faq.q}
+              <span className={styles.faqSign} aria-hidden="true">{isOpen ? '−' : '+'}</span>
             </button>
-            {isOpen && (
-              <p className="ns-ld-faq-answer">
-                {faq.a}
-              </p>
-            )}
+            {isOpen && <p className={styles.faqAnswer}>{faq.a}</p>}
           </div>
         )
       })}

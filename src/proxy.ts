@@ -3,7 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PROTECTED = ['/home', '/nila', '/allies', '/resources', '/events', '/settings', '/assessment/save']
 
+// These pages show a public landing page to guests and the app to signed-in users,
+// so only their sub-pages (e.g. /nila/history) need a login.
+const PUBLIC_LANDINGS = ['/nila', '/allies']
+
 function isProtected(pathname: string): boolean {
+  if (PUBLIC_LANDINGS.includes(pathname)) return false
   return PROTECTED.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))
 }
 

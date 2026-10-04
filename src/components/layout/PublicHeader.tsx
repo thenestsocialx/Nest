@@ -5,11 +5,16 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import styles from '@/app/landing.module.css'
 
+// The blog needs its own database, so it's only linked where one is set up
+const BLOG_ENABLED = process.env.NEXT_PUBLIC_BLOG_ENABLED === 'true'
+
 interface PublicHeaderProps {
   isAuthenticated?: boolean
+  /** Darker bar for pages whose hero uses the deeper green */
+  dark?: boolean
 }
 
-export default function PublicHeader({ isAuthenticated = false }: PublicHeaderProps) {
+export default function PublicHeader({ isAuthenticated = false, dark = false }: PublicHeaderProps) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -20,7 +25,9 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const navClass = [styles.nav, scrolled ? styles.navScrolled : ''].filter(Boolean).join(' ')
+  // Blog listing pages open on a dark hero too, so the bar blends into it the same way
+  const blendIntoHero = dark || pathname === '/blog' || pathname.startsWith('/blog/category/')
+  const navClass = [styles.nav, blendIntoHero ? styles.navDark : '', scrolled ? styles.navScrolled : ''].filter(Boolean).join(' ')
 
   const linkClass = (href: string) =>
     pathname === href || pathname.startsWith(href + '/')
@@ -45,6 +52,7 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
         <nav className={styles.navLinks} aria-label="Main navigation">
           <Link href="/nila" className={linkClass('/nila')}>nila</Link>
           <Link href="/allies" className={linkClass('/allies')}>allies</Link>
+          {BLOG_ENABLED && <Link href="/blog" className={linkClass('/blog')}>blog</Link>}
           {isAuthenticated
             ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
             : <Link href="/login" className={styles.navCta}>Sign in</Link>
@@ -70,6 +78,7 @@ export default function PublicHeader({ isAuthenticated = false }: PublicHeaderPr
       >
         <Link href="/nila" className={linkClass('/nila')} onClick={close}>nila</Link>
         <Link href="/allies" className={linkClass('/allies')} onClick={close}>allies</Link>
+        {BLOG_ENABLED && <Link href="/blog" className={linkClass('/blog')} onClick={close}>blog</Link>}
         {isAuthenticated
           ? <Link href="/home" className={styles.navCta} onClick={close}>Go to your space →</Link>
           : <Link href="/login" className={styles.navCta} onClick={close}>Sign in</Link>

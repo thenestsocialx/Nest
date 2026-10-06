@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import SignupForm from './_components/SignupForm'
@@ -37,7 +38,9 @@ export default async function SignupPage() {
       {/* Left — form column */}
       <div className="ns-signup__form-col">
         <div className="ns-signup__nav">
-          <NestLogo size={18} color="#2F4C3A" />
+          <Link href="/" aria-label="nest home" style={{ display: 'inline-flex' }}>
+            <NestLogo size={18} color="#2F4C3A" />
+          </Link>
         </div>
 
         <SignupForm defaultName={defaultName} email={email} />

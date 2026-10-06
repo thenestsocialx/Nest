@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import ForgotPasswordForm from './_components/ForgotPasswordForm'
@@ -18,7 +19,9 @@ export default async function ForgotPasswordPage({
     <main className="ns-split">
       <div className="ns-split__left">
         <div className="ns-split__brand">
-          <NestLogo size={18} color="#2F4C3A" />
+          <Link href="/" aria-label="nest home" style={{ display: 'inline-flex' }}>
+            <NestLogo size={18} color="#2F4C3A" />
+          </Link>
         </div>
         <div className="ns-split__art">
           <DoorIllustration />

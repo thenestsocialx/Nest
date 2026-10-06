@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import LoginForm from './_components/LoginForm'
@@ -29,7 +30,9 @@ export default async function LoginPage({
       {/* Left — illustration column */}
       <div className="ns-split__left">
         <div className="ns-split__brand">
-          <NestLogo size={18} color="#2F4C3A" />
+          <Link href="/" aria-label="nest home" style={{ display: 'inline-flex' }}>
+            <NestLogo size={18} color="#2F4C3A" />
+          </Link>
         </div>
         <div className="ns-split__art">
           <DoorIllustration />

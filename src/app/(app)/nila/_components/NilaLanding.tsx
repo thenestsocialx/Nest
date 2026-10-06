@@ -132,7 +132,7 @@ export default function NilaLanding({ plans }: NilaLandingProps) {
                   </defs>
 
                   {/* Stars */}
-                  <g fill="#E8C8A0">
+                  <g fill="#E8C8A0" className={styles.twinkle}>
                     <circle cx="60" cy="40" r="1.4" opacity="0.6" />
                     <circle cx="250" cy="22" r="1.2" opacity="0.5" />
                     <circle cx="330" cy="110" r="1.3" opacity="0.5" />
@@ -145,19 +145,23 @@ export default function NilaLanding({ plans }: NilaLandingProps) {
                     <path d="M712 206 l1.4 -4 l1.4 4 l4 1.4 l-4 1.4 l-1.4 4 l-1.4 -4 l-4 -1.4Z" opacity="0.7" />
                   </g>
 
-                  {/* Moon with glow and sleepy face */}
-                  <circle cx="584" cy="150" r="140" fill="#E8C8A0" opacity="0.05" />
-                  <circle cx="584" cy="150" r="104" fill="#E8C8A0" opacity="0.07" />
-                  <circle cx="584" cy="150" r="80" fill="#E8C8A0" opacity="0.08" />
-                  <circle cx="584" cy="150" r="64" fill="#EFDFBE" mask="url(#nilaCrescent)" />
-                  <path d="M538 136 Q546 144 555 137" stroke="#8A6E50" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M556 176 Q566 184 578 178" stroke="#8A6E50" strokeWidth="2" strokeLinecap="round" />
-                  <circle cx="548" cy="160" r="5" fill="#E2A98C" opacity="0.35" />
+                  {/* Moon with glow and sleepy face, drifting gently up and down */}
+                  <g className={styles.floatMoon}>
+                    <circle cx="584" cy="150" r="140" fill="#E8C8A0" opacity="0.05" />
+                    <circle cx="584" cy="150" r="104" fill="#E8C8A0" opacity="0.07" />
+                    <circle cx="584" cy="150" r="80" fill="#E8C8A0" opacity="0.08" />
+                    <circle cx="584" cy="150" r="64" fill="#EFDFBE" mask="url(#nilaCrescent)" />
+                    <path d="M538 136 Q546 144 555 137" stroke="#8A6E50" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M556 176 Q566 184 578 178" stroke="#8A6E50" strokeWidth="2" strokeLinecap="round" />
+                    <circle cx="548" cy="160" r="5" fill="#E2A98C" opacity="0.35" />
+                  </g>
 
                   {/* "I'm here." bubble */}
-                  <rect x="396" y="128" width="104" height="42" rx="14" fill="#F2E6CF" />
-                  <path d="M498 140 L516 149 L498 158Z" fill="#F2E6CF" />
-                  <text x="448" y="155" textAnchor="middle" fontFamily="Lora,Georgia,serif" fontSize="17" fontStyle="italic" fill="#2F4C3A">I&apos;m here.</text>
+                  <g className={styles.floatSoft}>
+                    <rect x="396" y="128" width="104" height="42" rx="14" fill="#F2E6CF" />
+                    <path d="M498 140 L516 149 L498 158Z" fill="#F2E6CF" />
+                    <text x="448" y="155" textAnchor="middle" fontFamily="Lora,Georgia,serif" fontSize="17" fontStyle="italic" fill="#2F4C3A">I&apos;m here.</text>
+                  </g>
 
                   {/* Distant hills */}
                   <g mask="url(#nilaHillFade)">
@@ -202,7 +206,7 @@ export default function NilaLanding({ plans }: NilaLandingProps) {
                   {/* Cup with steam */}
                   <rect x="306" y="404" width="17" height="16" rx="2.5" fill="#E8C8A0" />
                   <path d="M323 408 Q330 408 330 412.5 Q330 417 323 417" stroke="#E8C8A0" strokeWidth="2" fill="none" />
-                  <path d="M311 398 Q307 392 311 386 Q315 380 311 374 M318 398 Q315 393 318 388" stroke="#E8C8A0" strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
+                  <path className={styles.steam} d="M311 398 Q307 392 311 386 Q315 380 311 374 M318 398 Q315 393 318 388" stroke="#E8C8A0" strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
 
                   {/* Person sitting on the hill, facing the moon */}
                   <path d="M390 414 L424 386 L456 412" stroke="#121C16" strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" />

@@ -14,7 +14,7 @@ interface Props {
 }
 
 // The Nest playlist ("Dead Poets Society"). Replace with the real Spotify link.
-const SPOTIFY_PLAYLIST_URL = 'https://open.spotify.com/'
+const SPOTIFY_PLAYLIST_URL = 'https://open.spotify.com/playlist/4fdJZ6aY1uFZpEIuzyGoOa'
 
 const FAMILIAR = [
   {
@@ -404,7 +404,8 @@ export default function LandingPage({ isAuthenticated }: Props) {
           <div className={`${styles.container} ${styles.tamilQuoteContent}`}>
             <div className={styles.tamilQuoteMark} aria-hidden="true">&ldquo;</div>
             <p className={styles.tamilQuoteMain} data-animate lang="ta">
-              ஆனால் மிஞ்சி போனால் மரணம் என்ற போது,<br />வாழ்க்கை வாழ வெக்க படலாமா
+              <span className={styles.tamilQuoteLine}>ஆனால் மிஞ்சி போனால் மரணம் என்ற போது,</span>
+              <span className={styles.tamilQuoteLine}>வாழ்க்கை வாழ வெக்க படலாமா</span>
             </p>
             <p className={styles.tamilQuoteEnglish} data-animate data-delay="1">
               When even death feels like what remains at the end, should life itself be ashamed of wanting to be lived?

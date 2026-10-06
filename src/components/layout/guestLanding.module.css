@@ -637,3 +637,31 @@
 .faqTrigger:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; border-radius: 4px; }
 .faqSign { font-size: 1.375rem; font-weight: 300; color: var(--moss); line-height: 1; flex-shrink: 0; }
 .faqAnswer { margin: -6px 0 22px; font-size: 0.9375rem; line-height: 1.8; color: var(--moss); max-width: 66ch; }
+
+/* ── Hero illustration motion (kept gentle; switched off for reduced motion) ── */
+.floatMoon, .floatSoft, .glowMoon, .wobble, .breatheRings, .steam {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.floatMoon    { animation: gentleFloat 6s ease-in-out infinite; }
+.floatSoft    { animation: gentleFloat 6s ease-in-out 0.8s infinite; }
+.twinkle > *  { animation: twinkle 3.6s ease-in-out infinite; }
+.twinkle > :nth-child(3n)   { animation-delay: 1.2s; }
+.twinkle > :nth-child(3n+1) { animation-delay: 2.4s; }
+.steam        { animation: steamRise 3.2s ease-in-out infinite; }
+.glowMoon     { animation: moonGlow 5s ease-in-out infinite; }
+.flowLine     { stroke-dasharray: 6 7; animation: flowDash 3s linear infinite; }
+.wobble       { animation: wobble 5s ease-in-out infinite; }
+.breatheRings { animation: ringsBreathe 5s ease-in-out infinite; }
+
+@keyframes gentleFloat  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes twinkle      { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+@keyframes steamRise    { 0% { transform: translateY(4px); opacity: 0; } 40% { opacity: 0.7; } 100% { transform: translateY(-8px); opacity: 0; } }
+@keyframes moonGlow     { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(232,200,160,0)); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 14px rgba(232,200,160,0.55)); } }
+@keyframes flowDash     { to { stroke-dashoffset: -26; } }
+@keyframes wobble       { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes ringsBreathe { 0%, 100% { transform: scale(0.94); } 50% { transform: scale(1.04); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .floatMoon, .floatSoft, .twinkle > *, .steam, .glowMoon, .flowLine, .wobble, .breatheRings { animation: none; }
+}

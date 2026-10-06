@@ -7,7 +7,7 @@ import PhoneAuthForm from '../../_components/PhoneAuthForm'
 
 const initialState: AuthActionState = {}
 
-export default function LoginForm({ urlError }: { urlError?: string }) {
+export default function LoginForm({ urlError, phoneEnabled }: { urlError?: string; phoneEnabled: boolean }) {
   const [state, formAction, isPending] = useActionState(signInWithEmail, initialState)
   const [googlePending, startGoogleTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
@@ -36,7 +36,7 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
 
   const busy = isPending || googlePending
 
-  if (usePhone) {
+  if (usePhone && phoneEnabled) {
     return (
       <>
         <PhoneAuthForm
@@ -162,17 +162,19 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
             {googlePending ? 'Redirecting…' : 'Continue with Google'}
           </button>
 
-          <button
-            className="ns-btn ns-btn--google ns-btn--full"
-            type="button"
-            onClick={() => setUsePhone(true)}
-            disabled={busy}
-            aria-label="Continue with phone"
-            style={{ marginTop: 12 }}
-          >
-            <PhoneIcon />
-            Continue with phone
-          </button>
+          {phoneEnabled && (
+            <button
+              className="ns-btn ns-btn--google ns-btn--full"
+              type="button"
+              onClick={() => setUsePhone(true)}
+              disabled={busy}
+              aria-label="Continue with phone"
+              style={{ marginTop: 12 }}
+            >
+              <PhoneIcon />
+              Continue with phone
+            </button>
+          )}
 
           <p className="ns-form__legal">
             By continuing, you agree to our{' '}

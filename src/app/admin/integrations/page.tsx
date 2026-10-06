@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import ZohoCard from './_components/ZohoCard';
 import IntegrationsToast from './_components/IntegrationsToast';
+import PhoneAuthCard from './_components/PhoneAuthCard';
+import { isPhoneAuthEnabled } from '@/lib/phone-auth-flag';
 
 export default async function IntegrationsPage() {
   const adminClient = createAdminClient();
@@ -11,10 +13,13 @@ export default async function IntegrationsPage() {
     .maybeSingle();
 
   const zohoConnected = !!zohoRow;
+  const phoneAuthEnabled = await isPhoneAuthEnabled();
 
   return (
     <>
       <IntegrationsToast />
+
+      <PhoneAuthCard initialEnabled={phoneAuthEnabled} />
 
       {/* Zoho card */}
       <div className="ns-card">

@@ -18,7 +18,7 @@ import PhoneAuthForm from '../../_components/PhoneAuthForm'
 const initialState: AuthActionState = {}
 const RESEND_COOLDOWN = 30
 
-export default function RegisterForm() {
+export default function RegisterForm({ phoneEnabled }: { phoneEnabled: boolean }) {
   const [state, formAction, isPending] = useActionState(signUpWithEmail, initialState)
   const [googlePending, startGoogleTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
@@ -71,7 +71,7 @@ export default function RegisterForm() {
 
   const busy = isPending || googlePending
 
-  if (usePhone) {
+  if (usePhone && phoneEnabled) {
     return (
       <PhoneAuthForm
         title="Create your account."
@@ -279,17 +279,19 @@ export default function RegisterForm() {
             {googlePending ? 'Redirecting…' : 'Continue with Google'}
           </button>
 
-          <button
-            className="ns-btn ns-btn--google ns-btn--full"
-            type="button"
-            onClick={() => setUsePhone(true)}
-            disabled={busy}
-            aria-label="Continue with phone"
-            style={{ marginTop: 12 }}
-          >
-            <PhoneIcon />
-            Continue with phone
-          </button>
+          {phoneEnabled && (
+            <button
+              className="ns-btn ns-btn--google ns-btn--full"
+              type="button"
+              onClick={() => setUsePhone(true)}
+              disabled={busy}
+              aria-label="Continue with phone"
+              style={{ marginTop: 12 }}
+            >
+              <PhoneIcon />
+              Continue with phone
+            </button>
+          )}
 
           <p className="ns-form__legal">
             By creating an account you agree to our{' '}

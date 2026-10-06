@@ -4,6 +4,7 @@ import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import RegisterForm from './_components/RegisterForm'
+import { isPhoneAuthEnabled } from '@/lib/phone-auth-flag'
 
 export const metadata = {
   title: 'Create account — Nest',
@@ -16,6 +17,8 @@ export default async function RegisterPage() {
   } = await supabase.auth.getUser()
 
   if (user) redirect('/home')
+
+  const phoneEnabled = await isPhoneAuthEnabled()
 
   return (
     <main className="ns-split">
@@ -37,7 +40,7 @@ export default async function RegisterPage() {
       </div>
 
       <div className="ns-split__right">
-        <RegisterForm />
+        <RegisterForm phoneEnabled={phoneEnabled} />
       </div>
     </main>
   )

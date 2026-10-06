@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getFirebaseAdminAuth } from '@/lib/firebase/admin'
 import { phoneAuthEmail } from '@/lib/phone-auth'
+import { isPhoneAuthEnabled } from '@/lib/phone-auth-flag'
 import { validatePasswordRules } from '@/lib/password'
 
 async function getOrigin(): Promise<string> {
@@ -240,6 +241,9 @@ const PHONE_TOKEN_MAX_AGE_SECONDS = 5 * 60
  * session via a server-generated magic link (no email is sent).
  */
 export async function signInWithPhone(idToken: string): Promise<AuthActionState> {
+  if (!(await isPhoneAuthEnabled())) {
+    return { error: 'Phone sign-in is unavailable right now. Please use email or Google.' }
+  }
   if (typeof idToken !== 'string' || !idToken) {
     return { error: 'Verification failed. Please try again.' }
   }

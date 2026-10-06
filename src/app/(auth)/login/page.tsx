@@ -4,7 +4,6 @@ import Link from 'next/link'
 import NestLogo from '@/components/ui/NestLogo'
 import DoorIllustration from '@/components/ui/DoorIllustration'
 import LoginForm from './_components/LoginForm'
-import { isPhoneAuthEnabled } from '@/lib/phone-auth-flag'
 
 export const metadata = {
   title: 'Sign in — Nest',
@@ -25,7 +24,6 @@ export default async function LoginPage({
   }
 
   const { error } = await searchParams
-  const phoneEnabled = await isPhoneAuthEnabled()
 
   return (
     <main className="ns-split">
@@ -49,7 +47,7 @@ export default async function LoginPage({
 
       {/* Right — form */}
       <div className="ns-split__right">
-        <LoginForm urlError={error} phoneEnabled={phoneEnabled} />
+        <LoginForm urlError={error} />
       </div>
     </main>
   )

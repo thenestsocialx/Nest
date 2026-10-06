@@ -3,17 +3,15 @@
 import { useActionState, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { signInWithEmail, signInWithGoogle, type AuthActionState } from '@/actions/auth'
-import PhoneAuthForm from '../../_components/PhoneAuthForm'
 
 const initialState: AuthActionState = {}
 
-export default function LoginForm({ urlError, phoneEnabled }: { urlError?: string; phoneEnabled: boolean }) {
+export default function LoginForm({ urlError }: { urlError?: string }) {
   const [state, formAction, isPending] = useActionState(signInWithEmail, initialState)
   const [googlePending, startGoogleTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [usePhone, setUsePhone] = useState(false)
 
   const urlErrorMessage =
     urlError === 'oauth_failed'
@@ -35,21 +33,6 @@ export default function LoginForm({ urlError, phoneEnabled }: { urlError?: strin
   }
 
   const busy = isPending || googlePending
-
-  if (usePhone && phoneEnabled) {
-    return (
-      <>
-        <PhoneAuthForm
-          title="Welcome back."
-          subtitle="Sign in with your phone number. We'll text you a code."
-          onBack={() => setUsePhone(false)}
-        />
-        <div className="ns-trust">
-          <TrustItems />
-        </div>
-      </>
-    )
-  }
 
   return (
     <>
@@ -162,20 +145,6 @@ export default function LoginForm({ urlError, phoneEnabled }: { urlError?: strin
             {googlePending ? 'Redirecting…' : 'Continue with Google'}
           </button>
 
-          {phoneEnabled && (
-            <button
-              className="ns-btn ns-btn--google ns-btn--full"
-              type="button"
-              onClick={() => setUsePhone(true)}
-              disabled={busy}
-              aria-label="Continue with phone"
-              style={{ marginTop: 12 }}
-            >
-              <PhoneIcon />
-              Continue with phone
-            </button>
-          )}
-
           <p className="ns-form__legal">
             By continuing, you agree to our{' '}
             <a href="/privacy" className="ns-link ns-link--quiet">
@@ -226,15 +195,6 @@ function GoogleIcon() {
       <path d="M9 17.5c2.28 0 4.19-.76 5.59-2.05l-2.73-2.12c-.75.5-1.72.8-2.86.8-2.2 0-4.07-1.49-4.73-3.49H1.46v2.19A8.5 8.5 0 0 0 9 17.5z" fill="#34A853" />
       <path d="M4.27 10.64A5.07 5.07 0 0 1 4 9c0-.57.1-1.12.27-1.64V5.17H1.46A8.5 8.5 0 0 0 .5 9c0 1.37.33 2.66.96 3.79l2.81-2.15z" fill="#FBBC05" />
       <path d="M9 3.88c1.24 0 2.35.43 3.23 1.27l2.41-2.41A8.5 8.5 0 0 0 9 .5 8.5 8.5 0 0 0 1.46 5.17l2.81 2.19C4.93 5.37 6.8 3.88 9 3.88z" fill="#EA4335" />
-    </svg>
-  )
-}
-
-function PhoneIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="6" y="2" width="12" height="20" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-      <line x1="11" y1="18" x2="13" y2="18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   )
 }

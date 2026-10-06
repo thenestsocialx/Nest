@@ -13,12 +13,11 @@ import {
   passwordStrengthScore,
   STRENGTH_LABELS,
 } from '@/lib/password'
-import PhoneAuthForm from '../../_components/PhoneAuthForm'
 
 const initialState: AuthActionState = {}
 const RESEND_COOLDOWN = 30
 
-export default function RegisterForm({ phoneEnabled }: { phoneEnabled: boolean }) {
+export default function RegisterForm() {
   const [state, formAction, isPending] = useActionState(signUpWithEmail, initialState)
   const [googlePending, startGoogleTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
@@ -29,7 +28,6 @@ export default function RegisterForm({ phoneEnabled }: { phoneEnabled: boolean }
   const [clientConfirmError, setClientConfirmError] = useState('')
   const [started, setStarted] = useState(false)
   const [cooldown, setCooldown] = useState(0)
-  const [usePhone, setUsePhone] = useState(false)
   const [resendError, setResendError] = useState('')
 
   const rules = checkPasswordRules(password)
@@ -70,16 +68,6 @@ export default function RegisterForm({ phoneEnabled }: { phoneEnabled: boolean }
   }
 
   const busy = isPending || googlePending
-
-  if (usePhone && phoneEnabled) {
-    return (
-      <PhoneAuthForm
-        title="Create your account."
-        subtitle="Sign up with your phone number. We'll text you a code."
-        onBack={() => setUsePhone(false)}
-      />
-    )
-  }
 
   if (state.success && state.email) {
     return (
@@ -279,20 +267,6 @@ export default function RegisterForm({ phoneEnabled }: { phoneEnabled: boolean }
             {googlePending ? 'Redirecting…' : 'Continue with Google'}
           </button>
 
-          {phoneEnabled && (
-            <button
-              className="ns-btn ns-btn--google ns-btn--full"
-              type="button"
-              onClick={() => setUsePhone(true)}
-              disabled={busy}
-              aria-label="Continue with phone"
-              style={{ marginTop: 12 }}
-            >
-              <PhoneIcon />
-              Continue with phone
-            </button>
-          )}
-
           <p className="ns-form__legal">
             By creating an account you agree to our{' '}
             <a href="/terms" className="ns-link ns-link--quiet">
@@ -360,15 +334,6 @@ function ArrowIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function PhoneIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="6" y="2" width="12" height="20" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-      <line x1="11" y1="18" x2="13" y2="18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   )
 }

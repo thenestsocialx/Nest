@@ -140,6 +140,8 @@
   margin: 0 auto;
 }
 .heroArt svg { display: block; width: 100%; height: auto; }
+/* Decorative only: the Nila hills reach past the art under the text, so clicks must pass through to the button */
+.heroArt { pointer-events: none; }
 
 /* Illustration that sits on the bottom edge of the hero (Nila) */
 .heroFlush { padding-bottom: 0; }

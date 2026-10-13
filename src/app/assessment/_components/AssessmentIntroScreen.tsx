@@ -1,220 +1,180 @@
 'use client'
 
 import NestLogo from '@/components/ui/NestLogo'
-
-const AssessOrb = ({ size = 112 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 116 116" fill="none" aria-hidden="true">
-    <circle cx="58" cy="58" r="54" fill="#F8F0E5" stroke="#E0D5C5" strokeWidth="1.2" />
-    <circle cx="58" cy="58" r="40" fill="none" stroke="#E8C8A0" strokeWidth="0.9" opacity="0.7" />
-    <circle cx="58" cy="58" r="27" fill="none" stroke="#E8C8A0" strokeWidth="0.9" opacity="0.45" />
-    <path d="M38 63 H78" stroke="#5C7A66" strokeWidth="1.2" strokeLinecap="round" opacity="0.6" />
-    <path d="M44 63 Q44 51 58 51 Q72 51 72 63" stroke="#2F4C3A" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-    <circle cx="58" cy="63" r="2.6" fill="#2F4C3A" />
-  </svg>
-)
-
-const ClockIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-    <circle cx="6.5" cy="6.5" r="5.3" stroke="currentColor" strokeWidth="1.1" />
-    <path d="M6.5 3.6 V6.6 L8.6 8" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-  </svg>
-)
-
-const CurateIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-    <path d="M6.5 1.5 L 11 4 V 9 L 6.5 11.5 L 2 9 V 4 Z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" />
-    <circle cx="6.5" cy="6.5" r="1.6" stroke="currentColor" strokeWidth="1.1" />
-  </svg>
-)
-
-const LockIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-    <rect x="2" y="5.5" width="8" height="5.5" rx="1.2" stroke="currentColor" strokeWidth="1.1" />
-    <path d="M4 5.5 V3.5 Q4 1.5 6 1.5 Q8 1.5 8 3.5 V5.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-  </svg>
-)
-
-const MetaDot = () => (
-  <span style={{
-    width: 3,
-    height: 3,
-    borderRadius: '50%',
-    background: '#E0D5C5',
-    flexShrink: 0,
-    display: 'inline-block',
-  }} />
-)
+import styles from './assessmentIntro.module.css'
 
 interface Props {
   onStart: () => void
   onSkip: () => void
 }
 
+const ICON = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+
+const WHY = [
+  {
+    title: 'Know Yourself a Little Better',
+    body: 'See the patterns in how you’ve been feeling.',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Put Words to What You’re Carrying',
+    body: 'Naming it often makes it feel a little lighter.',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /><path d="M8 9h8M8 13h5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'A Quiet Moment for Yourself',
+    body: 'A pause to notice how you really are.',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <path d="M12 20s-7-4.4-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5C19 15.6 12 20 12 20z" /><path d="M4 14l3 2M20 14l-3 2" />
+      </svg>
+    ),
+  },
+]
+
+const OPTIONS = [
+  {
+    title: 'Meet an Ally',
+    body: 'Talk to a licensed psychologist matched to you.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+        <circle cx="17" cy="9" r="2.4" /><path d="M16.5 13.6c2.6.3 4.5 2.2 4.5 4.9" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Talk to Nila',
+    body: 'Chat it through whenever something’s on your mind.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Explore Resources',
+    body: 'Exercises, reads and playlists for where you are.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
+        <path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5M12 6c2-1.5 5-2 8-1.5V19c-3-.5-6 0-8 1.5M12 6v14.5" />
+      </svg>
+    ),
+  },
+]
+
 export default function AssessmentIntroScreen({ onStart, onSkip }: Props) {
   return (
-    <div style={{
-      position: 'relative',
-      minHeight: '100vh',
-      background: 'var(--cream)',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      fontFamily: 'var(--font, "DM Sans", system-ui, -apple-system, sans-serif)',
-    }}>
+    <div className={styles.page}>
+      <aside className={styles.aside}>
+        <div className={styles.intro}>
+          <div className={styles.logo}>
+            <NestLogo size={24} color="#F8F0E5" />
+          </div>
 
-      {/* Logo — top left */}
-      <div style={{
-        position: 'absolute',
-        top: 'clamp(28px, 4vh, 48px)',
-        left: 'clamp(28px, 4vw, 56px)',
-        zIndex: 2,
-      }}>
-        <NestLogo size={18} color="#2F4C3A" />
-      </div>
-
-      {/* Background rings anchored at bottom-center */}
-      <svg
-        viewBox="0 0 800 600"
-        preserveAspectRatio="xMidYMax slice"
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      >
-        <circle cx="400" cy="600" r="280" fill="none" stroke="#E8C8A0" strokeWidth="1" opacity="0.18" />
-        <circle cx="400" cy="600" r="380" fill="none" stroke="#E8C8A0" strokeWidth="1" opacity="0.12" />
-        <circle cx="400" cy="600" r="480" fill="none" stroke="#E8C8A0" strokeWidth="1" opacity="0.08" />
-      </svg>
-
-      {/* Centered content */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 'clamp(80px, 10vh, 120px) clamp(24px, 6vw, 48px) clamp(40px, 6vh, 64px)',
-        textAlign: 'center',
-        maxWidth: 560,
-        margin: '0 auto',
-        width: '100%',
-      }}>
-
-        {/* Orb */}
-        <div style={{ marginBottom: 32 }}>
-          <AssessOrb size={112} />
+          <div className={styles.bubbles}>
+            <div className={styles.bubble}>Hi, we&rsquo;re really glad you&rsquo;re here.</div>
+            <div className={styles.bubble}>Take your time. There are no wrong answers here.</div>
+          </div>
+          <div className={styles.team}>
+            <span className={styles.teamAvatar} aria-hidden="true">
+              <svg width="18" height="17" viewBox="0 0 30 28" fill="none">
+                <path d="M 3,16 Q 15,26 27,16" stroke="#2F4C3A" strokeWidth="3.2" strokeLinecap="round" />
+                <circle cx="15" cy="8" r="3.2" fill="#2F4C3A" />
+              </svg>
+            </span>
+            The Nest care team
+          </div>
         </div>
 
-        {/* Title */}
-        <h1 style={{
-          fontSize: 'clamp(26px, 3.5vw, 34px)',
-          fontWeight: 400,
-          color: 'var(--deep-pine)',
-          letterSpacing: '-0.01em',
-          lineHeight: 1.2,
-          margin: '0 0 20px',
-        }}>
-          Let&rsquo;s take a moment<br />to see how you&rsquo;re doing.
-        </h1>
-
-        {/* Body */}
-        <p style={{
-          fontSize: 14,
-          lineHeight: 1.75,
-          color: 'var(--moss)',
-          maxWidth: '42ch',
-          margin: '0 0 24px',
-        }}>
-          Before we begin, a short check-in — how you&rsquo;ve been feeling, what&rsquo;s been on your mind lately.
-          It&rsquo;s how we get to know you a little, so NEST isn&rsquo;t a one-size-fits-all app: your companion,
-          your Allies, and everything on your dashboard get shaped around what you actually need, from day one.
-        </p>
-
-        {/* Meta row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          marginBottom: 32,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--moss)', opacity: 0.85 }}>
-            <CurateIcon /> Personalizes your whole experience
-          </span>
-          <MetaDot />
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--moss)', opacity: 0.85 }}>
-            <ClockIcon /> A few quiet minutes
-          </span>
-          <MetaDot />
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--moss)', opacity: 0.85 }}>
-            <LockIcon /> Private, always
-          </span>
+        <div className={styles.why}>
+          <div className={styles.divider} />
+          <p className={styles.whyLabel}>Why it&rsquo;s worth a few minutes</p>
+          <ul className={styles.whyList}>
+            {WHY.map((w) => (
+              <li key={w.title} className={styles.whyItem}>
+                <span className={styles.whyIcon}>{w.icon}</span>
+                <div>
+                  <p className={styles.whyTitle}>{w.title}</p>
+                  <p className={styles.whyBody}>{w.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.helpline}>
+            If tonight is really hard, call Tele-MANAS at <a href="tel:14416">14416</a>
+          </p>
         </div>
+      </aside>
 
-        {/* Primary CTA */}
-        <button
-          onClick={onStart}
-          style={{
-            padding: '14px 48px',
-            fontSize: 14,
-            fontWeight: 500,
-            fontFamily: 'inherit',
-            background: 'var(--terracotta)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 999,
-            cursor: 'pointer',
-            letterSpacing: '0.01em',
-            minHeight: 48,
-            transition: 'opacity 150ms ease, transform 150ms ease',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.88' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
-        >
-          Start the check-in
-        </button>
+      <div className={styles.main}>
+        <svg className={styles.rings} viewBox="0 0 820 820" fill="none" aria-hidden="true">
+          <circle cx="410" cy="410" r="300" stroke="#E8C8A0" strokeOpacity="0.28" />
+          <circle cx="410" cy="410" r="405" stroke="#E8C8A0" strokeOpacity="0.18" />
+        </svg>
 
-        {/* Skip link */}
-        <button
-          onClick={onSkip}
-          style={{
-            marginTop: 18,
-            background: 'transparent',
-            border: 'none',
-            fontFamily: 'inherit',
-            fontSize: 12,
-            color: 'var(--moss)',
-            opacity: 0.7,
-            cursor: 'pointer',
-            padding: '6px 10px',
-            borderRadius: 999,
-            textDecoration: 'underline',
-            textDecorationColor: 'rgba(92, 122, 102, 0.3)',
-            textUnderlineOffset: 3,
-            transition: 'opacity 150ms ease, color 150ms ease',
-          }}
-          onMouseEnter={e => {
-            const el = e.currentTarget as HTMLButtonElement
-            el.style.opacity = '1'
-            el.style.color = 'var(--deep-pine)'
-          }}
-          onMouseLeave={e => {
-            const el = e.currentTarget as HTMLButtonElement
-            el.style.opacity = '0.7'
-            el.style.color = 'var(--moss)'
-          }}
-        >
-          Skip for now — take me to my dashboard
-        </button>
+        <span className={styles.privacy}>
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" {...ICON} stroke="#A85D3C" strokeWidth={2}>
+            <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          Private and confidential
+        </span>
 
+        <div className={styles.inner}>
+          <p className={styles.eyebrow}>Before you begin</p>
+          <h1 className={styles.title}>Let&rsquo;s Take a Moment to See How You&rsquo;re Doing.</h1>
+
+          <ol className={styles.steps}>
+            <li className={styles.step}>
+              <span className={styles.stepNum}>1</span>
+              <div>
+                <p className={styles.stepTitle}>Take the Check-In</p>
+                <p className={styles.stepBody}>A few honest questions about how things have been for you lately.</p>
+              </div>
+            </li>
+            <li className={styles.step}>
+              <span className={styles.stepNum}>2</span>
+              <div>
+                <p className={styles.stepTitle}>We&rsquo;ll Suggest Where to Start</p>
+                <p className={styles.stepBody}>Based on your answers, we&rsquo;ll recommend the support that fits you best.</p>
+              </div>
+            </li>
+          </ol>
+
+          <div className={styles.branch} aria-hidden="true">
+            <span className={styles.drop} style={{ left: 'calc((100% - 28px) / 6)' }} />
+            <span className={styles.drop} style={{ left: '50%' }} />
+            <span className={styles.drop} style={{ left: 'calc(100% - (100% - 28px) / 6)' }} />
+          </div>
+
+          <div className={styles.options}>
+            {OPTIONS.map((o) => (
+              <div key={o.title} className={styles.option}>
+                <span className={styles.optionIcon}>{o.icon}</span>
+                <p className={styles.optionTitle}>{o.title}</p>
+                <p className={styles.optionBody}>{o.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.ctas}>
+            <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onStart}>
+              Start the Check-In <span aria-hidden="true">→</span>
+            </button>
+            <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={onSkip}>
+              Skip for Now
+            </button>
+          </div>
+          <p className={styles.note}>You can take the check-in anytime from your dashboard.</p>
+        </div>
       </div>
     </div>
   )

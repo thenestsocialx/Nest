@@ -6,7 +6,7 @@
   grid-template-columns: 1fr;
   grid-template-areas: 'intro' 'main' 'why';
   min-height: 100vh;
-  background: var(--canvas2, #F4EBDF);
+  background: #F3EBDF; /* warm sand, as in the reference */
   font-family: var(--font, 'DM Sans', system-ui, sans-serif);
   color: var(--ink);
 }
@@ -111,7 +111,8 @@
 
 .rings { position: absolute; top: -260px; right: -240px; width: 820px; height: 820px; pointer-events: none; }
 .inner { position: relative; max-width: 640px; }
-@media (min-width: 1024px) { .inner { margin: auto 0; } }
+/* Desktop: grow with the screen so wide monitors don’t leave an empty strip; centre once it hits the cap */
+@media (min-width: 1024px) { .inner { width: 100%; max-width: 940px; margin: auto; } }
 
 .privacy {
   display: inline-flex; align-items: center; gap: 8px;
@@ -129,11 +130,11 @@
 
 .eyebrow {
   font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
-  color: #A85D3C; margin: 0 0 16px;
+  color: var(--terracotta); margin: 0 0 16px;
 }
 .title {
   font-family: var(--font, 'DM Sans', sans-serif);
-  font-size: clamp(1.875rem, 3.6vw, 2.75rem);
+  font-size: clamp(1.875rem, 3.2vw, 3.5rem);
   font-weight: 600;
   line-height: 1.12;
   letter-spacing: -0.025em;
@@ -149,12 +150,12 @@
   content: '';
   position: absolute;
   left: 19px; top: 40px; bottom: -30px;
-  width: 2px; background: #A85D3C;
+  width: 2px; background: var(--terracotta);
 }
 .step + .step { margin-top: 30px; }
 .stepNum {
   width: 40px; height: 40px; border-radius: 50%;
-  background: #A85D3C; color: var(--canvas);
+  background: var(--terracotta); color: var(--canvas);
   display: flex; align-items: center; justify-content: center;
   font-weight: 600; font-size: 1rem;
   flex-shrink: 0; position: relative;
@@ -170,12 +171,12 @@
     content: '';
     position: absolute;
     left: 19px; top: 40px; bottom: -18px;
-    width: 2px; background: #A85D3C;
+    width: 2px; background: var(--terracotta);
   }
   .branch { display: block; position: relative; height: 30px; }
   .branch::before { /* horizontal line from the steps across to the last card */
     content: ''; position: absolute; top: 0; left: 19px; right: calc(100% / 6 - 10px);
-    height: 2px; background: linear-gradient(90deg, #A85D3C 0%, #A85D3C 78%, #E0CDB4 78%);
+    height: 2px; background: linear-gradient(90deg, var(--terracotta) 0%, var(--terracotta) 78%, #E0CDB4 78%);
   }
   .drop { position: absolute; top: 0; width: 2px; height: 100%; background: #E0CDB4; }
 }
@@ -188,14 +189,14 @@
 }
 @media (min-width: 768px) { .options { grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 0; } }
 .option {
-  background: rgba(255,255,255,0.55);
+  background: #F8F2EA;
   border: 1px solid #EADCC8;
   border-radius: 16px;
   padding: 20px;
 }
 .optionIcon {
   width: 38px; height: 38px; border-radius: 10px;
-  background: #F2E5D3; color: #A85D3C;
+  background: #EFE2D2; color: var(--terracotta);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 16px;
 }
@@ -212,8 +213,8 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .btn:focus-visible { outline: 2px solid var(--anchor); outline-offset: 3px; }
-.btnPrimary { background: #A35F48; color: var(--canvas); border: none; box-shadow: 0 10px 24px rgba(163,95,72,0.28); }
-.btnPrimary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(163,95,72,0.34); }
+.btnPrimary { background: var(--terracotta); color: var(--canvas); border: none; box-shadow: 0 10px 24px rgba(155,102,81,0.3); }
+.btnPrimary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(155,102,81,0.36); }
 .btnGhost { background: transparent; color: var(--anchor); border: 1.5px solid rgba(47,76,58,0.45); }
 .btnGhost:hover { background: rgba(47,76,58,0.05); }
 @media (max-width: 479px) { .btn { width: 100%; } }

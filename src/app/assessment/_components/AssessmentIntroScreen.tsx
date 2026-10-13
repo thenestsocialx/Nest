@@ -122,7 +122,7 @@ export default function AssessmentIntroScreen({ onStart, onSkip }: Props) {
         </svg>
 
         <span className={styles.privacy}>
-          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" {...ICON} stroke="#A85D3C" strokeWidth={2}>
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" {...ICON} stroke="#9B6651" strokeWidth={2}>
             <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
           </svg>
           Private and confidential

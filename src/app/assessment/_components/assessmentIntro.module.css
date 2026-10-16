@@ -221,3 +221,39 @@
 @media (max-width: 479px) { .btn { width: 100%; } }
 
 .note { margin: 16px 0 0; font-size: 0.875rem; color: #6B776F; }
+
+/* ── Entrance motion (runs once; off for reduced motion) ── */
+/* 1. Welcome bubbles arrive like messages, then the care-team line */
+.bubble { animation: bubbleIn 0.5s ease-out both; }
+.bubble:nth-child(1) { animation-delay: 0.25s; }
+.bubble:nth-child(2) { animation-delay: 0.95s; }
+.team { animation: fadeIn 0.5s ease-out 1.5s both; }
+
+/* 2. The plan rises in, one block after another */
+.inner > * { animation: riseIn 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.inner > :nth-child(1) { animation-delay: 0.1s; }
+.inner > :nth-child(2) { animation-delay: 0.2s; }
+.inner > :nth-child(3) { animation-delay: 0.35s; }
+.inner > :nth-child(4) { animation-delay: 0.5s; }
+.inner > :nth-child(5) { animation-delay: 0.6s; }
+.inner > :nth-child(6) { animation-delay: 0.8s; }
+.inner > :nth-child(7) { animation-delay: 0.9s; }
+
+/* 3. The connector draws itself: down from step 1, on from step 2, then out to the three cards */
+.step::after { transform-origin: top; animation: drawDown 0.5s ease-out both; }
+.step:not(:last-child)::after { animation-delay: 0.7s; }
+.step:last-child::after { animation-delay: 1.15s; }
+@media (min-width: 768px) {
+  .branch::before { transform-origin: left; animation: drawAcross 0.6s ease-out 1.4s both; }
+  .drop { transform-origin: top; animation: drawDown 0.35s ease-out 1.9s both; }
+}
+
+@keyframes bubbleIn  { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes riseIn    { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes drawDown  { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes drawAcross { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble, .team, .inner > *, .step::after, .branch::before, .drop { animation: none; }
+}

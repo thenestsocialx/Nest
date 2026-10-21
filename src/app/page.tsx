@@ -3,20 +3,23 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LandingPage from './_components/LandingPage'
 
+const HOME_TITLE = 'The Nest Social | Online Therapy & Relationship Support in India'
+const HOME_DESCRIPTION = 'The Nest Social is a warm, credentialed space for online therapy and relationship support in India. Talk to Nila anytime, or book a verified psychologist. Start free.'
+
 export const metadata: Metadata = {
-  title: 'nest — you don\'t have to carry this alone',
-  description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
   openGraph: {
-    title: 'nest — you don\'t have to carry this alone',
-    description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: 'Nest',
+    siteName: 'The Nest Social',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'nest — you don\'t have to carry this alone',
-    description: 'nest is a warm, private space for people navigating loneliness, breakups, anxiety, relationship struggles and the heavy in-between days.',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
   },
 }
 

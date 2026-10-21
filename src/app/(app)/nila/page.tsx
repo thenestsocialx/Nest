@@ -6,9 +6,15 @@ import { getPlans } from '@/lib/plans'
 import ChatShell from './_components/ChatShell'
 import NilaLanding from './_components/NilaLanding'
 
+const NILA_TITLE = 'Nila | AI Companion when you feel lonely| The Nest Social'
+const NILA_DESCRIPTION = 'Meet Nila - a warm AI companion who listens, and talks back. There at 2am, without judgment. Built to help you find your way back to real people.'
+
 export const metadata = {
-  title: 'Nila | AI Companion when you feel lonely| The Nest Social',
-  description: 'Meet Nila - a warm AI companion who listens, and talks back. There at 2am, without judgment. Built to help you find your way back to real people.',
+  title: NILA_TITLE,
+  description: NILA_DESCRIPTION,
+  // Without these, link previews fall back to the generic site text from the root layout
+  openGraph: { title: NILA_TITLE, description: NILA_DESCRIPTION },
+  twitter: { title: NILA_TITLE, description: NILA_DESCRIPTION },
 }
 
 function getTimePeriod(): 'morning' | 'afternoon' | 'evening' | 'night' {

@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
 import './globals.css'
+import { SITE_URL } from '@/lib/site'
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -48,7 +49,7 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   title: 'Nest — a space for you',
   description: 'A warm space that helps people feel less alone and more like themselves.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL!),
+  metadataBase: new URL(SITE_URL),
   icons: {
     icon: [{ url: '/nest-icon.svg', type: 'image/svg+xml' }],
     shortcut: '/nest-icon.svg',
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Nest — a space for you',
     description: 'A warm space that helps people feel less alone and more like themselves.',
-    url: process.env.NEXT_PUBLIC_APP_URL,
+    url: SITE_URL,
     siteName: 'Nest',
     type: 'website',
   },

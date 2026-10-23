@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LandingPage from './_components/LandingPage'
+import { SITE_URL } from '@/lib/site'
 
 const HOME_TITLE = 'The Nest Social | Online Therapy & Relationship Support in India'
 const HOME_DESCRIPTION = 'The Nest Social is a warm, credentialed space for online therapy and relationship support in India. Talk to Nila anytime, or book a verified psychologist. Start free.'
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    url: process.env.NEXT_PUBLIC_APP_URL,
+    url: SITE_URL,
     siteName: 'The Nest Social',
     type: 'website',
   },

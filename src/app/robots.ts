@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,13 +10,15 @@ export default function robots(): MetadataRoute.Robots {
         '/admin',
         '/api',
         '/home',
-        '/nila',
+        // /nila itself is a public landing page; only the chat's sub-pages are private
+        '/nila/',
         '/profile',
         '/resources',
         '/sessions',
+        '/events',
         '/assessment',
       ],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

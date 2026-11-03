@@ -33,6 +33,7 @@ export default function LandingFooter() {
         <div className={styles.footerBottom}>
           <span className={styles.footerCopy}>© 2026 The Nest Social. All rights reserved.</span>
           <div className={styles.footerLegal}>
+            <a href="/business">Nest for Business</a>
             <a href="/legal/privacy">Privacy Policy</a>
             <a href="/legal/terms">Terms &amp; Conditions</a>
             <a href="/legal/cancellation-refund">Cancellation &amp; Refund</a>

@@ -52,6 +52,7 @@ export default function PublicHeader({ isAuthenticated = false, dark = false }: 
         <nav className={styles.navLinks} aria-label="Main navigation">
           <Link href="/nila" className={linkClass('/nila')}>nila</Link>
           <Link href="/allies" className={linkClass('/allies')}>allies</Link>
+          <Link href="/business" className={linkClass('/business')}>for business</Link>
           {BLOG_ENABLED && <Link href="/blog" className={linkClass('/blog')}>blog</Link>}
           {isAuthenticated
             ? <Link href="/home" className={styles.navCta}>Go to your space →</Link>
@@ -78,6 +79,7 @@ export default function PublicHeader({ isAuthenticated = false, dark = false }: 
       >
         <Link href="/nila" className={linkClass('/nila')} onClick={close}>nila</Link>
         <Link href="/allies" className={linkClass('/allies')} onClick={close}>allies</Link>
+        <Link href="/business" className={linkClass('/business')} onClick={close}>for business</Link>
         {BLOG_ENABLED && <Link href="/blog" className={linkClass('/blog')} onClick={close}>blog</Link>}
         {isAuthenticated
           ? <Link href="/home" className={styles.navCta} onClick={close}>Go to your space →</Link>

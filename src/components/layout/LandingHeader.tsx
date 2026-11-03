@@ -18,6 +18,7 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
   const links = [
     { href: '/nila',   label: 'nila' },
     { href: '/allies', label: 'allies' },
+    { href: '/business', label: 'for business' },
   ]
 
   return (

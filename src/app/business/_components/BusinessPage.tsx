@@ -9,8 +9,8 @@ import ContactModal from './ContactModal'
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ')
 
 const DESIGN_WIDTH = 1440
-// Big monitors get the design scaled up a little (not all the way, or the type gets oversized)
-const MAX_ZOOM = 1.25
+// Never scale the design up, so type matches the other pages on big monitors
+const MAX_ZOOM = 1
 // Below this width the page reflows into the phone/tablet layout instead of zooming the canvas
 const REFLOW_BELOW = 1024
 

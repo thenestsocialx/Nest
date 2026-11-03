@@ -22,7 +22,7 @@ export default function Page() {
   return (
     <div className={`${sans.variable} ${serif.variable}`}>
       {/* Sets the canvas zoom before first paint so laptops don't see the full 1440px width flash */}
-      <script dangerouslySetInnerHTML={{ __html: "(function(){var s=document.getElementById('biz-zoom')||document.head.appendChild(Object.assign(document.createElement('style'),{id:'biz-zoom'}));var w=document.documentElement.clientWidth,z=Math.min(1.25,w/1440);s.textContent=':root{--biz-zoom:'+z+';--biz-width:'+(w/z)+'px}'})()" }} />
+      <script dangerouslySetInnerHTML={{ __html: "(function(){var s=document.getElementById('biz-zoom')||document.head.appendChild(Object.assign(document.createElement('style'),{id:'biz-zoom'}));var w=document.documentElement.clientWidth,z=Math.min(1,w/1440);s.textContent=':root{--biz-zoom:'+z+';--biz-width:'+(w/z)+'px}'})()" }} />
       <BusinessPage />
     </div>
   )

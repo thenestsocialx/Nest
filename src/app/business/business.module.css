@@ -11,14 +11,14 @@
 .page button, .page input, .page select, .page textarea { font-family: inherit; }
 
 .root { background: #F5ECE0; }
-/* Laptops and desktops: zoom the canvas to the window (up to 1.25x on big monitors). The root is
-   sized so that, once zoomed, it spans the full window; section backgrounds run edge to edge and
-   the content stays in the 1440px design column via --edge (the extra width on each side). */
+/* Laptops and desktops: below 1440px the canvas is zoomed down to fit. Wider windows keep the design
+   at its real size like the other pages: backgrounds run edge to edge and the content column grows
+   to the same 1600px cap the other landing pages use, via --edge (the extra width on each side). */
 @media (min-width: 1024px) { .root { zoom: var(--biz-zoom, 1); width: var(--biz-width, 1440px); } }
 
 .frame {
   container-type: inline-size;
-  --edge: max(0px, (100cqw - 1440px) / 2);
+  --edge: max(0px, (100cqw - 1600px) / 2);
   position: relative; width: 100%; min-height: 7547px;
   display: flex; flex-direction: column; background: #F5ECE0; overflow: hidden;
 }

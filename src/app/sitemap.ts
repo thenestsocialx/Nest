@@ -7,6 +7,7 @@ const PAGES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['cha
   { path: '',                           changeFrequency: 'weekly',  priority: 1 },
   { path: '/allies',                    changeFrequency: 'weekly',  priority: 0.9 },
   { path: '/nila',                      changeFrequency: 'weekly',  priority: 0.9 },
+  { path: '/business',                  changeFrequency: 'monthly', priority: 0.8 },
   { path: '/plans',                     changeFrequency: 'monthly', priority: 0.8 },
   { path: '/kanmani',                   changeFrequency: 'monthly', priority: 0.7 },
   { path: '/register',                  changeFrequency: 'yearly',  priority: 0.4 },

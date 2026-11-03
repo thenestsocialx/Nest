@@ -9,6 +9,8 @@ import ContactModal from './ContactModal'
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ')
 
 const DESIGN_WIDTH = 1440
+// Big monitors get the design scaled up a little (not all the way, or the type gets oversized)
+const MAX_ZOOM = 1.25
 // Below this width the page reflows into the phone/tablet layout instead of zooming the canvas
 const REFLOW_BELOW = 1024
 
@@ -163,7 +165,9 @@ export default function BusinessPage() {
     const zoomTag = tag
     const fit = () => {
       const w = document.documentElement.clientWidth
-      zoomTag.textContent = `:root{--biz-zoom:${Math.min(1, w / DESIGN_WIDTH)}}`
+      const z = Math.min(MAX_ZOOM, w / DESIGN_WIDTH)
+      // Width in unzoomed px, so that once zoomed the canvas spans exactly the window
+      zoomTag.textContent = `:root{--biz-zoom:${z};--biz-width:${w / z}px}`
       setReflow(w < REFLOW_BELOW)
     }
     fit()
@@ -293,7 +297,7 @@ export default function BusinessPage() {
               <div className={styles.bergAbove}>
                 <div className={styles.bergLabel} style={{ top: 44, color: '#9B6651' }}>What You See</div>
                 {SEEN.map(c => (
-                  <div key={c.text} className={cx(styles.bergCard, styles.bergCardLight)} style={{ top: c.top, [c.side]: 120 }}>
+                  <div key={c.text} className={cx(styles.bergCard, styles.bergCardLight)} style={{ top: c.top, [c.side]: 'calc(120px + var(--edge))' }}>
                     <span style={{ flexShrink: 0, width: 8, height: 8, borderRadius: '50%', background: '#9B6651' }} /><span>{c.text}</span>
                   </div>
                 ))}
@@ -312,7 +316,7 @@ export default function BusinessPage() {
               <div className={styles.bergBelow}>
                 <div className={styles.bergLabel} style={{ top: 352, color: '#E8C8A0' }}>What’s Actually Going On</div>
                 {UNSEEN.map(c => (
-                  <div key={c.text} className={cx(styles.bergCard, styles.bergCardDark)} style={{ top: c.top, [c.side]: 120 }}>
+                  <div key={c.text} className={cx(styles.bergCard, styles.bergCardDark)} style={{ top: c.top, [c.side]: 'calc(120px + var(--edge))' }}>
                     <span style={{ flexShrink: 0, width: 8, height: 8, borderRadius: '50%', background: '#E8C8A0' }} /><span>{c.text}</span>
                   </div>
                 ))}

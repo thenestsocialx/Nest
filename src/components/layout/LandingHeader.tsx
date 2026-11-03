@@ -43,7 +43,7 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
       >
         {/* Logo */}
         <a href="/" aria-label="Nest home" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <NestLogo size={20} color="#F8F0E5" />
+          <NestLogo size={22} color="#F8F0E5" />
         </a>
 
         {/* Desktop nav */}

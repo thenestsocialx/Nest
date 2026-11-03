@@ -77,7 +77,7 @@ export default function AssessmentIntroScreen({ onStart, onSkip }: Props) {
       <aside className={styles.aside}>
         <div className={styles.intro}>
           <div className={styles.logo}>
-            <NestLogo size={24} color="#F8F0E5" />
+            <NestLogo size={22} color="#F8F0E5" />
           </div>
 
           <div className={styles.bubbles}>

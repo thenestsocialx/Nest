@@ -39,7 +39,7 @@ export default async function SignupPage() {
       <div className="ns-signup__form-col">
         <div className="ns-signup__nav">
           <Link href="/" aria-label="nest home" style={{ display: 'inline-flex' }}>
-            <NestLogo size={18} color="#2F4C3A" />
+            <NestLogo size={22} color="#2F4C3A" />
           </Link>
         </div>
 

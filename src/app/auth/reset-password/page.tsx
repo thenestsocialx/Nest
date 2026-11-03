@@ -30,7 +30,7 @@ export default async function ResetPasswordPage() {
       }}
     >
       <div style={{ marginBottom: 40 }}>
-        <NestLogo size={18} color="#2F4C3A" />
+        <NestLogo size={22} color="#2F4C3A" />
       </div>
       <ResetPasswordForm />
     </main>

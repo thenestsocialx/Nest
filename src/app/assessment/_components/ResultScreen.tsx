@@ -1,6 +1,7 @@
 import type { ResultData, RecommendedAlly } from '@/lib/assessment/types'
 import type { FeatureFlags } from '@/lib/featureFlags'
 import styles from './ResultScreen.module.css'
+import NestLogo from '@/components/ui/NestLogo'
 
 interface ResultScreenProps {
   result: ResultData | null
@@ -133,7 +134,7 @@ export default function ResultScreen({ result, onSave, recommendedAllies = [], f
 
       {/* Nav */}
       <nav className={styles.rNav}>
-        <span className={styles.rNavLogo}>nest</span>
+        <span className={styles.rNavLogo}><NestLogo size={22} color="#2F4C3A" /></span>
         <span className={styles.rNavPrivate} aria-label="Your results are private">
           <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
             <rect x="1" y="6" width="10" height="7.5" rx="2" stroke="#5C7A66" strokeWidth="1.2" fill="none" />

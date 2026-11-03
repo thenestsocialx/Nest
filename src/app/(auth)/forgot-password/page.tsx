@@ -20,7 +20,7 @@ export default async function ForgotPasswordPage({
       <div className="ns-split__left">
         <div className="ns-split__brand">
           <Link href="/" aria-label="nest home" style={{ display: 'inline-flex' }}>
-            <NestLogo size={18} color="#2F4C3A" />
+            <NestLogo size={22} color="#2F4C3A" />
           </Link>
         </div>
         <div className="ns-split__art">

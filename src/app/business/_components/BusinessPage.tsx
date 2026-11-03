@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import Link from 'next/link'
+import NestLogo from '@/components/ui/NestLogo'
 import styles from '../business.module.css'
 import { OFFERS } from './offers'
 import ContactModal from './ContactModal'
@@ -17,15 +18,6 @@ const REFLOW_BELOW = 1024
 const CARD_W = 400
 const GAP = 24
 const MAX_INDEX = OFFERS.length - 3
-
-function NestMark() {
-  return (
-    <svg width="34" height="26" viewBox="0 0 34 26" fill="none" aria-hidden="true">
-      <circle cx="17" cy="6" r="3.6" fill="#F8F0E5" />
-      <path d="M4 13.5C8 22 26 22 30 13.5" stroke="#F8F0E5" strokeWidth="3.4" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 const Arrow = () => <span aria-hidden="true">→</span>
 
@@ -236,8 +228,9 @@ export default function BusinessPage() {
             <div style={{ position: 'absolute', right: -100, top: -140, width: 760, height: 760, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,200,160,.16) 0%, rgba(36,59,46,0) 62%)' }} />
             <svg style={{ position: 'absolute', right: 0, bottom: 0 }} width="760" height="640" viewBox="0 0 760 640" fill="none" aria-hidden="true"><circle cx="470" cy="420" r="250" stroke="rgba(232,200,160,.14)" /><circle cx="470" cy="420" r="330" stroke="rgba(232,200,160,.09)" /></svg>
             <nav className={styles.nav} aria-label="Main">
-              <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#F8F0E5', textDecoration: 'none' }} aria-label="The Nest Social home">
-                <NestMark /><span className={styles.serif} style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-.01em' }}>nest</span>
+              {/* Same logo and size as the header on every other page */}
+              <Link href="/" style={{ textDecoration: 'none' }} aria-label="The Nest Social home">
+                <NestLogo size={22} color="#F8F0E5" />
               </Link>
               <div className={styles.navLinks}>
                 <Link href="/nila">Nila</Link>
@@ -550,8 +543,8 @@ export default function BusinessPage() {
 
           {/* ── Footer ── */}
           <footer className={styles.footer}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#F8F0E5', textDecoration: 'none' }} aria-label="The Nest Social home">
-              <NestMark /><span className={styles.serif} style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-.01em' }}>nest</span>
+            <Link href="/" style={{ textDecoration: 'none' }} aria-label="The Nest Social home">
+              <NestLogo size={20} color="#F8F0E5" />
             </Link>
             <p className={styles.serif} style={{ margin: '14px 0 0', fontStyle: 'italic', fontSize: 16, color: 'rgba(248,240,229,.6)' }}>Made with a lot of care, for the in-between days.</p>
             <div className={styles.footerContact}>

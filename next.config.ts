@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.zoho.com' },
     ],
   },
+  // Lover One campaign: static pages in public/lover-one
+  async rewrites() {
+    return [
+      { source: '/lover-one', destination: '/lover-one/index.html' },
+      { source: '/lover-one/note', destination: '/lover-one/note.html' },
+    ];
+  },
 };
 
 export default nextConfig;

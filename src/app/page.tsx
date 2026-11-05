@@ -1,6 +1,4 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import LandingPage from './_components/LandingPage'
 import { SITE_URL } from '@/lib/site'
 
@@ -24,28 +22,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function RootPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ code?: string; error?: string; error_code?: string; error_description?: string }>
-}) {
-  const params = await searchParams
-
-  // Supabase drops the auth code here when redirect_to isn't in its allowlist.
-  // Forward it to the real callback handler so the session can be exchanged.
-  if (params.code) {
-    redirect(`/auth/callback?code=${params.code}`)
-  }
-  if (params.error) {
-    // Supabase sends expired link errors to the Site URL (root), not to /auth/callback
-    if (params.error_code === 'otp_expired' || params.error === 'access_denied') {
-      redirect('/forgot-password?error=link_expired')
-    }
-    redirect('/login?error=callback_failed')
-  }
-
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  return <LandingPage isAuthenticated={!!user} />
+// Static: built once and served from the CDN. Auth links that land on /?code=...
+// or /?error=... are redirected in src/proxy.ts, and the header checks sign-in
+// in the browser, so nothing here depends on the request.
+export default function RootPage() {
+  return <LandingPage />
 }

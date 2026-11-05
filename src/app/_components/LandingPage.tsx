@@ -9,10 +9,6 @@ import PublicHeader from '@/components/layout/PublicHeader'
 import LandingHelpline from '@/components/layout/LandingHelpline'
 import LandingFooter from '@/components/layout/LandingFooter'
 
-interface Props {
-  isAuthenticated: boolean
-}
-
 // The Nest playlist ("Dead Poets Society"). Replace with the real Spotify link.
 const SPOTIFY_PLAYLIST_URL = 'https://open.spotify.com/playlist/4fdJZ6aY1uFZpEIuzyGoOa'
 
@@ -68,7 +64,7 @@ function ArrowIcon() {
   )
 }
 
-export default function LandingPage({ isAuthenticated }: Props) {
+export default function LandingPage() {
   // ── Waitlist modal ──
   const [waitlistOpen, setWaitlistOpen] = useState(false)
 
@@ -150,7 +146,7 @@ export default function LandingPage({ isAuthenticated }: Props) {
   return (
     <>
       {/* ══ NAVBAR ══ */}
-      <PublicHeader isAuthenticated={isAuthenticated} dark />
+      <PublicHeader detectAuth dark />
 
       <main>
         {/* ══ HERO ══ */}

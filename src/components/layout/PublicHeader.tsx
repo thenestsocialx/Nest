@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import styles from '@/app/landing.module.css'
+import { createClient } from '@/lib/supabase/client'
 
 // The blog needs its own database, so it's only linked where one is set up
 const BLOG_ENABLED = process.env.NEXT_PUBLIC_BLOG_ENABLED === 'true'
@@ -12,12 +13,31 @@ interface PublicHeaderProps {
   isAuthenticated?: boolean
   /** Darker bar for pages whose hero uses the deeper green */
   dark?: boolean
+  /** For static pages: check sign-in in the browser instead of on the server */
+  detectAuth?: boolean
 }
 
-export default function PublicHeader({ isAuthenticated = false, dark = false }: PublicHeaderProps) {
+export default function PublicHeader({ isAuthenticated: isAuthenticatedProp = false, dark = false, detectAuth = false }: PublicHeaderProps) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [detectedAuth, setDetectedAuth] = useState(false)
   const pathname = usePathname()
+  const isAuthenticated = detectAuth ? detectedAuth : isAuthenticatedProp
+
+  // Reads the session from the browser's auth cookie. Only affects which button
+  // the header shows; protected pages still check the user on the server.
+  useEffect(() => {
+    if (!detectAuth) return
+    let active = true
+    const supabase = createClient()
+    supabase.auth.getSession()
+      .then(({ data }) => { if (active) setDetectedAuth(!!data.session) })
+      .catch(() => {})
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) setDetectedAuth(!!session)
+    })
+    return () => { active = false; subscription.unsubscribe() }
+  }, [detectAuth])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useCountUp } from '../_hooks/useCountUp'
 
 interface Stats {
@@ -39,19 +38,19 @@ export default function KanmaniStats({ initialStats }: Props) {
     // Re-fetch when a payment is captured on this page (dispatched by DonationModal)
     window.addEventListener('kanmani:payment-captured', fetchFresh)
 
-    const supabase = createClient()
-    const channel = supabase
-      .channel('kf-donations-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kanmani_donations' },
-        fetchFresh,
-      )
-      .subscribe()
+    // Pick up other people's donations. Donation rows are private (no Realtime),
+    // so refresh the totals from the API every 30s while the tab is visible.
+    const POLL_MS = 30_000
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === 'visible') fetchFresh()
+    }, POLL_MS)
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchFresh() }
+    document.addEventListener('visibilitychange', onVisible)
 
     return () => {
       window.removeEventListener('kanmani:payment-captured', fetchFresh)
-      supabase.removeChannel(channel)
+      window.clearInterval(poll)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [])
 

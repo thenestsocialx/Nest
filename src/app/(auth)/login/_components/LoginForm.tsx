@@ -3,6 +3,8 @@
 import { useActionState, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { signInWithEmail, signInWithGoogle, type AuthActionState } from '@/actions/auth'
+import Turnstile from '@/components/auth/Turnstile'
+import { TURNSTILE_SITE_KEY } from '@/lib/turnstile'
 
 const initialState: AuthActionState = {}
 
@@ -33,6 +35,8 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
   }
 
   const busy = isPending || googlePending
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const waitingForCheck = !!TURNSTILE_SITE_KEY && !captcha
 
   return (
     <>
@@ -103,10 +107,15 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
               </p>
             </div>
 
+            {state.error && !state.field && (
+              <p className="ns-form__field-hint" role="alert" style={{ marginBottom: 8 }}>{state.error}</p>
+            )}
+            <Turnstile onVerify={setCaptcha} resetKey={state} />
+
             <button
               type="submit"
               className="ns-btn ns-btn--primary ns-btn--full ns-form__cta"
-              disabled={busy}
+              disabled={busy || waitingForCheck}
               aria-label="Sign in"
             >
               {isPending ? (

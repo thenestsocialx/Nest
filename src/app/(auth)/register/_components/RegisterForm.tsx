@@ -13,6 +13,8 @@ import {
   passwordStrengthScore,
   STRENGTH_LABELS,
 } from '@/lib/password'
+import Turnstile from '@/components/auth/Turnstile'
+import { TURNSTILE_SITE_KEY } from '@/lib/turnstile'
 
 const initialState: AuthActionState = {}
 const RESEND_COOLDOWN = 30
@@ -29,6 +31,10 @@ export default function RegisterForm() {
   const [started, setStarted] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const [resendError, setResendError] = useState('')
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const [resendCaptcha, setResendCaptcha] = useState<string | null>(null)
+  const [resendCount, setResendCount] = useState(0)
+  const waitingForCheck = !!TURNSTILE_SITE_KEY && !captcha
 
   const rules = checkPasswordRules(password)
   const score = passwordStrengthScore(password)
@@ -54,7 +60,8 @@ export default function RegisterForm() {
     if (!state.email || cooldown > 0) return
     setResendError('')
     setCooldown(RESEND_COOLDOWN)
-    const result = await resendVerification(state.email)
+    const result = await resendVerification(state.email, resendCaptcha ?? undefined)
+    setResendCount((n) => n + 1)
     if (result.error) setResendError(result.error)
   }
 
@@ -90,11 +97,12 @@ export default function RegisterForm() {
               </p>
             )}
 
+            <Turnstile onVerify={setResendCaptcha} resetKey={resendCount} />
             <button
               type="button"
               className="ns-btn ns-btn--ghost"
               onClick={handleResend}
-              disabled={cooldown > 0}
+              disabled={cooldown > 0 || (!!TURNSTILE_SITE_KEY && !resendCaptcha)}
               style={{ marginTop: 8 }}
             >
               {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}
@@ -117,6 +125,11 @@ export default function RegisterForm() {
           <p className="ns-form__sub">Private, safe, and yours.</p>
 
           <form action={formAction} onSubmit={handleSubmit} noValidate>
+            {/* Left empty by people; bots that fill every field give themselves away */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label htmlFor="reg-website">Website</label>
+              <input id="reg-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+            </div>
             <div style={{ marginBottom: 4 }}>
               <label className="ns-form__label" htmlFor="reg-email">
                 Email address
@@ -225,10 +238,15 @@ export default function RegisterForm() {
               </p>
             </div>
 
+            {state.error && !state.field && (
+              <p className="ns-form__field-hint" role="alert" style={{ marginBottom: 8 }}>{state.error}</p>
+            )}
+            <Turnstile onVerify={setCaptcha} resetKey={state} />
+
             <button
               type="submit"
               className="ns-btn ns-btn--primary ns-btn--full ns-form__cta"
-              disabled={busy}
+              disabled={busy || waitingForCheck}
               aria-label="Create account"
             >
               {isPending ? (

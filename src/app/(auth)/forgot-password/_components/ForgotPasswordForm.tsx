@@ -3,6 +3,8 @@
 import { useActionState, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { sendPasswordReset, type AuthActionState } from '@/actions/auth'
+import Turnstile from '@/components/auth/Turnstile'
+import { TURNSTILE_SITE_KEY } from '@/lib/turnstile'
 
 const initialState: AuthActionState = {}
 const RESEND_COOLDOWN = 30
@@ -10,6 +12,8 @@ const RESEND_COOLDOWN = 30
 export default function ForgotPasswordForm({ expiredLink }: { expiredLink?: boolean }) {
   const [state, formAction, isPending] = useActionState(sendPasswordReset, initialState)
   const [resendState, resendAction, resendPending] = useActionState(sendPasswordReset, initialState)
+  const [captcha, setCaptcha] = useState<string | null>(null)
+  const [resendCaptcha, setResendCaptcha] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
   const [email, setEmail] = useState('')
 
@@ -56,10 +60,11 @@ export default function ForgotPasswordForm({ expiredLink }: { expiredLink?: bool
 
             <form action={resendAction}>
               <input type="hidden" name="email" value={displayEmail} />
+              <Turnstile onVerify={setResendCaptcha} resetKey={resendState} />
               <button
                 type="submit"
                 className="ns-btn ns-btn--ghost"
-                disabled={cooldown > 0 || resendPending}
+                disabled={cooldown > 0 || resendPending || (!!TURNSTILE_SITE_KEY && !resendCaptcha)}
                 style={{ marginTop: 8 }}
               >
                 {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend reset link'}
@@ -119,10 +124,15 @@ export default function ForgotPasswordForm({ expiredLink }: { expiredLink?: bool
             </p>
           </div>
 
+          {state.error && !state.field && (
+            <p className="ns-form__field-hint" role="alert" style={{ marginBottom: 8 }}>{state.error}</p>
+          )}
+          <Turnstile onVerify={setCaptcha} resetKey={state} />
+
           <button
             type="submit"
             className="ns-btn ns-btn--primary ns-btn--full ns-form__cta"
-            disabled={isPending}
+            disabled={isPending || (!!TURNSTILE_SITE_KEY && !captcha)}
             aria-label="Send reset link"
           >
             {isPending ? (

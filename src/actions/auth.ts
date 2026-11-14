@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { validatePasswordRules } from '@/lib/password'
+import { TURNSTILE_SITE_KEY, captchaTokenFrom, CAPTCHA_MISSING } from '@/lib/turnstile'
+
+const CAPTCHA_FAILED = 'The security check didn’t go through. Please try again.'
+const isCaptchaError = (message: string) => message.toLowerCase().includes('captcha')
 
 async function getOrigin(): Promise<string> {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -49,6 +53,11 @@ export async function signUpWithEmail(
   const password = (formData.get('password') as string) ?? ''
   const confirm = (formData.get('confirm') as string) ?? ''
 
+  // Hidden field people never see. Bots that fill it get the normal success screen, but no account
+  if (((formData.get('website') as string) ?? '').trim()) {
+    return { success: true, email }
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!email || !emailRegex.test(email)) {
     return { error: 'Please enter a valid email address.', field: 'email' }
@@ -61,15 +70,19 @@ export async function signUpWithEmail(
     return { error: "Passwords don't match.", field: 'confirm' }
   }
 
+  const captchaToken = captchaTokenFrom(formData)
+  if (TURNSTILE_SITE_KEY && !captchaToken) return { error: CAPTCHA_MISSING }
+
   const supabase = await createClient()
   const origin = await getOrigin()
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    options: { emailRedirectTo: `${origin}/auth/callback`, captchaToken },
   })
 
   if (error) {
+    if (isCaptchaError(error.message)) return { error: CAPTCHA_FAILED }
     const msg = error.message.toLowerCase()
     if (msg.includes('already registered') || msg.includes('user already exists')) {
       return { error: 'An account with this email already exists. Try signing in.', field: 'email' }
@@ -103,10 +116,14 @@ export async function signInWithEmail(
     return { error: 'Please enter your password.', field: 'password' }
   }
 
+  const captchaToken = captchaTokenFrom(formData)
+  if (TURNSTILE_SITE_KEY && !captchaToken) return { error: CAPTCHA_MISSING }
+
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } })
 
   if (error) {
+    if (isCaptchaError(error.message)) return { error: CAPTCHA_FAILED }
     const msg = error.message.toLowerCase()
     if (msg.includes('email not confirmed')) {
       return {
@@ -130,11 +147,17 @@ export async function sendPasswordReset(
     return { error: 'Please enter a valid email address.', field: 'email' }
   }
 
+  const captchaToken = captchaTokenFrom(formData)
+  if (TURNSTILE_SITE_KEY && !captchaToken) return { error: CAPTCHA_MISSING, email }
+
   const supabase = await createClient()
   const origin = await getOrigin()
-  await supabase.auth.resetPasswordForEmail(email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+    captchaToken,
   })
+  // Other errors stay hidden so the form never reveals whether an account exists
+  if (error && isCaptchaError(error.message)) return { error: CAPTCHA_FAILED, email }
 
   return { success: true, email }
 }
@@ -161,14 +184,16 @@ export async function updatePassword(
   redirect('/home')
 }
 
-export async function resendVerification(email: string): Promise<{ error?: string }> {
+export async function resendVerification(email: string, captchaToken?: string): Promise<{ error?: string }> {
+  if (TURNSTILE_SITE_KEY && !captchaToken) return { error: CAPTCHA_MISSING }
   const supabase = await createClient()
   const origin = await getOrigin()
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    options: { emailRedirectTo: `${origin}/auth/callback`, captchaToken },
   })
+  if (error && isCaptchaError(error.message)) return { error: CAPTCHA_FAILED }
   return error ? { error: error.message } : {}
 }
 
@@ -187,16 +212,21 @@ export async function signInWithMagicLink(
     return { error: 'Please enter a valid email address.' }
   }
 
+  const captchaToken = captchaTokenFrom(formData)
+  if (TURNSTILE_SITE_KEY && !captchaToken) return { error: CAPTCHA_MISSING }
+
   const supabase = await createClient()
   const origin = await getOrigin()
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      captchaToken,
     },
   })
 
   if (error) {
+    if (isCaptchaError(error.message)) return { error: CAPTCHA_FAILED }
     return { error: error.message }
   }
 

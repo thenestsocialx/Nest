@@ -1,6 +1,6 @@
 'use client'
 
-import NestLogo from '@/components/ui/NestLogo'
+import NestLogo, { NestMark } from '@/components/ui/NestLogo'
 import styles from './assessmentIntro.module.css'
 
 interface Props {
@@ -86,10 +86,7 @@ export default function AssessmentIntroScreen({ onStart, onSkip }: Props) {
           </div>
           <div className={styles.team}>
             <span className={styles.teamAvatar} aria-hidden="true">
-              <svg width="18" height="17" viewBox="0 0 30 28" fill="none">
-                <path d="M 3,16 Q 15,26 27,16" stroke="#2F4C3A" strokeWidth="3.2" strokeLinecap="round" />
-                <circle cx="15" cy="8" r="3.2" fill="#2F4C3A" />
-              </svg>
+              <NestMark width={18} color="#2F4C3A" />
             </span>
             The Nest care team
           </div>

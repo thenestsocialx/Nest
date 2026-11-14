@@ -1,16 +1,13 @@
 import styles from '@/app/landing.module.css'
+import NestLogo from '@/components/ui/NestLogo'
 
 export default function LandingFooter() {
   return (
     <footer className={styles.footer} aria-label="The Nest Social footer">
       <div className={styles.containerWide}>
         <div className={styles.footerInner}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'rgba(248,240,229,0.7)' }} aria-label="nest" role="img">
-            <svg width="22" height="20" viewBox="0 0 30 28" fill="none" aria-hidden="true">
-              <path d="M 3,16 Q 15,26 27,16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round"/>
-              <circle cx="15" cy="8" r="3.2" fill="currentColor"/>
-            </svg>
-            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: 'currentColor' }}>nest</span>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <NestLogo size={20} color="rgba(248,240,229,0.7)" />
           </div>
           <p className={styles.footerTagline}>Made with a lot of care, for the in-between days.</p>
           <div className={styles.footerContact}>

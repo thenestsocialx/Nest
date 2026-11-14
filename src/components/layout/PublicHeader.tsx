@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import styles from '@/app/landing.module.css'
+import NestLogo from '@/components/ui/NestLogo'
 import { createClient } from '@/lib/supabase/client'
 
 // The blog needs its own database, so it's only linked where one is set up
@@ -60,13 +61,7 @@ export default function PublicHeader({ isAuthenticated: isAuthenticatedProp = fa
     <header className={navClass} role="banner">
       <div className={styles.navInner}>
         <Link href="/" className={styles.navLogo} aria-label="nest home">
-          <svg width="26" height="24" viewBox="0 0 30 28" fill="none" aria-hidden="true">
-            <path d="M 3,16 Q 15,26 27,16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-            <circle cx="15" cy="8" r="3.2" fill="currentColor" />
-          </svg>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: 'currentColor' }}>
-            nest
-          </span>
+          <NestLogo size={22} color="currentColor" />
         </Link>
 
         <nav className={styles.navLinks} aria-label="Main navigation">

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import NestLogo from '@/components/ui/NestLogo'
+import NestLogo, { NestMark } from '@/components/ui/NestLogo'
 import PublicHeader from '@/components/layout/PublicHeader'
 import styles from './not-found.module.css'
 
@@ -79,10 +79,7 @@ export default function NotFound() {
 
           {/* Decorative background nest illustration */}
           <div className={styles.nestArt} aria-hidden="true">
-            <svg width="320" height="296" viewBox="0 0 30 28" fill="none">
-              <path d="M 3,16 Q 15,26 27,16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-              <circle cx="15" cy="8" r="3.2" fill="currentColor" />
-            </svg>
+            <NestMark width={320} />
           </div>
 
           <div className={styles.content}>
